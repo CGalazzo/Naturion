@@ -24,6 +24,10 @@
       --panel: rgba(9, 35, 22, .96);
       --scene-x: 0px;
       --scene-y: 0px;
+      /* Escala-base das primeiras evoluções em cada contexto do jogo. */
+      --naturion-stage-one-map-size: clamp(84px, 9vw, 110px);
+      --naturion-stage-one-battle-size: clamp(170px, 19vw, 250px);
+      --naturion-stage-one-absorption-size: clamp(190px, 23vw, 300px);
     }
 
     * {
@@ -1567,10 +1571,13 @@
     .sync-watch {
       position: relative;
       z-index: 2;
-      width: min(38vw, 520px);
       max-height: 64vh;
       object-fit: contain;
       filter: drop-shadow(0 0 24px color-mix(in srgb, var(--sync-color) 72%, transparent));
+    }
+
+    .sync-creature {
+      width: var(--naturion-stage-one-absorption-size);
     }
 
     .sync-creature.absorbing {
@@ -1609,8 +1616,8 @@
       height: var(--size);
       border-radius: var(--radius, 2px);
       opacity: 0;
-      background: var(--sync-color);
-      box-shadow: 0 0 12px 3px var(--sync-glow);
+      background: var(--particle-color, var(--sync-color));
+      box-shadow: 0 0 12px 3px var(--particle-glow, var(--sync-glow));
       animation: particle-absorb var(--duration) cubic-bezier(.42, .05, .65, 1) var(--delay) forwards;
     }
 
@@ -1896,6 +1903,12 @@
     }
 
     @media (max-width: 760px) {
+      :root {
+        --naturion-stage-one-map-size: clamp(76px, 23vw, 96px);
+        --naturion-stage-one-battle-size: clamp(135px, 38vw, 170px);
+        --naturion-stage-one-absorption-size: clamp(155px, 44vw, 215px);
+      }
+
       .researcher {
         bottom: 24vh;
         left: -3%;
@@ -1980,7 +1993,7 @@
       }
 
       .sync-creature {
-        width: 51vw;
+        width: var(--naturion-stage-one-absorption-size);
       }
 
       .sync-watch {
@@ -2453,7 +2466,7 @@
       display: grid;
       isolation: isolate;
       justify-items: center;
-      width: clamp(112px, 14vw, 180px);
+      width: var(--naturion-stage-one-map-size);
       pointer-events: none;
       transform: translateX(-50%);
       transition: filter .28s ease, transform .28s ease;
@@ -2654,7 +2667,7 @@
     .battle-platform {
       position: absolute;
       z-index: 0;
-      width: clamp(210px, 28vw, 410px);
+      width: clamp(190px, 22vw, 300px);
       height: clamp(42px, 6vw, 82px);
       border: 2px solid rgba(225, 191, 92, .35);
       border-radius: 50%;
@@ -2689,13 +2702,13 @@
     .battle-player {
       bottom: 4%;
       left: 7%;
-      width: clamp(165px, 25vw, 340px);
+      width: var(--naturion-stage-one-battle-size);
     }
 
     .battle-wild {
-      top: 13%;
+      top: 20%;
       right: 10%;
-      width: clamp(155px, 23vw, 310px);
+      width: var(--naturion-stage-one-battle-size);
     }
 
     .battle-player img,
@@ -2871,7 +2884,7 @@
       position: absolute;
       z-index: 10;
       bottom: max(112px, calc(env(safe-area-inset-bottom) + 96px));
-      left: calc(7% + clamp(165px, 25vw, 340px) + 24px);
+      left: calc(7% + var(--naturion-stage-one-battle-size) + 24px);
       display: grid;
       grid-template-columns: minmax(150px, 1fr);
       width: min(18vw, 220px);
@@ -3022,6 +3035,7 @@
     }
 
     .victory-pair img {
+      width: var(--naturion-stage-one-battle-size);
       max-width: 46%;
       max-height: 170px;
       object-fit: contain;
@@ -3275,7 +3289,7 @@
       .plumirel-world {
         top: 27%;
         left: 69%;
-        width: clamp(105px, 31vw, 142px);
+        width: var(--naturion-stage-one-map-size);
       }
 
       .movement-guide {
@@ -3315,13 +3329,13 @@
       .battle-player {
         bottom: 7%;
         left: 2%;
-        width: min(42vw, 185px);
+        width: var(--naturion-stage-one-battle-size);
       }
 
       .battle-wild {
         top: 18%;
         right: 1%;
-        width: min(42vw, 190px);
+        width: var(--naturion-stage-one-battle-size);
       }
 
       .battle-platform.player {
@@ -3533,64 +3547,16 @@
       filter: drop-shadow(9px 13px 10px rgba(0, 0, 0, .55));
     }
 
-    .iris-wrist-device {
-      position: absolute;
-      z-index: 7;
-      top: 34.2%;
-      left: 24.5%;
-      display: grid;
-      width: 14%;
-      min-width: 34px;
-      aspect-ratio: 1;
-      place-items: center;
-      border-radius: 50%;
-      transform: rotate(-19deg);
-      transform-origin: center;
-      transition: filter .35s ease, transform .35s ease;
-    }
-
-    .iris-wrist-device::before {
-      position: absolute;
-      z-index: -1;
-      inset: 34% -22%;
-      border: 3px solid #8b5d17;
-      border-radius: 999px;
-      content: "";
-      background: linear-gradient(180deg, #d39a32, #5f3a0d);
-      box-shadow:
-        inset 0 0 0 2px rgba(255, 227, 121, .3),
-        0 2px 4px rgba(0, 0, 0, .5);
-    }
-
-    .iris-wrist-device img {
-      width: 90%;
-      height: 90%;
-      object-fit: contain;
-      filter:
-        drop-shadow(0 0 5px rgba(84, 222, 255, .92))
-        drop-shadow(1px 2px 2px rgba(0, 0, 0, .65));
-    }
-
-    .absorption-lesson.active .iris-wrist-device {
-      filter: brightness(1.35);
-      animation: wrist-watch-pulse .7s ease-in-out infinite alternate;
-    }
-
     .absorption-plumirel {
-      --absorb-x: -57vw;
       position: absolute;
       z-index: 4;
       top: 28%;
       right: 10%;
       display: grid;
       justify-items: center;
-      width: clamp(210px, 28vw, 390px);
+      width: var(--naturion-stage-one-absorption-size);
       transform: translateY(-10%);
       transform-origin: 50% 80%;
-      transition:
-        opacity 1.5s ease,
-        filter 1.5s ease,
-        transform 1.5s cubic-bezier(.2, .75, .2, 1);
     }
 
     .absorption-plumirel img {
@@ -3614,42 +3580,6 @@
       font-weight: 900;
       letter-spacing: .08em;
       text-transform: uppercase;
-    }
-
-    .absorption-lesson.active .absorption-plumirel {
-      animation: essence-release-to-wrist 2.25s cubic-bezier(.45, .02, .8, .35) .45s forwards;
-    }
-
-    .absorption-stream {
-      position: absolute;
-      z-index: 5;
-      top: 39%;
-      left: 13%;
-      width: 60%;
-      height: 8px;
-      opacity: 0;
-      background: linear-gradient(90deg, transparent, var(--sync-color), #fff, var(--sync-color), transparent);
-      box-shadow: 0 0 22px 7px var(--sync-glow);
-      transform: rotate(-3deg) scaleX(.2);
-      transform-origin: left center;
-      pointer-events: none;
-    }
-
-    .absorption-lesson.active .absorption-stream {
-      animation: beam-on 1.6s ease .65s forwards;
-    }
-
-    .absorption-particles {
-      position: absolute;
-      z-index: 8;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .absorption-sync-particle {
-      background: var(--particle-color, var(--sync-color));
-      box-shadow: 0 0 12px 3px var(--particle-glow, var(--sync-glow));
     }
 
     .absorption-dialogue-box {
@@ -3777,38 +3707,9 @@
       margin-top: 7px;
     }
 
-    @keyframes wrist-watch-pulse {
-      from {
-        transform: rotate(-19deg) scale(.96);
-        filter: brightness(.92) drop-shadow(0 0 18px var(--sync-color));
-      }
-      to {
-        transform: rotate(-19deg) scale(1.04);
-        filter: brightness(1.24) drop-shadow(0 0 50px var(--sync-glow));
-      }
-    }
-
     @keyframes tired-plumirel {
       0%, 100% { transform: translateY(0) rotate(-2deg); }
       50% { transform: translateY(5px) rotate(1deg); }
-    }
-
-    @keyframes essence-release-to-wrist {
-      0% {
-        opacity: 1;
-        filter: drop-shadow(0 0 24px var(--sync-color));
-        transform: translateY(-10%) scale(1);
-      }
-      55% {
-        opacity: .78;
-        filter: brightness(1.8) saturate(1.4) drop-shadow(0 0 44px var(--sync-color));
-        transform: translateY(-10%) scale(.88);
-      }
-      100% {
-        opacity: 0;
-        filter: brightness(2.5) blur(7px);
-        transform: translate(var(--absorb-x), -1vh) scale(.08) rotate(-24deg);
-      }
     }
 
     @keyframes result-watch-pulse {
@@ -3828,21 +3729,10 @@
         height: 56vh;
       }
 
-      .iris-wrist-device {
-        min-width: 27px;
-      }
-
       .absorption-plumirel {
-        --absorb-x: -48vw;
         top: 22%;
         right: -3%;
-        width: min(50vw, 215px);
-      }
-
-      .absorption-stream {
-        top: 37%;
-        left: 11%;
-        width: 63%;
+        width: var(--naturion-stage-one-absorption-size);
       }
 
       .absorption-dialogue-box {
@@ -4362,11 +4252,8 @@
           <img
             class="absorption-iris"
             src="assets/story/dr-iris.webp"
-            alt="Dra. Íris demonstrando o Relógio Cristalíneo"
+            alt="Dra. Íris explicando a absorção de essência"
           >
-          <span class="iris-wrist-device" aria-label="Relógio Cristalíneo preso ao punho da Dra. Íris">
-            <img src="assets/story/crystal-watch.webp" alt="">
-          </span>
         </div>
 
         <div class="absorption-plumirel" id="absorptionPlumirel">
@@ -4378,9 +4265,6 @@
           >
           <span>Plumirel · Essência Voadora</span>
         </div>
-
-        <span class="absorption-stream" aria-hidden="true"></span>
-        <div class="absorption-particles" id="absorptionParticles" aria-hidden="true"></div>
       </div>
 
       <aside class="absorption-dialogue-box">
@@ -4572,7 +4456,6 @@
       const absorptionLesson = document.getElementById("absorptionLesson");
       const absorptionDialogueText = document.getElementById("absorptionDialogueText");
       const absorptionDialogueAction = document.getElementById("absorptionDialogueAction");
-      const absorptionParticles = document.getElementById("absorptionParticles");
       const absorptionResult = document.getElementById("absorptionResult");
       const finishAbsorptionLesson = document.getElementById("finishAbsorptionLesson");
       const forestComplete = document.getElementById("forestComplete");
@@ -4669,10 +4552,14 @@
        */
       const ESSENCE_STYLES = {
         voador: {
+          id: "plumirel",
+          name: "Plumirel",
+          image: "assets/map/plumirel.webp",
           color: "#a8efff",
           glow: "#f4cf68",
           palette: ["#a8efff", "#ffffff", "#f7dc82"],
-          radius: "1px 70%"
+          radius: "1px 70%",
+          sound: [440, 554, 659, 784, 988, 1175]
         }
       };
 
@@ -4999,16 +4886,26 @@
           particle.style.setProperty("--end-x", `${endX}vw`);
           particle.style.setProperty("--end-y", `${endY}vh`);
           particle.style.setProperty("--size", `${3 + Math.random() * 8}px`);
-          particle.style.setProperty("--radius", starter.id === "axolume" ? "50%" : starter.id === "musgurso" ? "1px 70%" : "2px");
+          particle.style.setProperty(
+            "--radius",
+            starter.radius || (starter.id === "axolume" ? "50%" : starter.id === "musgurso" ? "1px 70%" : "2px")
+          );
           particle.style.setProperty("--duration", `${1.45 + Math.random() * .85}s`);
           particle.style.setProperty("--delay", `${.28 + Math.random() * .95}s`);
+          if (starter.palette) {
+            particle.style.setProperty(
+              "--particle-color",
+              starter.palette[index % starter.palette.length]
+            );
+            particle.style.setProperty("--particle-glow", starter.glow);
+          }
           particleField.append(particle);
         }
       };
 
       const showStoryResult = (starter) => {
         syncOverlay.hidden = true;
-        syncOverlay.classList.remove("active");
+        syncOverlay.classList.remove("active", "forest-absorption");
         syncCreature.classList.remove("absorbing");
         particleField.replaceChildren();
         startersStep.hidden = true;
@@ -5029,6 +4926,7 @@
         if (!starter || !currentPlayer) return;
 
         starterConfirmation.hidden = true;
+        syncOverlay.classList.remove("forest-absorption");
         currentPlayer = {
           ...currentPlayer,
           hasCrystalWatch: true,
@@ -5148,9 +5046,11 @@
         forestExploration.hidden = true;
         forestBattle.hidden = true;
         absorptionLesson.hidden = true;
-        absorptionLesson.classList.remove("active");
         absorptionResult.hidden = true;
-        absorptionParticles.replaceChildren();
+        syncOverlay.hidden = true;
+        syncOverlay.classList.remove("active", "forest-absorption");
+        syncCreature.classList.remove("absorbing");
+        particleField.replaceChildren();
         forestComplete.hidden = true;
         encounterBanner.hidden = true;
         battleVictory.hidden = true;
@@ -5458,7 +5358,7 @@
             action: "Ver o relógio"
           },
           {
-            text: "Mantenho o Relógio Cristalíneo preso ao meu punho para que o cristal permaneça alinhado com a essência. Veja como ela será conduzida.",
+            text: "Vou posicionar o Relógio Cristalíneo diante de Plumirel. Quando o cristal reconhecer sua essência Voadora, ele abrirá o fluxo de absorção.",
             action: "Iniciar absorção"
           }
         ];
@@ -5473,62 +5373,42 @@
         forestBattle.hidden = true;
         battleVictory.hidden = true;
         absorptionLesson.hidden = false;
-        absorptionLesson.classList.remove("active");
         absorptionResult.hidden = true;
-        absorptionParticles.replaceChildren();
         absorptionDialogueIndex = 0;
         forestObjective.textContent = "Observe a absorção da essência";
         renderAbsorptionDialogue();
         playSequence([330, 440, 554], .08);
       };
 
-      const createAbsorptionParticles = (essenceStyle) => {
-        absorptionParticles.replaceChildren();
-        const count = prefersLessMotion() ? 18 : 72;
-
-        for (let index = 0; index < count; index += 1) {
-          const particle = document.createElement("i");
-          const startX = 66 + Math.random() * 16;
-          const startY = 18 + Math.random() * 52;
-          const targetX = 13 + Math.random() * 2;
-          const targetY = 38 + Math.random() * 5;
-          particle.className = "sync-particle absorption-sync-particle";
-          particle.style.setProperty("--start-x", `${startX}vw`);
-          particle.style.setProperty("--start-y", `${startY}vh`);
-          particle.style.setProperty("--arc-x", `${-12 - Math.random() * 20}vw`);
-          particle.style.setProperty("--arc-y", `${-18 + Math.random() * 36}vh`);
-          particle.style.setProperty("--end-x", `${targetX - startX}vw`);
-          particle.style.setProperty("--end-y", `${targetY - startY}vh`);
-          particle.style.setProperty("--size", `${3 + Math.random() * 8}px`);
-          particle.style.setProperty("--radius", essenceStyle.radius);
-          particle.style.setProperty("--duration", `${1.45 + Math.random() * .85}s`);
-          particle.style.setProperty("--delay", `${.28 + Math.random() * .95}s`);
-          particle.style.setProperty(
-            "--particle-color",
-            essenceStyle.palette[index % essenceStyle.palette.length]
-          );
-          particle.style.setProperty("--particle-glow", essenceStyle.glow);
-          absorptionParticles.append(particle);
-        }
-      };
-
       const runAbsorptionDemonstration = async () => {
         const essenceStyle = ESSENCE_STYLES.voador;
         absorptionDialogueAction.disabled = true;
-        absorptionDialogueAction.textContent = "Absorvendo...";
-        absorptionDialogueText.textContent = "A essência voadora se desprende em partículas de luz e é guiada até o cristal no punho da Dra. Íris.";
-        absorptionLesson.style.setProperty("--sync-color", essenceStyle.color);
-        absorptionLesson.style.setProperty("--sync-glow", essenceStyle.glow);
-        createAbsorptionParticles(essenceStyle);
-        requestAnimationFrame(() => absorptionLesson.classList.add("active"));
-        playSequence([440, 554, 659, 784, 988, 1175], .12);
+        absorptionDialogueAction.textContent = "Iniciando...";
+        syncOverlay.classList.add("forest-absorption");
+        syncOverlay.style.setProperty("--sync-color", essenceStyle.color);
+        syncOverlay.style.setProperty("--sync-glow", essenceStyle.glow);
+        syncCreature.src = essenceStyle.image;
+        syncCreature.alt = `${essenceStyle.name} se transformando em essência`;
+        syncMessage.textContent = `Absorção de ${essenceStyle.name} iniciada...`;
+        createSyncParticles(essenceStyle);
+        syncOverlay.hidden = false;
+        requestAnimationFrame(() => {
+          syncOverlay.classList.add("active");
+          syncCreature.classList.add("absorbing");
+        });
+
+        playSequence(essenceStyle.sound, .12);
         const successDelay = prefersLessMotion() ? 450 : 2600;
         const resultDelay = prefersLessMotion() ? 850 : 3600;
         await forestPause(successDelay);
-        absorptionDialogueText.textContent = "A essência de Plumirel foi reconhecida. O cristal pulsa e conclui a absorção!";
-        playSequence([1175, 988, 784, 659, 554, 440], .09);
+        syncMessage.textContent = `Essência Voadora de ${essenceStyle.name} reconhecida!`;
+        playSequence(essenceStyle.sound.slice().reverse(), .09);
         await forestPause(resultDelay - successDelay);
 
+        syncOverlay.hidden = true;
+        syncOverlay.classList.remove("active", "forest-absorption");
+        syncCreature.classList.remove("absorbing");
+        particleField.replaceChildren();
         currentPlayer = {
           ...currentPlayer,
           tutorials: {
@@ -5557,7 +5437,6 @@
         const starter = STARTERS[selectedStarter];
         forestBattle.hidden = true;
         absorptionLesson.hidden = true;
-        absorptionLesson.classList.remove("active");
         forestComplete.hidden = false;
         forestObjective.textContent = "Tutoriais de batalha e absorção concluídos";
         forestCompleteText.textContent = `A essência de Plumirel foi guardada no Relógio de Pesquisa da Dra. Íris. ${starter.name} ganhou experiência e seu vínculo ficou mais forte.`;
