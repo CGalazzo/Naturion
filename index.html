@@ -2115,6 +2115,7 @@
     .absorption-result[hidden],
     .seal-puzzle[hidden],
     .open-forest-map[hidden],
+    .world-door-transition[hidden],
     .journey-unlocked[hidden],
     .forest-complete[hidden],
     .battle-victory[hidden] {
@@ -4560,6 +4561,23 @@
       line-height: 1.5;
     }
 
+    .enter-world-button {
+      min-width: min(320px, 82vw);
+      margin-top: 8px;
+      border-color: #fff0a2;
+      background:
+        linear-gradient(180deg, #f5d55e, #c88822 58%, #875113);
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 218, .22),
+        0 5px 0 #5a350b,
+        0 0 22px rgba(255, 225, 113, .38);
+    }
+
+    .puzzle-complete.leaving {
+      pointer-events: none;
+      animation: world-card-depart .52s ease-in both;
+    }
+
     .puzzle-dialogue[hidden],
     .puzzle-guide[hidden],
     .puzzle-replay[hidden],
@@ -4730,6 +4748,381 @@
     .journey-unlocked span {
       font-size: clamp(.72rem, 1.8vw, .95rem);
       font-weight: 900;
+    }
+
+    .forest-screen.world-map-open > .forest-background,
+    .forest-screen.world-map-open > .forest-topbar {
+      display: none;
+    }
+
+    .world-map-screen {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      overflow: hidden;
+      color: #f8f4cf;
+      background:
+        radial-gradient(circle at 50% 45%, #19799a, #083b59 68%, #031c2f);
+      animation: world-map-reveal 1s ease both;
+    }
+
+    .world-map-canvas {
+      position: absolute;
+      inset: 0;
+      width: min(100vw, calc(100svh * 1.7779));
+      height: min(100svh, calc(100vw / 1.7779));
+      margin: auto;
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(0, 0, 0, .48);
+    }
+
+    .world-map-art {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      filter: saturate(1.03) contrast(1.02);
+      pointer-events: none;
+    }
+
+    .world-map-shade {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(2, 19, 27, .24), transparent 20%, transparent 77%, rgba(1, 16, 25, .22)),
+        radial-gradient(circle at center, transparent 43%, rgba(1, 18, 27, .18));
+      pointer-events: none;
+    }
+
+    .world-map-header {
+      position: absolute;
+      z-index: 18;
+      top: max(16px, env(safe-area-inset-top));
+      left: 50%;
+      display: grid;
+      grid-template-columns: auto auto;
+      align-items: center;
+      min-width: min(690px, calc(100% - 32px));
+      gap: 8px 28px;
+      padding: 10px 20px;
+      border: 2px solid #ddbd54;
+      border-radius: 8px;
+      color: #fff4a4;
+      background:
+        linear-gradient(180deg, rgba(7, 52, 48, .96), rgba(3, 29, 32, .97));
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 240, 155, .08),
+        0 10px 28px rgba(0, 0, 0, .45);
+      transform: translateX(-50%);
+    }
+
+    .world-map-header span {
+      display: grid;
+      gap: 2px;
+    }
+
+    .world-map-header small {
+      color: #9be4d2;
+      font-size: .56rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .world-map-header strong {
+      font-family: Georgia, serif;
+      font-size: clamp(.9rem, 2vw, 1.28rem);
+      letter-spacing: .06em;
+      text-shadow: 0 2px 4px #000;
+      text-transform: uppercase;
+    }
+
+    .world-map-objective {
+      justify-self: end;
+      color: #eaf9dc;
+      font-size: clamp(.62rem, 1.25vw, .78rem);
+      font-weight: 900;
+      text-align: right;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    .world-destination {
+      position: absolute;
+      z-index: 8;
+      display: grid;
+      justify-items: center;
+      width: clamp(74px, 8vw, 116px);
+      gap: 4px;
+      padding: 0;
+      border: 0;
+      color: #fff6ae;
+      background: transparent;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+    }
+
+    .world-destination-marker {
+      position: relative;
+      display: grid;
+      width: clamp(42px, 4.2vw, 64px);
+      aspect-ratio: 1;
+      place-items: center;
+      border: 4px solid #d8aa39;
+      color: #fff8c6;
+      background:
+        linear-gradient(145deg, #f8e67c 0 12%, #43c890 13% 47%, #17664d 48% 100%);
+      box-shadow:
+        inset 0 0 0 4px rgba(3, 42, 34, .44),
+        0 5px 0 #664314,
+        0 0 18px rgba(120, 255, 204, .45);
+      clip-path: polygon(27% 0, 73% 0, 100% 27%, 100% 73%, 73% 100%, 27% 100%, 0 73%, 0 27%);
+      image-rendering: pixelated;
+    }
+
+    .world-destination-marker::after {
+      width: 34%;
+      aspect-ratio: 1;
+      content: "";
+      background: #d9fff4;
+      box-shadow:
+        6px 0 #60e5c1,
+        -6px 0 #60e5c1,
+        0 6px #228b72,
+        0 -6px #fff9a7;
+      transform: rotate(45deg);
+    }
+
+    .world-destination-label {
+      padding: 4px 8px;
+      border: 1px solid rgba(241, 208, 100, .64);
+      border-radius: 5px;
+      background: rgba(3, 31, 31, .91);
+      box-shadow: 0 4px 9px rgba(0, 0, 0, .38);
+      font-size: clamp(.5rem, .85vw, .65rem);
+      font-weight: 900;
+      letter-spacing: .04em;
+      line-height: 1.18;
+      text-align: center;
+      text-shadow: 0 2px 3px #000;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .world-destination.current {
+      pointer-events: none;
+    }
+
+    .world-destination.current .world-destination-marker {
+      border-color: #a5efff;
+      background: linear-gradient(145deg, #c8fbff, #2b9eaa 46%, #135c69);
+      box-shadow:
+        inset 0 0 0 4px rgba(5, 48, 59, .44),
+        0 5px 0 #164a55,
+        0 0 19px #5de7ff;
+    }
+
+    .world-destination.unlocked .world-destination-marker {
+      animation: world-node-ready 1.15s ease-in-out infinite alternate;
+    }
+
+    .world-destination.unlocked:hover .world-destination-marker,
+    .world-destination.unlocked:focus-visible .world-destination-marker {
+      filter: brightness(1.18);
+      outline: 3px solid #fff2a0;
+      outline-offset: 4px;
+    }
+
+    .world-destination.locked {
+      color: #d4d1b3;
+      cursor: not-allowed;
+      filter: saturate(.32);
+      opacity: .78;
+    }
+
+    .world-destination.locked .world-destination-marker {
+      border-color: #8d896f;
+      background: linear-gradient(145deg, #aaa58b, #5d625b 48%, #303b38);
+      box-shadow:
+        inset 0 0 0 4px rgba(15, 24, 22, .48),
+        0 5px 0 #303127;
+    }
+
+    .world-destination.locked .world-destination-marker::after {
+      width: 26%;
+      height: 24%;
+      border: 3px solid #e2d389;
+      border-top: 0;
+      background: #9c7526;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .world-destination.locked .world-destination-marker::before {
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      width: 28%;
+      height: 26%;
+      border: 3px solid #e2d389;
+      border-bottom: 0;
+      content: "";
+      transform: translateX(-50%);
+    }
+
+    .world-destination.visited .world-destination-marker {
+      border-color: #fff1a2;
+      filter: brightness(1.16);
+      animation: none;
+      box-shadow:
+        inset 0 0 0 4px rgba(3, 42, 34, .38),
+        0 5px 0 #664314,
+        0 0 26px #8effd7;
+    }
+
+    .world-start {
+      left: 18.3%;
+      top: 82%;
+    }
+
+    .world-first-destination {
+      left: 29.2%;
+      top: 60.5%;
+    }
+
+    .world-central-destination {
+      left: 47.7%;
+      top: 47.5%;
+    }
+
+    .world-crystal-destination {
+      left: 24.5%;
+      top: 20.5%;
+    }
+
+    .world-volcano-destination {
+      left: 70%;
+      top: 20.5%;
+    }
+
+    .world-coast-destination {
+      left: 66%;
+      top: 61%;
+    }
+
+    .world-map-party {
+      z-index: 14;
+      left: 18.3%;
+      top: 82%;
+      width: clamp(48px, 5vw, 78px);
+      height: clamp(72px, 8vw, 120px);
+      transition:
+        left .38s linear,
+        top .38s linear;
+      will-change: left, top;
+    }
+
+    .world-map-party::after {
+      bottom: -1px;
+      height: 8%;
+    }
+
+    .world-map-party.is-moving > .explorer-hero {
+      animation: world-hero-walk .32s ease-in-out infinite;
+    }
+
+    .world-map-party.is-moving > .explorer-starter {
+      animation: world-starter-follow .42s ease-in-out infinite;
+    }
+
+    .world-map-guide {
+      bottom: max(18px, env(safe-area-inset-bottom));
+      left: 50%;
+      grid-template-columns: 44px minmax(190px, 390px);
+      width: min(520px, calc(100% - 24px));
+      max-width: none;
+      transform: translateX(-50%);
+    }
+
+    .world-map-guide img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .world-door-transition {
+      position: absolute;
+      z-index: 70;
+      inset: 0;
+      overflow: hidden;
+      background: rgba(239, 255, 255, 0);
+      pointer-events: all;
+    }
+
+    .world-door-transition::before {
+      position: absolute;
+      top: 42%;
+      left: 50%;
+      width: 12vmin;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      content: "";
+      background:
+        radial-gradient(circle, #fff 0 24%, #d9ffff 42%, #8effef 61%, rgba(126, 236, 255, 0) 72%);
+      filter: blur(4px);
+      transform: translate(-50%, -50%) scale(.12);
+    }
+
+    .world-door-transition.active {
+      animation: world-transition-shell 1.75s ease-in-out both;
+    }
+
+    .world-door-transition.active::before {
+      animation: world-door-light 1.75s cubic-bezier(.2, .78, .2, 1) both;
+    }
+
+    .seal-puzzle.entering-world .puzzle-scene.open {
+      opacity: 1;
+      filter: brightness(2.2) blur(2px);
+      transform: scale(1.32);
+      transition: filter 1.05s ease, transform 1.05s cubic-bezier(.2, .75, .2, 1);
+    }
+
+    @keyframes world-card-depart {
+      to { opacity: 0; transform: scale(1.06); }
+    }
+
+    @keyframes world-transition-shell {
+      0% { background-color: rgba(239, 255, 255, 0); }
+      42%, 68% { background-color: rgba(248, 255, 255, 1); }
+      100% { background-color: rgba(248, 255, 255, 0); }
+    }
+
+    @keyframes world-door-light {
+      0% { opacity: .15; transform: translate(-50%, -50%) scale(.12); }
+      48%, 72% { opacity: 1; transform: translate(-50%, -50%) scale(18); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(22); }
+    }
+
+    @keyframes world-map-reveal {
+      from { opacity: 0; filter: brightness(1.6) blur(3px); transform: scale(1.035); }
+      to { opacity: 1; filter: none; transform: none; }
+    }
+
+    @keyframes world-node-ready {
+      from { filter: brightness(1); transform: translateY(0); }
+      to { filter: brightness(1.18); transform: translateY(-4px); }
+    }
+
+    @keyframes world-hero-walk {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(-1deg); }
+      50% { transform: translateX(-50%) translateY(-4px) rotate(1deg); }
+    }
+
+    @keyframes world-starter-follow {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-5px) rotate(2deg); }
     }
 
     @keyframes puzzle-complete-reveal {
@@ -4919,6 +5312,73 @@
 
       .instability-focus::after {
         display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .world-map-header {
+        top: max(8px, env(safe-area-inset-top));
+        grid-template-columns: 1fr;
+        min-width: calc(100% - 16px);
+        gap: 2px;
+        padding: 7px 11px;
+      }
+
+      .world-map-header strong {
+        font-size: .82rem;
+      }
+
+      .world-map-header small {
+        font-size: .48rem;
+      }
+
+      .world-map-objective {
+        justify-self: start;
+        font-size: .56rem;
+        text-align: left;
+      }
+
+      .world-destination {
+        width: clamp(58px, 15vw, 82px);
+      }
+
+      .world-destination-marker {
+        width: clamp(32px, 8vw, 46px);
+        border-width: 3px;
+      }
+
+      .world-destination-label {
+        padding: 3px 5px;
+        font-size: clamp(.4rem, 1.7vw, .53rem);
+      }
+
+      .world-map-party {
+        width: clamp(38px, 9vw, 55px);
+        height: clamp(58px, 15vw, 82px);
+      }
+
+      .world-map-guide {
+        bottom: max(8px, env(safe-area-inset-bottom));
+        grid-template-columns: 36px 1fr;
+        width: calc(100% - 16px);
+        padding: 6px 8px 6px 6px;
+      }
+
+      .world-map-guide img {
+        width: 36px;
+        height: 36px;
+      }
+
+      .world-map-guide strong {
+        font-size: .52rem;
+      }
+
+      .world-map-guide em {
+        font-size: .62rem;
+      }
+
+      .enter-world-button {
+        min-width: min(280px, 82vw);
       }
     }
 
@@ -5553,57 +6013,105 @@
           <span>Três cristais em sintonia</span>
           <h2>Passagem liberada!</h2>
           <p id="puzzleCompleteText">A porta antiga respondeu à energia dos cristais e abriu o caminho.</p>
+          <button class="forest-action enter-world-button" id="enterNaturionWorld" type="button">
+            Entrar no Mundo Naturion
+          </button>
         </article>
       </section>
     </section>
 
     <section
-      class="open-forest-map"
+      class="open-forest-map world-map-screen"
       id="openForestMap"
-      aria-label="Mapa aberto do Bosque Luminal. Use as setas ou WASD para explorar."
+      aria-label="Mapa do Mundo Naturion. Escolha um destino disponível."
       tabindex="0"
       hidden
     >
-      <div class="open-map-grid" aria-hidden="true"></div>
-      <span class="instability-focus one" data-label="Foco 1" aria-label="Primeiro foco de instabilidade"></span>
-      <span class="instability-focus two" data-label="Foco 2" aria-label="Segundo foco de instabilidade"></span>
-      <span class="instability-focus three" data-label="Foco 3" aria-label="Terceiro foco de instabilidade"></span>
+      <div class="world-map-canvas">
+        <img
+          class="world-map-art"
+          src="assets/world/naturion-world-map.webp"
+          alt=""
+          width="1672"
+          height="941"
+        >
+        <div class="world-map-shade" aria-hidden="true"></div>
 
-      <div class="explorer-party open-map-party" id="openMapParty" aria-label="Seu grupo">
-        <img
-          class="explorer-hero"
-          id="openMapHero"
-          src="assets/selection/hero-male.webp"
-          alt="Seu personagem"
+        <header class="world-map-header">
+          <span>
+            <small>Primeiro continente</small>
+            <strong>Mundo Naturion</strong>
+          </span>
+          <em class="world-map-objective" id="worldMapObjective">Escolha seu primeiro destino</em>
+        </header>
+
+        <div class="world-destination world-start current" aria-label="Local atual: Passagem Antiga">
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Passagem Antiga</span>
+        </div>
+
+        <button
+          class="world-destination world-first-destination unlocked"
+          id="worldFirstDestination"
+          type="button"
+          data-world-destination="clareira-dos-ecos"
+          aria-label="Viajar para a Clareira dos Ecos"
         >
-        <img
-          class="explorer-starter"
-          id="openMapStarter"
-          src="assets/story/axolume.webp"
-          alt="Axolume"
-        >
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Clareira dos Ecos</span>
+        </button>
+
+        <button class="world-destination world-central-destination locked" type="button" disabled>
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Santuário Central</span>
+        </button>
+
+        <button class="world-destination world-crystal-destination locked" type="button" disabled>
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Cordilheira Cristalina</span>
+        </button>
+
+        <button class="world-destination world-volcano-destination locked" type="button" disabled>
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Cratera Rubra</span>
+        </button>
+
+        <button class="world-destination world-coast-destination locked" type="button" disabled>
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Vila Safira</span>
+        </button>
+
+        <div class="explorer-party open-map-party world-map-party" id="openMapParty" aria-label="Seu grupo">
+          <img
+            class="explorer-hero"
+            id="openMapHero"
+            src="assets/selection/hero-male.webp"
+            alt="Seu personagem"
+          >
+          <img
+            class="explorer-starter"
+            id="openMapStarter"
+            src="assets/story/axolume.webp"
+            alt="Axolume"
+          >
+        </div>
+
+        <aside class="open-map-guide world-map-guide">
+          <img src="assets/story/dr-iris.webp" alt="">
+          <span>
+            <strong>Dra. Íris · Mapa do mundo</strong>
+            <em id="worldMapGuideText">Os caminhos serão revelados durante sua jornada. Por enquanto, siga até a Clareira dos Ecos.</em>
+          </span>
+        </aside>
       </div>
-
-      <aside class="open-map-guide">
-        <img src="assets/story/dr-iris.webp" alt="">
-        <span>
-          <strong>Dra. Íris · Missão principal</strong>
-          <em>Explore livremente e investigue os três focos de instabilidade marcados no bosque.</em>
-        </span>
-      </aside>
-
-      <nav class="mobile-pad open-map-pad" aria-label="Controle de exploração">
-        <button type="button" data-open-move="up" aria-label="Mover para cima">▲</button>
-        <button type="button" data-open-move="left" aria-label="Mover para a esquerda">◀</button>
-        <button type="button" data-open-move="down" aria-label="Mover para baixo">▼</button>
-        <button type="button" data-open-move="right" aria-label="Mover para a direita">▶</button>
-      </nav>
 
       <div class="journey-unlocked" id="journeyUnlocked" hidden>
-        <strong>Jornada liberada!</strong>
-        <span>Missão: investigue os três focos de instabilidade</span>
+        <strong>Destino alcançado!</strong>
+        <span>Clareira dos Ecos</span>
       </div>
     </section>
+
+    <div class="world-door-transition" id="worldDoorTransition" aria-hidden="true" hidden></div>
 
     <section class="forest-complete" id="forestComplete" aria-labelledby="forestCompleteTitle" hidden>
       <article class="forest-complete-card">
@@ -5796,11 +6304,16 @@
       const puzzleReplay = document.getElementById("puzzleReplay");
       const puzzleComplete = document.getElementById("puzzleComplete");
       const puzzleCompleteText = document.getElementById("puzzleCompleteText");
+      const enterNaturionWorld = document.getElementById("enterNaturionWorld");
+      const worldDoorTransition = document.getElementById("worldDoorTransition");
       const openForestMap = document.getElementById("openForestMap");
       const openMapParty = document.getElementById("openMapParty");
       const openMapHero = document.getElementById("openMapHero");
       const openMapStarter = document.getElementById("openMapStarter");
       const openMapMovementButtons = [...document.querySelectorAll("[data-open-move]")];
+      const worldFirstDestination = document.getElementById("worldFirstDestination");
+      const worldMapObjective = document.getElementById("worldMapObjective");
+      const worldMapGuideText = document.getElementById("worldMapGuideText");
       const journeyUnlocked = document.getElementById("journeyUnlocked");
       const forestComplete = document.getElementById("forestComplete");
       const forestCompleteEyebrow = document.getElementById("forestCompleteEyebrow");
@@ -5856,6 +6369,8 @@
       let puzzleCompleted = false;
       let openMapExploring = false;
       let openMapPosition = { x: 50, y: 76 };
+      let worldMapTravelling = false;
+      let firstWorldDestinationReached = false;
 
       const STARTERS = {
         axolume: {
@@ -6658,7 +7173,7 @@
         forestExploring = false;
         stopTutorialMovement();
         setupTutorialWorld();
-        forestScreen.classList.remove("side-scroll-test");
+        forestScreen.classList.remove("side-scroll-test", "world-map-open");
         plumirelWorld.classList.remove("alert");
         forestIntro.hidden = false;
         forestExploration.hidden = true;
@@ -6669,9 +7184,15 @@
         sealPuzzle.hidden = true;
         openForestMap.hidden = true;
         journeyUnlocked.hidden = true;
+        worldDoorTransition.hidden = true;
+        worldDoorTransition.classList.remove("active");
+        enterNaturionWorld.disabled = false;
+        puzzleComplete.classList.remove("leaving");
         puzzleActive = false;
         puzzleLocked = false;
         openMapExploring = false;
+        worldMapTravelling = false;
+        firstWorldDestinationReached = false;
         syncOverlay.hidden = true;
         syncOverlay.classList.remove("active", "forest-absorption");
         syncCreature.classList.remove("absorbing");
@@ -7365,6 +7886,8 @@
         puzzleReplay.hidden = true;
         puzzleReplay.disabled = true;
         puzzleComplete.hidden = true;
+        puzzleComplete.classList.remove("leaving");
+        enterNaturionWorld.disabled = false;
         puzzleIntro.hidden = false;
         forestObjective.textContent = "Aprenda como os puzzles do mundo funcionam";
         renderPuzzleIntro();
@@ -7385,21 +7908,44 @@
       const openFirstMissionMap = () => {
         const starter = STARTERS[selectedStarter];
         forestComplete.hidden = true;
+        sealPuzzle.hidden = true;
+        puzzleComplete.hidden = true;
         openForestMap.hidden = false;
+        forestScreen.classList.remove("side-scroll-test");
+        forestScreen.classList.add("world-map-open");
         openMapHero.src = currentPlayer.character === "female"
           ? "assets/selection/hero-female.webp"
           : "assets/selection/hero-male.webp";
         openMapHero.alt = currentPlayer.name;
         openMapStarter.src = starter.image;
         openMapStarter.alt = starter.name;
-        openMapPosition = { x: 50, y: 76 };
+        firstWorldDestinationReached = Boolean(
+          currentPlayer.storyFlags?.firstWorldDestinationReached
+        );
+        openMapPosition = firstWorldDestinationReached
+          ? { x: 29.2, y: 60.5 }
+          : { x: 18.3, y: 82 };
         positionOpenMapParty();
-        openMapExploring = true;
-        forestObjective.textContent = "Investigue os 3 focos de instabilidade";
+        openMapParty.classList.remove("is-moving");
+        worldMapTravelling = false;
+        openMapExploring = false;
+        worldFirstDestination.disabled = firstWorldDestinationReached;
+        worldFirstDestination.classList.toggle("visited", firstWorldDestinationReached);
+        worldMapObjective.textContent = firstWorldDestinationReached
+          ? "Destino alcançado: Clareira dos Ecos"
+          : "Escolha seu primeiro destino";
+        worldMapGuideText.textContent = firstWorldDestinationReached
+          ? "A Clareira dos Ecos foi alcançada. A continuação desta missão será aberta na próxima etapa."
+          : "Os caminhos serão revelados durante sua jornada. Por enquanto, siga até a Clareira dos Ecos.";
+        forestObjective.textContent = firstWorldDestinationReached
+          ? "Clareira dos Ecos alcançada"
+          : "Viaje até a Clareira dos Ecos";
 
         currentPlayer = {
           ...currentPlayer,
-          lastCheckpoint: "bosque-luminal-mapa-aberto",
+          lastCheckpoint: firstWorldDestinationReached
+            ? "mundo-naturion-clareira-dos-ecos"
+            : "mundo-naturion-liberado",
           savedAt: new Date().toISOString(),
           storyFlags: {
             ...(currentPlayer.storyFlags || {}),
@@ -7408,18 +7954,14 @@
           activeMission: {
             ...currentPlayer.activeMission,
             status: "active",
-            objective: "Investigue os três focos de instabilidade",
-            progress: "investigar-focos-0-de-3"
+            objective: "Viaje até a Clareira dos Ecos",
+            progress: firstWorldDestinationReached
+              ? "clareira-dos-ecos-alcancada"
+              : "mapa-mundi-liberado"
           }
         };
         saveCurrentPlayer();
-        journeyUnlocked.hidden = false;
-        void journeyUnlocked.offsetWidth;
-        playSequence([330, 440, 554, 659, 784, 988], .08);
-        showToast("Mapa aberto: a missão Ecos no Bosque continua!");
-        window.setTimeout(() => {
-          journeyUnlocked.hidden = true;
-        }, prefersLessMotion() ? 120 : 2400);
+        playSequence([330, 440, 554, 659, 784], .07);
         window.dispatchEvent(new CustomEvent("naturion:open-forest-unlocked", {
           detail: currentPlayer
         }));
@@ -7427,6 +7969,92 @@
           detail: currentPlayer
         }));
         openForestMap.focus();
+      };
+
+      const enterWorldThroughPassage = async () => {
+        if (enterNaturionWorld.disabled) return;
+        enterNaturionWorld.disabled = true;
+        puzzleComplete.classList.add("leaving");
+        sealPuzzle.classList.add("entering-world");
+        worldDoorTransition.hidden = false;
+        worldDoorTransition.classList.remove("active");
+        void worldDoorTransition.offsetWidth;
+        worldDoorTransition.classList.add("active");
+        playSequence([392, 523, 659, 784, 1047, 1319], .085);
+
+        await forestPause(prefersLessMotion() ? 80 : 780);
+        openFirstMissionMap();
+        await forestPause(prefersLessMotion() ? 90 : 900);
+        worldDoorTransition.hidden = true;
+        worldDoorTransition.classList.remove("active");
+        sealPuzzle.classList.remove("entering-world");
+        showToast("Bem-vindo ao Mundo Naturion!");
+        if (!firstWorldDestinationReached) worldFirstDestination.focus();
+      };
+
+      const travelToFirstWorldDestination = async () => {
+        if (worldMapTravelling || firstWorldDestinationReached) return;
+        worldMapTravelling = true;
+        worldFirstDestination.disabled = true;
+        worldMapObjective.textContent = "Viajando para a Clareira dos Ecos";
+        worldMapGuideText.textContent = "Siga a trilha luminosa. Seu companheiro irá acompanhar cada passo.";
+        openMapParty.classList.add("is-moving");
+
+        const route = prefersLessMotion()
+          ? [{ x: 29.2, y: 60.5 }]
+          : [
+              { x: 19.8, y: 77.5 },
+              { x: 21.6, y: 73.2 },
+              { x: 24.1, y: 68.7 },
+              { x: 26.8, y: 64.6 },
+              { x: 29.2, y: 60.5 }
+            ];
+
+        for (let index = 0; index < route.length; index += 1) {
+          openMapPosition = route[index];
+          positionOpenMapParty();
+          playTone(180 + index % 2 * 28, 0, .038, "triangle");
+          await forestPause(prefersLessMotion() ? 25 : 390);
+        }
+
+        openMapParty.classList.remove("is-moving");
+        worldFirstDestination.classList.add("visited");
+        firstWorldDestinationReached = true;
+        worldMapTravelling = false;
+        worldMapObjective.textContent = "Destino alcançado: Clareira dos Ecos";
+        worldMapGuideText.textContent = "Muito bem! A Clareira dos Ecos foi alcançada. A missão continuará a partir deste ponto.";
+        forestObjective.textContent = "Clareira dos Ecos alcançada";
+        journeyUnlocked.hidden = false;
+        void journeyUnlocked.offsetWidth;
+        playSequence([523, 659, 784, 988], .085);
+
+        currentPlayer = {
+          ...currentPlayer,
+          lastCheckpoint: "mundo-naturion-clareira-dos-ecos",
+          savedAt: new Date().toISOString(),
+          storyFlags: {
+            ...(currentPlayer.storyFlags || {}),
+            openForestUnlocked: true,
+            firstWorldDestinationReached: true
+          },
+          activeMission: {
+            ...currentPlayer.activeMission,
+            status: "active",
+            objective: "Explore a Clareira dos Ecos",
+            progress: "clareira-dos-ecos-alcancada"
+          }
+        };
+        saveCurrentPlayer();
+        window.dispatchEvent(new CustomEvent("naturion:world-destination-reached", {
+          detail: {
+            destination: "clareira-dos-ecos",
+            player: currentPlayer
+          }
+        }));
+        window.setTimeout(() => {
+          journeyUnlocked.hidden = true;
+        }, prefersLessMotion() ? 120 : 2300);
+        showToast("Destino alcançado: Clareira dos Ecos!");
       };
 
       const updateFormState = () => {
@@ -7677,6 +8305,15 @@
         if (puzzleReplay.disabled) return;
         playClick(440);
         void previewCrystalSequence();
+      });
+
+      enterNaturionWorld.addEventListener("click", () => {
+        void enterWorldThroughPassage();
+      });
+
+      worldFirstDestination.addEventListener("click", () => {
+        playClick(523);
+        void travelToFirstWorldDestination();
       });
 
       openMapMovementButtons.forEach((button) => {
