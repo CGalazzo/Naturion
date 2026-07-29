@@ -13,6 +13,8 @@
   <link rel="preload" href="assets/selection/hero-female.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/story/research-outpost.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/story/crystal-watch-round.webp?v=2" as="image" type="image/webp">
+  <link rel="preload" href="assets/map/bosque-luminal.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/map/plumirel.webp" as="image" type="image/webp">
   <style>
     :root {
       --gold-light: #fff8ad;
@@ -2091,6 +2093,1398 @@
       }
     }
 
+    /* Capítulo 1: conteúdo novo adicionado após as telas já concluídas. */
+    .forest-screen[hidden],
+    .forest-intro[hidden],
+    .forest-exploration[hidden],
+    .forest-battle[hidden],
+    .forest-complete[hidden],
+    .battle-victory[hidden] {
+      display: none;
+    }
+
+    .forest-screen {
+      --starter-accent: #52d9ff;
+      position: fixed;
+      z-index: 30;
+      inset: 0;
+      isolation: isolate;
+      min-height: 100svh;
+      overflow: hidden;
+      background: #0b2719;
+      transition:
+        opacity .42s ease,
+        transform .42s cubic-bezier(.2, .75, .2, 1),
+        filter .42s ease;
+    }
+
+    .forest-background {
+      position: absolute;
+      z-index: -4;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: saturate(1.04) contrast(1.02);
+      animation: forest-breathe 12s ease-in-out infinite alternate;
+    }
+
+    .forest-screen::before {
+      position: absolute;
+      z-index: -3;
+      inset: 0;
+      content: "";
+      background:
+        linear-gradient(180deg, rgba(4, 17, 10, .46), transparent 28%, transparent 68%, rgba(2, 13, 8, .58)),
+        radial-gradient(circle at 51% 46%, transparent 15%, rgba(1, 13, 8, .16) 76%, rgba(1, 8, 5, .5));
+      pointer-events: none;
+    }
+
+    .forest-screen::after {
+      position: absolute;
+      z-index: 20;
+      inset: 0;
+      content: "";
+      opacity: .07;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .18) 1px, transparent 1px);
+      background-size: 4px 4px;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .forest-glow {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .forest-glow i {
+      position: absolute;
+      width: var(--glow-size, 5px);
+      height: var(--glow-size, 5px);
+      left: var(--glow-x);
+      top: var(--glow-y);
+      border-radius: 50%;
+      opacity: .25;
+      background: #ecff91;
+      box-shadow: 0 0 12px 3px #d7ff65;
+      animation: forest-mote var(--glow-duration, 6s) ease-in-out var(--glow-delay, 0s) infinite alternate;
+    }
+
+    .forest-topbar {
+      position: absolute;
+      z-index: 12;
+      top: max(14px, env(safe-area-inset-top));
+      left: 50%;
+      display: grid;
+      grid-template-columns: auto minmax(210px, 1fr) auto;
+      align-items: center;
+      width: min(calc(100% - 32px), 1120px);
+      gap: 12px;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .forest-location,
+    .forest-objective,
+    .forest-companion {
+      min-height: 54px;
+      border: 1px solid rgba(225, 192, 87, .7);
+      background:
+        linear-gradient(180deg, rgba(18, 51, 32, .96), rgba(5, 25, 15, .96));
+      box-shadow:
+        inset 0 0 0 3px rgba(1, 13, 8, .5),
+        0 8px 24px rgba(0, 0, 0, .34);
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    }
+
+    .forest-location {
+      display: grid;
+      align-content: center;
+      min-width: 180px;
+      padding: 8px 16px;
+    }
+
+    .forest-location small,
+    .forest-objective small,
+    .forest-companion small {
+      color: #d7c47b;
+      font-size: .65rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .forest-location strong {
+      margin-top: 2px;
+      color: #fff7bf;
+      font-family: Georgia, serif;
+      font-size: 1.08rem;
+    }
+
+    .forest-objective {
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      padding: 7px 18px;
+      text-align: center;
+    }
+
+    .forest-objective strong {
+      margin-top: 2px;
+      overflow: hidden;
+      color: #fff;
+      font-size: .83rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .forest-companion {
+      display: grid;
+      grid-template-columns: 42px auto;
+      align-items: center;
+      min-width: 170px;
+      padding: 5px 13px 5px 7px;
+    }
+
+    .forest-companion img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .5));
+    }
+
+    .forest-companion span {
+      display: grid;
+      line-height: 1.06;
+    }
+
+    .forest-companion strong {
+      margin-top: 3px;
+      color: #fff4b0;
+      font-size: .9rem;
+    }
+
+    .forest-intro {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      display: grid;
+      align-items: end;
+      padding: 100px 24px max(25px, env(safe-area-inset-bottom));
+      background:
+        linear-gradient(180deg, transparent 25%, rgba(2, 15, 9, .18) 54%, rgba(1, 10, 6, .84));
+    }
+
+    .forest-intro-card {
+      display: grid;
+      grid-template-columns: minmax(110px, 190px) 1fr;
+      align-items: end;
+      width: min(100%, 1020px);
+      min-height: 200px;
+      margin-inline: auto;
+      border: 2px solid rgba(226, 190, 75, .88);
+      background:
+        linear-gradient(135deg, rgba(14, 49, 30, .98), rgba(4, 21, 13, .98));
+      box-shadow:
+        inset 0 0 0 5px rgba(4, 15, 9, .72),
+        inset 0 0 38px rgba(102, 181, 89, .1),
+        0 20px 55px rgba(0, 0, 0, .48);
+      clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+    }
+
+    .forest-intro-iris {
+      align-self: end;
+      width: 100%;
+      max-height: 270px;
+      object-fit: contain;
+      object-position: bottom;
+      filter: drop-shadow(10px 8px 12px rgba(0, 0, 0, .55));
+    }
+
+    .forest-intro-copy {
+      align-self: stretch;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-content: center;
+      gap: 9px 18px;
+      padding: 23px 28px 23px 12px;
+    }
+
+    .forest-speaker {
+      grid-column: 1 / -1;
+      color: #f5d66b;
+      font-family: Georgia, serif;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .forest-dialogue {
+      min-height: 54px;
+      margin: 0;
+      color: #f4f7e8;
+      font-size: clamp(.95rem, 1.4vw, 1.12rem);
+      line-height: 1.5;
+    }
+
+    .forest-action,
+    .battle-action,
+    .battle-victory-button,
+    .forest-save-button {
+      border: 1px solid #ffe68b;
+      border-radius: 4px;
+      color: #13200d;
+      background:
+        linear-gradient(180deg, #fff2a0, #e1b535 55%, #9d6d12);
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 210, .28),
+        0 5px 0 #5d3e09,
+        0 9px 18px rgba(0, 0, 0, .34);
+      font-weight: 1000;
+      letter-spacing: .035em;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+    }
+
+    .forest-action {
+      align-self: center;
+      min-width: 170px;
+      min-height: 46px;
+      padding: 10px 18px;
+    }
+
+    .forest-action:hover,
+    .battle-action:hover:not(:disabled),
+    .battle-victory-button:hover,
+    .forest-save-button:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .forest-action:active,
+    .battle-action:active:not(:disabled),
+    .battle-victory-button:active,
+    .forest-save-button:active:not(:disabled) {
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 210, .25),
+        0 2px 0 #5d3e09;
+      transform: translateY(3px);
+    }
+
+    .forest-exploration {
+      position: absolute;
+      z-index: 5;
+      inset: 0;
+      outline: none;
+    }
+
+    .explorer-party {
+      position: absolute;
+      z-index: 5;
+      left: 28%;
+      top: 72%;
+      width: clamp(72px, 8vw, 108px);
+      height: clamp(105px, 14vw, 170px);
+      transform: translate(-50%, -100%);
+      transition:
+        left .18s linear,
+        top .18s linear;
+      will-change: left, top;
+    }
+
+    .explorer-party::after {
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      bottom: -2px;
+      width: 62%;
+      height: 12%;
+      border-radius: 50%;
+      content: "";
+      background: rgba(0, 0, 0, .45);
+      filter: blur(4px);
+      transform: translateX(-50%);
+    }
+
+    .explorer-hero {
+      position: absolute;
+      z-index: 2;
+      bottom: 0;
+      left: 50%;
+      width: 72%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom;
+      filter: drop-shadow(4px 6px 6px rgba(0, 0, 0, .5));
+      transform: translateX(-50%);
+    }
+
+    .explorer-starter {
+      position: absolute;
+      z-index: 3;
+      right: -20%;
+      bottom: 0;
+      width: 57%;
+      height: 55%;
+      object-fit: contain;
+      filter: drop-shadow(3px 5px 5px rgba(0, 0, 0, .48));
+      animation: companion-hop 1.8s ease-in-out infinite;
+    }
+
+    .explorer-party.is-moving .explorer-hero {
+      animation: party-step .18s ease-in-out;
+    }
+
+    .plumirel-world {
+      position: absolute;
+      z-index: 4;
+      top: 38%;
+      left: 72%;
+      display: grid;
+      justify-items: center;
+      width: clamp(112px, 14vw, 180px);
+      transform: translate(-50%, -100%);
+      transition: filter .28s ease, transform .28s ease;
+    }
+
+    .plumirel-world::after {
+      width: 56%;
+      height: 13px;
+      margin-top: -10px;
+      border-radius: 50%;
+      content: "";
+      background: rgba(0, 0, 0, .42);
+      filter: blur(5px);
+    }
+
+    .plumirel-world img {
+      width: 100%;
+      aspect-ratio: 748 / 713;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 9px rgba(255, 226, 120, .5))
+        drop-shadow(5px 8px 7px rgba(0, 0, 0, .5));
+      transform-origin: 50% 86%;
+      animation: plumirel-flutter 1.65s ease-in-out infinite;
+    }
+
+    .plumirel-world.alert {
+      filter: brightness(1.2);
+      transform: translate(-50%, -100%) scale(1.09);
+    }
+
+    .plumirel-world-name {
+      margin-top: -1px;
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 226, 120, .65);
+      border-radius: 999px;
+      color: #fff8c2;
+      background: rgba(4, 22, 13, .82);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, .35);
+      font-size: .68rem;
+      font-weight: 900;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .movement-guide {
+      position: absolute;
+      z-index: 9;
+      bottom: max(22px, env(safe-area-inset-bottom));
+      left: 22px;
+      display: grid;
+      grid-template-columns: 52px minmax(180px, 310px);
+      align-items: center;
+      max-width: min(420px, calc(100% - 44px));
+      gap: 10px;
+      padding: 10px 14px 10px 9px;
+      border: 1px solid rgba(114, 232, 173, .7);
+      border-radius: 8px;
+      background: rgba(3, 23, 14, .92);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, .42);
+      pointer-events: none;
+    }
+
+    .movement-guide img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      object-position: top;
+      border-radius: 7px;
+      background: rgba(101, 199, 138, .16);
+    }
+
+    .movement-guide span {
+      display: grid;
+      gap: 3px;
+    }
+
+    .movement-guide strong {
+      color: #bff6cb;
+      font-size: .72rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .movement-guide em {
+      color: #f4f8eb;
+      font-size: .82rem;
+      font-style: normal;
+      line-height: 1.35;
+    }
+
+    .movement-keys {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 3px;
+    }
+
+    .movement-keys kbd {
+      min-width: 22px;
+      padding: 3px 5px;
+      border: 1px solid #d8c56d;
+      border-radius: 3px;
+      color: #fff8bf;
+      background: #132e1e;
+      box-shadow: 0 2px 0 #07150d;
+      font: 800 .66rem/1 "Trebuchet MS", sans-serif;
+      text-align: center;
+    }
+
+    .mobile-pad {
+      position: absolute;
+      z-index: 10;
+      right: 18px;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      display: none;
+      grid-template-columns: repeat(3, 48px);
+      grid-template-rows: repeat(3, 48px);
+      gap: 4px;
+    }
+
+    .mobile-pad button {
+      border: 1px solid rgba(255, 235, 137, .68);
+      border-radius: 8px;
+      color: #fff9bc;
+      background: rgba(7, 35, 21, .88);
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, .05),
+        0 4px 0 rgba(2, 15, 9, .9);
+      font-size: 1.15rem;
+      font-weight: 1000;
+      touch-action: manipulation;
+    }
+
+    .mobile-pad button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(2, 15, 9, .9);
+    }
+
+    .mobile-pad [data-move="up"] {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .mobile-pad [data-move="left"] {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .mobile-pad [data-move="down"] {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .mobile-pad [data-move="right"] {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    .encounter-banner {
+      position: absolute;
+      z-index: 15;
+      top: 50%;
+      left: 50%;
+      width: min(88vw, 620px);
+      padding: 18px 25px;
+      border-block: 2px solid #f4d56b;
+      color: #fff8c7;
+      background:
+        linear-gradient(90deg, transparent, rgba(5, 25, 15, .96) 12%, rgba(5, 25, 15, .96) 88%, transparent);
+      font-family: Georgia, serif;
+      font-size: clamp(1.1rem, 3vw, 1.65rem);
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-align: center;
+      text-shadow: 0 3px 4px #000;
+      transform: translate(-50%, -50%) scale(.8);
+      animation: encounter-banner .95s cubic-bezier(.2, .8, .2, 1) both;
+      pointer-events: none;
+    }
+
+    .forest-battle {
+      position: absolute;
+      z-index: 13;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 52%, transparent 18%, rgba(1, 10, 6, .24) 80%),
+        linear-gradient(180deg, rgba(2, 14, 8, .08), rgba(2, 13, 8, .35));
+      backdrop-filter: saturate(.92);
+    }
+
+    .battle-field {
+      position: absolute;
+      inset: 82px 0 152px;
+    }
+
+    .battle-platform {
+      position: absolute;
+      z-index: 0;
+      width: clamp(210px, 28vw, 410px);
+      height: clamp(42px, 6vw, 82px);
+      border: 2px solid rgba(225, 191, 92, .35);
+      border-radius: 50%;
+      background:
+        radial-gradient(ellipse, rgba(76, 103, 49, .88) 0 33%, rgba(28, 52, 29, .82) 55%, rgba(3, 17, 10, .12) 72%, transparent 74%);
+      box-shadow:
+        inset 0 12px 18px rgba(194, 221, 105, .16),
+        0 18px 24px rgba(0, 0, 0, .32);
+      filter: blur(.1px);
+    }
+
+    .battle-platform.player {
+      bottom: 2%;
+      left: 7%;
+    }
+
+    .battle-platform.wild {
+      top: 23%;
+      right: 7%;
+      transform: scale(.82);
+    }
+
+    .battle-player,
+    .battle-wild {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      justify-items: center;
+      transform-origin: 50% 85%;
+    }
+
+    .battle-player {
+      bottom: 5%;
+      left: 12%;
+      width: clamp(165px, 25vw, 340px);
+    }
+
+    .battle-wild {
+      top: 2%;
+      right: 13%;
+      width: clamp(155px, 23vw, 310px);
+    }
+
+    .battle-player img,
+    .battle-wild img {
+      width: 100%;
+      max-height: 45vh;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 11px color-mix(in srgb, var(--starter-accent) 48%, transparent))
+        drop-shadow(8px 12px 9px rgba(0, 0, 0, .48));
+      animation: battle-idle 2.4s ease-in-out infinite;
+    }
+
+    .battle-wild img {
+      filter:
+        drop-shadow(0 0 10px rgba(255, 222, 119, .45))
+        drop-shadow(8px 12px 9px rgba(0, 0, 0, .48));
+      animation-delay: -.8s;
+    }
+
+    .battle-player.strike {
+      animation: starter-strike .55s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .battle-wild.strike {
+      animation: plumirel-strike .55s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .battle-player.hit,
+    .battle-wild.hit {
+      animation: battle-hit .42s ease;
+    }
+
+    .battle-wild.defeated {
+      animation: battle-defeat .85s ease forwards;
+    }
+
+    .battle-status {
+      position: absolute;
+      z-index: 6;
+      display: grid;
+      width: min(38vw, 380px);
+      gap: 6px;
+      padding: 11px 14px;
+      border: 1px solid rgba(230, 194, 78, .8);
+      color: #f6f5df;
+      background: linear-gradient(135deg, rgba(6, 31, 18, .97), rgba(2, 17, 10, .97));
+      box-shadow:
+        inset 0 0 0 3px rgba(0, 0, 0, .25),
+        0 10px 24px rgba(0, 0, 0, .36);
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+
+    .battle-status.wild {
+      top: 94px;
+      left: 26px;
+    }
+
+    .battle-status.player {
+      right: 26px;
+      bottom: 164px;
+    }
+
+    .battle-status-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .battle-status-head strong {
+      color: #fff8bd;
+      font-family: Georgia, serif;
+      font-size: 1.1rem;
+      letter-spacing: .04em;
+    }
+
+    .battle-status-head span {
+      color: #d5ca93;
+      font-size: .74rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .hp-row,
+    .xp-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 7px;
+      font-size: .66rem;
+      font-weight: 900;
+    }
+
+    .hp-track,
+    .xp-track {
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 999px;
+      background: rgba(0, 0, 0, .52);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, .55);
+    }
+
+    .hp-fill,
+    .xp-fill {
+      display: block;
+      width: var(--bar-value, 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #58cd65, #b7ef66);
+      box-shadow: 0 0 8px rgba(130, 239, 104, .5);
+      transition: width .55s ease, background .35s ease;
+    }
+
+    .hp-fill.low {
+      background: linear-gradient(90deg, #da543a, #f5a144);
+    }
+
+    .xp-fill {
+      width: 18%;
+      background: linear-gradient(90deg, #52c8ff, #8df1ff);
+      box-shadow: 0 0 8px rgba(82, 200, 255, .5);
+    }
+
+    .battle-guide {
+      position: absolute;
+      z-index: 9;
+      top: 88px;
+      left: 50%;
+      display: grid;
+      grid-template-columns: 52px minmax(180px, 460px);
+      align-items: center;
+      width: min(58vw, 560px);
+      gap: 11px;
+      padding: 9px 15px 9px 9px;
+      border: 1px solid rgba(125, 226, 177, .76);
+      border-radius: 8px;
+      color: #edf9eb;
+      background: rgba(3, 24, 14, .94);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .38);
+      transform: translateX(-50%);
+    }
+
+    .battle-guide img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      object-position: top;
+      border-radius: 6px;
+      background: rgba(102, 189, 137, .16);
+    }
+
+    .battle-guide span {
+      display: grid;
+      gap: 2px;
+    }
+
+    .battle-guide strong {
+      color: #f1d56b;
+      font-size: .69rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .battle-guide em {
+      font-size: .82rem;
+      font-style: normal;
+      line-height: 1.35;
+    }
+
+    .battle-menu {
+      position: absolute;
+      z-index: 10;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      left: 50%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(145px, 210px));
+      width: min(calc(100% - 32px), 680px);
+      gap: 10px;
+      transform: translateX(-50%);
+    }
+
+    .battle-action {
+      position: relative;
+      min-height: 62px;
+      padding: 8px 12px;
+      overflow: hidden;
+    }
+
+    .battle-action small {
+      display: block;
+      margin-top: 3px;
+      opacity: .74;
+      font-size: .62rem;
+      letter-spacing: .04em;
+    }
+
+    .battle-action:disabled {
+      border-color: #667164;
+      color: #a3aea2;
+      background: linear-gradient(180deg, #405347, #263a2e);
+      box-shadow: 0 4px 0 #142219;
+      cursor: not-allowed;
+      filter: saturate(.35);
+    }
+
+    .battle-action.tutorial-focus:not(:disabled) {
+      animation: action-pulse 1.05s ease-in-out infinite alternate;
+    }
+
+    .battle-effects {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .battle-spark {
+      position: absolute;
+      left: var(--spark-x);
+      top: var(--spark-y);
+      width: var(--spark-size);
+      height: var(--spark-size);
+      border-radius: var(--spark-radius, 50%);
+      opacity: 0;
+      background: var(--spark-color, #fff4a4);
+      box-shadow: 0 0 12px var(--spark-color, #fff4a4);
+      animation: battle-spark .72s ease-out var(--spark-delay) forwards;
+    }
+
+    .battle-message {
+      position: absolute;
+      z-index: 11;
+      top: 52%;
+      left: 50%;
+      padding: 9px 22px;
+      border-block: 1px solid rgba(255, 229, 134, .74);
+      color: #fff7ba;
+      background: rgba(2, 18, 10, .88);
+      font-family: Georgia, serif;
+      font-size: clamp(.92rem, 2.4vw, 1.25rem);
+      font-weight: 900;
+      letter-spacing: .04em;
+      opacity: 0;
+      text-align: center;
+      transform: translate(-50%, -50%) scale(.88);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
+    }
+
+    .battle-message.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .battle-victory,
+    .forest-complete {
+      position: absolute;
+      z-index: 18;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background: rgba(1, 13, 8, .72);
+      backdrop-filter: blur(8px);
+    }
+
+    .battle-victory-card,
+    .forest-complete-card {
+      position: relative;
+      width: min(92vw, 600px);
+      padding: 27px;
+      border: 2px solid #f0d36c;
+      color: #f4f7e9;
+      background:
+        radial-gradient(circle at 50% 0, rgba(108, 203, 135, .2), transparent 45%),
+        linear-gradient(145deg, #123821, #061b10);
+      box-shadow:
+        inset 0 0 0 5px rgba(0, 0, 0, .3),
+        0 22px 65px rgba(0, 0, 0, .58);
+      clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+      text-align: center;
+    }
+
+    .battle-victory-card::before,
+    .battle-victory-card::after {
+      position: absolute;
+      top: 17px;
+      color: #f1d36a;
+      content: "✦";
+      font-size: 1.3rem;
+    }
+
+    .battle-victory-card::before {
+      left: 22px;
+    }
+
+    .battle-victory-card::after {
+      right: 22px;
+    }
+
+    .battle-victory-card h2,
+    .forest-complete-card h2 {
+      margin: 0 0 7px;
+      color: #fff0a0;
+      font-family: Georgia, serif;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      text-shadow: 0 3px 0 #503509;
+    }
+
+    .battle-victory-card p,
+    .forest-complete-card p {
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .victory-pair {
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      height: 180px;
+      margin: 8px 0 5px;
+    }
+
+    .victory-pair img {
+      max-width: 46%;
+      max-height: 170px;
+      object-fit: contain;
+      filter: drop-shadow(6px 9px 7px rgba(0, 0, 0, .5));
+    }
+
+    .victory-exp {
+      display: grid;
+      width: min(100%, 390px);
+      gap: 6px;
+      margin: 12px auto 19px;
+      padding: 10px 13px;
+      border: 1px solid rgba(113, 214, 245, .52);
+      border-radius: 7px;
+      background: rgba(4, 22, 28, .52);
+    }
+
+    .victory-exp strong {
+      color: #8beaff;
+      font-size: .85rem;
+      letter-spacing: .05em;
+    }
+
+    .battle-victory-button,
+    .forest-save-button {
+      min-height: 46px;
+      padding: 10px 22px;
+    }
+
+    .forest-complete-card {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      align-items: center;
+      width: min(94vw, 720px);
+      text-align: left;
+    }
+
+    .forest-complete-card > img {
+      width: 120px;
+      height: 180px;
+      object-fit: contain;
+      object-position: top;
+      filter: drop-shadow(6px 8px 7px rgba(0, 0, 0, .5));
+    }
+
+    .forest-complete-copy {
+      display: grid;
+      gap: 9px;
+      padding: 5px 8px 5px 15px;
+    }
+
+    .forest-complete-copy span {
+      color: #8ae9b0;
+      font-size: .72rem;
+      font-weight: 1000;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .forest-save-button {
+      justify-self: start;
+      margin-top: 4px;
+    }
+
+    .forest-save-button:disabled {
+      color: #d4e6d3;
+      background: linear-gradient(180deg, #47775a, #285039);
+      box-shadow: 0 3px 0 #163524;
+      cursor: default;
+    }
+
+    @keyframes forest-breathe {
+      from { transform: scale(1.002); }
+      to { transform: scale(1.018); }
+    }
+
+    @keyframes forest-mote {
+      from { opacity: .12; transform: translate3d(-4px, 8px, 0) scale(.7); }
+      to { opacity: .78; transform: translate3d(7px, -14px, 0) scale(1.15); }
+    }
+
+    @keyframes companion-hop {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-5px) rotate(2deg); }
+    }
+
+    @keyframes party-step {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-6px); }
+    }
+
+    @keyframes plumirel-flutter {
+      0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+
+    @keyframes encounter-banner {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.75); }
+      18%, 76% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.06); }
+    }
+
+    @keyframes battle-idle {
+      0%, 100% { transform: translateY(0) rotate(-.7deg); }
+      50% { transform: translateY(-7px) rotate(.7deg); }
+    }
+
+    @keyframes starter-strike {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      45% { transform: translate(22%, -8%) scale(1.08); }
+    }
+
+    @keyframes plumirel-strike {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      45% { transform: translate(-25%, 10%) scale(1.08); }
+    }
+
+    @keyframes battle-hit {
+      0%, 100% { filter: brightness(1); transform: translateX(0); }
+      25% { filter: brightness(2.2); transform: translateX(-9px); }
+      55% { filter: brightness(.7); transform: translateX(7px); }
+    }
+
+    @keyframes battle-defeat {
+      0% { opacity: 1; filter: saturate(1); transform: translateY(0) rotate(0); }
+      100% { opacity: .25; filter: saturate(.3); transform: translateY(35px) rotate(-8deg) scale(.88); }
+    }
+
+    @keyframes action-pulse {
+      from {
+        filter: brightness(1);
+        box-shadow: inset 0 0 0 3px rgba(255, 255, 210, .28), 0 5px 0 #5d3e09, 0 0 4px #ffe274;
+      }
+      to {
+        filter: brightness(1.15);
+        box-shadow: inset 0 0 0 3px rgba(255, 255, 210, .35), 0 5px 0 #5d3e09, 0 0 22px #ffe274;
+      }
+    }
+
+    @keyframes battle-spark {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.25) rotate(0); }
+      30% { opacity: 1; }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--spark-dx)), calc(-50% + var(--spark-dy))) scale(1.5) rotate(160deg); }
+    }
+
+    @media (max-width: 760px) {
+      .forest-background {
+        object-position: 57% center;
+      }
+
+      .forest-topbar {
+        top: max(8px, env(safe-area-inset-top));
+        grid-template-columns: 1fr auto;
+        width: calc(100% - 16px);
+        gap: 6px;
+      }
+
+      .forest-location {
+        min-width: 0;
+        min-height: 47px;
+        padding: 6px 11px;
+      }
+
+      .forest-location small {
+        font-size: .55rem;
+      }
+
+      .forest-location strong {
+        font-size: .88rem;
+      }
+
+      .forest-objective {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        min-height: 37px;
+        padding: 5px 10px;
+      }
+
+      .forest-objective small {
+        display: none;
+      }
+
+      .forest-objective strong {
+        font-size: .72rem;
+      }
+
+      .forest-companion {
+        grid-template-columns: 35px auto;
+        min-width: 128px;
+        min-height: 47px;
+        padding: 4px 8px 4px 4px;
+      }
+
+      .forest-companion img {
+        width: 35px;
+        height: 35px;
+      }
+
+      .forest-companion small {
+        font-size: .52rem;
+      }
+
+      .forest-companion strong {
+        font-size: .75rem;
+      }
+
+      .forest-intro {
+        padding: 104px 10px max(12px, env(safe-area-inset-bottom));
+      }
+
+      .forest-intro-card {
+        grid-template-columns: 90px 1fr;
+        min-height: 186px;
+      }
+
+      .forest-intro-iris {
+        max-height: 205px;
+      }
+
+      .forest-intro-copy {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 15px 14px 16px 2px;
+      }
+
+      .forest-speaker {
+        font-size: .82rem;
+      }
+
+      .forest-dialogue {
+        min-height: 68px;
+        font-size: .83rem;
+        line-height: 1.38;
+      }
+
+      .forest-action {
+        justify-self: end;
+        min-width: 130px;
+        min-height: 39px;
+        padding: 7px 12px;
+        font-size: .72rem;
+      }
+
+      .explorer-party {
+        left: 27%;
+        top: 76%;
+        width: 72px;
+        height: 112px;
+      }
+
+      .plumirel-world {
+        top: 43%;
+        left: 69%;
+        width: clamp(105px, 31vw, 142px);
+      }
+
+      .movement-guide {
+        top: 102px;
+        bottom: auto;
+        left: 8px;
+        grid-template-columns: 38px minmax(140px, 1fr);
+        max-width: calc(100% - 16px);
+        padding: 7px 9px 7px 6px;
+      }
+
+      .movement-guide img {
+        width: 38px;
+        height: 38px;
+      }
+
+      .movement-guide strong {
+        font-size: .59rem;
+      }
+
+      .movement-guide em {
+        font-size: .7rem;
+      }
+
+      .movement-keys {
+        display: none;
+      }
+
+      .mobile-pad {
+        display: grid;
+      }
+
+      .battle-field {
+        inset: 130px 0 163px;
+      }
+
+      .battle-player {
+        bottom: 7%;
+        left: 2%;
+        width: min(42vw, 185px);
+      }
+
+      .battle-wild {
+        top: 11%;
+        right: 1%;
+        width: min(42vw, 190px);
+      }
+
+      .battle-platform.player {
+        bottom: 4%;
+        left: -4%;
+        width: 52vw;
+      }
+
+      .battle-platform.wild {
+        top: 32%;
+        right: -4%;
+        width: 48vw;
+      }
+
+      .battle-status {
+        width: min(57vw, 250px);
+        padding: 8px 10px;
+      }
+
+      .battle-status.wild {
+        top: 132px;
+        left: 8px;
+      }
+
+      .battle-status.player {
+        right: 8px;
+        bottom: 171px;
+      }
+
+      .battle-status-head strong {
+        font-size: .84rem;
+      }
+
+      .battle-status-head span {
+        font-size: .6rem;
+      }
+
+      .hp-row,
+      .xp-row {
+        gap: 4px;
+        font-size: .55rem;
+      }
+
+      .battle-guide {
+        top: 194px;
+        width: calc(100% - 16px);
+        grid-template-columns: 40px 1fr;
+        gap: 7px;
+        padding: 6px 9px 6px 6px;
+      }
+
+      .battle-guide img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .battle-guide strong {
+        font-size: .58rem;
+      }
+
+      .battle-guide em {
+        font-size: .68rem;
+        line-height: 1.25;
+      }
+
+      .battle-menu {
+        bottom: max(10px, env(safe-area-inset-bottom));
+        grid-template-columns: repeat(3, 1fr);
+        width: calc(100% - 16px);
+        gap: 5px;
+      }
+
+      .battle-action {
+        min-height: 58px;
+        padding: 6px 4px;
+        font-size: .68rem;
+      }
+
+      .battle-action small {
+        font-size: .5rem;
+      }
+
+      .battle-message {
+        top: 57%;
+        width: 84%;
+        padding-inline: 10px;
+      }
+
+      .battle-victory-card {
+        padding: 22px 16px;
+      }
+
+      .victory-pair {
+        height: 145px;
+      }
+
+      .victory-pair img {
+        max-height: 140px;
+      }
+
+      .forest-complete-card {
+        grid-template-columns: 86px 1fr;
+        padding: 19px 14px;
+      }
+
+      .forest-complete-card > img {
+        width: 86px;
+        height: 150px;
+      }
+
+      .forest-complete-copy {
+        padding-left: 8px;
+      }
+
+      .forest-complete-card h2 {
+        font-size: 1.28rem;
+      }
+
+      .forest-complete-card p {
+        font-size: .78rem;
+      }
+    }
+
+    @media (max-height: 650px) and (min-width: 761px) {
+      .forest-intro {
+        padding-top: 75px;
+        padding-bottom: 10px;
+      }
+
+      .forest-intro-card {
+        min-height: 155px;
+      }
+
+      .forest-intro-iris {
+        max-height: 205px;
+      }
+
+      .forest-dialogue {
+        min-height: 44px;
+      }
+
+      .battle-field {
+        inset-block: 66px 116px;
+      }
+
+      .battle-status.wild {
+        top: 72px;
+      }
+
+      .battle-status.player {
+        bottom: 122px;
+      }
+
+      .battle-guide {
+        top: 70px;
+      }
+
+      .battle-menu {
+        bottom: 10px;
+      }
+
+      .battle-action {
+        min-height: 50px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -2353,6 +3747,214 @@
     </section>
   </main>
 
+  <main class="forest-screen" id="forestScreen" aria-label="Capítulo 1 no Bosque Luminal" hidden>
+    <img
+      class="forest-background"
+      id="forestBackground"
+      src="assets/map/bosque-luminal.webp"
+      alt=""
+      width="1600"
+      height="900"
+    >
+
+    <div class="forest-glow" aria-hidden="true">
+      <i style="--glow-x:13%;--glow-y:31%;--glow-size:5px;--glow-duration:6s;--glow-delay:-1s"></i>
+      <i style="--glow-x:24%;--glow-y:57%;--glow-size:4px;--glow-duration:7s;--glow-delay:-4s"></i>
+      <i style="--glow-x:47%;--glow-y:25%;--glow-size:6px;--glow-duration:8s;--glow-delay:-2s"></i>
+      <i style="--glow-x:62%;--glow-y:49%;--glow-size:4px;--glow-duration:5s;--glow-delay:-3s"></i>
+      <i style="--glow-x:78%;--glow-y:29%;--glow-size:5px;--glow-duration:7.5s;--glow-delay:-5s"></i>
+      <i style="--glow-x:88%;--glow-y:63%;--glow-size:4px;--glow-duration:6.5s;--glow-delay:-2s"></i>
+    </div>
+
+    <header class="forest-topbar">
+      <div class="forest-location">
+        <small>Capítulo 1</small>
+        <strong>Bosque Luminal</strong>
+      </div>
+      <div class="forest-objective" aria-live="polite">
+        <small>Objetivo atual</small>
+        <strong id="forestObjective">Ouça a Dra. Íris</strong>
+      </div>
+      <div class="forest-companion">
+        <img id="forestCompanionImage" src="assets/story/axolume.webp" alt="">
+        <span>
+          <small>Companheiro · Nv. 5</small>
+          <strong id="forestCompanionName">Axolume</strong>
+        </span>
+      </div>
+    </header>
+
+    <section class="forest-intro" id="forestIntro" aria-labelledby="forestIntroSpeaker">
+      <article class="forest-intro-card">
+        <img
+          class="forest-intro-iris"
+          src="assets/story/dr-iris.webp"
+          alt="Dra. Íris"
+        >
+        <div class="forest-intro-copy">
+          <span class="forest-speaker" id="forestIntroSpeaker">Dra. Íris</span>
+          <p class="forest-dialogue" id="forestDialogueText" aria-live="polite"></p>
+          <button class="forest-action" id="forestDialogueAction" type="button">Continuar</button>
+        </div>
+      </article>
+    </section>
+
+    <section
+      class="forest-exploration"
+      id="forestExploration"
+      aria-label="Área de exploração. Use as setas ou WASD para caminhar."
+      tabindex="0"
+      hidden
+    >
+      <div class="explorer-party" id="explorerParty" aria-label="Seu grupo">
+        <img
+          class="explorer-hero"
+          id="explorerHero"
+          src="assets/selection/hero-male.webp"
+          alt="Seu personagem"
+        >
+        <img
+          class="explorer-starter"
+          id="explorerStarter"
+          src="assets/story/axolume.webp"
+          alt="Axolume"
+        >
+      </div>
+
+      <div class="plumirel-world" id="plumirelWorld" aria-label="Plumirel selvagem, nível 3">
+        <img
+          src="assets/map/plumirel.webp"
+          alt="Plumirel selvagem"
+          width="748"
+          height="713"
+        >
+        <span class="plumirel-world-name">Plumirel · Nv. 3</span>
+      </div>
+
+      <aside class="movement-guide" aria-live="polite">
+        <img src="assets/story/dr-iris.webp" alt="">
+        <span>
+          <strong>Dra. Íris · Movimentação</strong>
+          <em id="movementHint">Use WASD ou as setas para caminhar pelo bosque.</em>
+          <span class="movement-keys" aria-hidden="true">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+            <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>
+          </span>
+        </span>
+      </aside>
+
+      <nav class="mobile-pad" aria-label="Controle de movimentação">
+        <button type="button" data-move="up" aria-label="Mover para cima">▲</button>
+        <button type="button" data-move="left" aria-label="Mover para a esquerda">◀</button>
+        <button type="button" data-move="down" aria-label="Mover para baixo">▼</button>
+        <button type="button" data-move="right" aria-label="Mover para a direita">▶</button>
+      </nav>
+
+      <div class="encounter-banner" id="encounterBanner" hidden>Um Plumirel selvagem apareceu!</div>
+    </section>
+
+    <section class="forest-battle" id="forestBattle" aria-label="Tutorial de batalha contra Plumirel" hidden>
+      <div class="battle-field" aria-hidden="true">
+        <span class="battle-platform player"></span>
+        <span class="battle-platform wild"></span>
+        <div class="battle-player" id="battlePlayer">
+          <img id="battleStarterImage" src="assets/story/axolume.webp" alt="">
+        </div>
+        <div class="battle-wild" id="battleWild">
+          <img
+            src="assets/map/plumirel.webp"
+            alt="Plumirel selvagem"
+            width="748"
+            height="713"
+          >
+        </div>
+      </div>
+
+      <article class="battle-status wild" aria-label="Estado do Plumirel">
+        <div class="battle-status-head">
+          <strong>Plumirel</strong>
+          <span>Voador · Nv. 3</span>
+        </div>
+        <div class="hp-row">
+          <span>PV</span>
+          <span class="hp-track"><span class="hp-fill" id="wildHpFill"></span></span>
+          <span id="wildHpText">26/26</span>
+        </div>
+      </article>
+
+      <article class="battle-status player" aria-label="Estado do seu Naturion">
+        <div class="battle-status-head">
+          <strong id="battleStarterName">Axolume</strong>
+          <span id="battleStarterType">Água · Nv. 5</span>
+        </div>
+        <div class="hp-row">
+          <span>PV</span>
+          <span class="hp-track"><span class="hp-fill" id="playerHpFill"></span></span>
+          <span id="playerHpText">34/34</span>
+        </div>
+        <div class="xp-row">
+          <span>EXP</span>
+          <span class="xp-track"><span class="xp-fill" id="playerXpFill"></span></span>
+          <span id="playerXpText">18%</span>
+        </div>
+      </article>
+
+      <aside class="battle-guide" aria-live="polite">
+        <img src="assets/story/dr-iris.webp" alt="">
+        <span>
+          <strong>Dra. Íris · Tutorial de batalha</strong>
+          <em id="battleGuideText">Comece com um ataque básico para observar a reação do Plumirel.</em>
+        </span>
+      </aside>
+
+      <div class="battle-effects" id="battleEffects" aria-hidden="true"></div>
+      <div class="battle-message" id="battleMessage" aria-live="polite"></div>
+
+      <nav class="battle-menu" aria-label="Ações de batalha">
+        <button class="battle-action tutorial-focus" id="basicAttack" type="button">
+          Ataque básico
+          <small>Golpe seguro</small>
+        </button>
+        <button class="battle-action" id="elementalAttack" type="button" disabled>
+          <span id="elementalAttackLabel">Técnica elemental</span>
+          <small id="elementalAttackHint">Água</small>
+        </button>
+        <button class="battle-action" id="defendAction" type="button" disabled>
+          Defender
+          <small>Reduz o dano</small>
+        </button>
+      </nav>
+
+      <section class="battle-victory" id="battleVictory" aria-labelledby="battleVictoryTitle" hidden>
+        <article class="battle-victory-card">
+          <h2 id="battleVictoryTitle">Vitória!</h2>
+          <p id="battleVictoryText">Seu primeiro combate foi concluído.</p>
+          <div class="victory-pair">
+            <img id="victoryStarter" src="assets/story/axolume.webp" alt="">
+            <img src="assets/map/plumirel.webp" alt="Plumirel">
+          </div>
+          <div class="victory-exp">
+            <strong id="victoryExpText">+24 EXP</strong>
+            <span class="xp-track"><span class="xp-fill" id="victoryXpFill"></span></span>
+          </div>
+          <button class="battle-victory-button" id="completeBattleTutorial" type="button">Concluir tutorial</button>
+        </article>
+      </section>
+    </section>
+
+    <section class="forest-complete" id="forestComplete" aria-labelledby="forestCompleteTitle" hidden>
+      <article class="forest-complete-card">
+        <img src="assets/story/dr-iris.webp" alt="Dra. Íris">
+        <div class="forest-complete-copy">
+          <span>Primeiro encontro concluído</span>
+          <h2 id="forestCompleteTitle">Muito bem, explorador!</h2>
+          <p id="forestCompleteText">Plumirel está bem e voltou para a clareira. Seu companheiro ganhou experiência com esta batalha.</p>
+          <button class="forest-save-button" id="saveForestProgress" type="button">Salvar progresso</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
   <section class="confirmation-modal" id="starterConfirmation" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" hidden>
     <div class="confirmation-card">
       <img id="confirmationCreature" src="assets/story/axolume.webp" alt="">
@@ -2463,6 +4065,50 @@
       const missionCompanion = document.getElementById("missionCompanion");
       const missionCreature = document.getElementById("missionCreature");
       const beginMission = document.getElementById("beginMission");
+      const forestScreen = document.getElementById("forestScreen");
+      const forestObjective = document.getElementById("forestObjective");
+      const forestCompanionImage = document.getElementById("forestCompanionImage");
+      const forestCompanionName = document.getElementById("forestCompanionName");
+      const forestIntro = document.getElementById("forestIntro");
+      const forestDialogueText = document.getElementById("forestDialogueText");
+      const forestDialogueAction = document.getElementById("forestDialogueAction");
+      const forestExploration = document.getElementById("forestExploration");
+      const explorerParty = document.getElementById("explorerParty");
+      const explorerHero = document.getElementById("explorerHero");
+      const explorerStarter = document.getElementById("explorerStarter");
+      const plumirelWorld = document.getElementById("plumirelWorld");
+      const movementHint = document.getElementById("movementHint");
+      const movementButtons = [...document.querySelectorAll("[data-move]")];
+      const encounterBanner = document.getElementById("encounterBanner");
+      const forestBattle = document.getElementById("forestBattle");
+      const battlePlayer = document.getElementById("battlePlayer");
+      const battleWild = document.getElementById("battleWild");
+      const battleStarterImage = document.getElementById("battleStarterImage");
+      const battleStarterName = document.getElementById("battleStarterName");
+      const battleStarterType = document.getElementById("battleStarterType");
+      const wildHpFill = document.getElementById("wildHpFill");
+      const wildHpText = document.getElementById("wildHpText");
+      const playerHpFill = document.getElementById("playerHpFill");
+      const playerHpText = document.getElementById("playerHpText");
+      const playerXpFill = document.getElementById("playerXpFill");
+      const playerXpText = document.getElementById("playerXpText");
+      const battleGuideText = document.getElementById("battleGuideText");
+      const battleEffects = document.getElementById("battleEffects");
+      const battleMessage = document.getElementById("battleMessage");
+      const basicAttack = document.getElementById("basicAttack");
+      const elementalAttack = document.getElementById("elementalAttack");
+      const elementalAttackLabel = document.getElementById("elementalAttackLabel");
+      const elementalAttackHint = document.getElementById("elementalAttackHint");
+      const defendAction = document.getElementById("defendAction");
+      const battleVictory = document.getElementById("battleVictory");
+      const battleVictoryText = document.getElementById("battleVictoryText");
+      const victoryStarter = document.getElementById("victoryStarter");
+      const victoryExpText = document.getElementById("victoryExpText");
+      const victoryXpFill = document.getElementById("victoryXpFill");
+      const completeBattleTutorial = document.getElementById("completeBattleTutorial");
+      const forestComplete = document.getElementById("forestComplete");
+      const forestCompleteText = document.getElementById("forestCompleteText");
+      const saveForestProgress = document.getElementById("saveForestProgress");
       const toastBox = document.getElementById("toast");
       const musicVolume = document.getElementById("musicVolume");
       const effectsVolume = document.getElementById("effectsVolume");
@@ -2478,6 +4124,14 @@
       let typingTimer;
       let toastTimer;
       let audioContext;
+      let forestDialogueIndex = 0;
+      let forestExploring = false;
+      let playerPosition = { x: 28, y: 72 };
+      let movementCount = 0;
+      let battleStep = 0;
+      let battleLocked = false;
+      let playerBattleHp = 34;
+      let wildBattleHp = 26;
 
       const STARTERS = {
         axolume: {
@@ -2506,6 +4160,36 @@
           color: "#82d866",
           glow: "#d2bd43",
           sound: [262, 330, 392, 523]
+        }
+      };
+
+      const BATTLE_STARTERS = {
+        axolume: {
+          maxHp: 34,
+          skill: "Jato Cristalino",
+          skillHint: "Água · Poder 10",
+          basicDamage: 7,
+          skillDamage: 10,
+          accent: "#52d9ff",
+          xpStart: 18
+        },
+        brasguax: {
+          maxHp: 32,
+          skill: "Brasa Viva",
+          skillHint: "Fogo · Poder 10",
+          basicDamage: 8,
+          skillDamage: 10,
+          accent: "#ff642a",
+          xpStart: 18
+        },
+        musgurso: {
+          maxHp: 38,
+          skill: "Broto Impacto",
+          skillHint: "Planta · Poder 10",
+          basicDamage: 7,
+          skillDamage: 10,
+          accent: "#82d866",
+          xpStart: 18
         }
       };
 
@@ -2895,6 +4579,371 @@
         window.setTimeout(() => showStoryResult(starter), resultDelay);
       };
 
+      const forestPause = (duration) => new Promise((resolve) => {
+        window.setTimeout(resolve, prefersLessMotion() ? Math.min(duration, 80) : duration);
+      });
+
+      const writeForestDialogue = (message, buttonLabel) => {
+        clearInterval(typingTimer);
+        forestDialogueText.textContent = "";
+        forestDialogueAction.textContent = buttonLabel;
+        forestDialogueAction.disabled = true;
+
+        if (prefersLessMotion()) {
+          forestDialogueText.textContent = message;
+          forestDialogueAction.disabled = false;
+          forestDialogueAction.focus();
+          return;
+        }
+
+        let cursor = 0;
+        typingTimer = window.setInterval(() => {
+          forestDialogueText.textContent += message[cursor];
+          if (cursor % 6 === 0 && message[cursor] !== " ") playTone(680, 0, .022, "sine");
+          cursor += 1;
+          if (cursor >= message.length) {
+            clearInterval(typingTimer);
+            forestDialogueAction.disabled = false;
+          }
+        }, 18);
+      };
+
+      const renderForestDialogue = () => {
+        const starter = STARTERS[selectedStarter];
+        const playerLabel = currentPlayer?.name || "explorador";
+        const lines = [
+          {
+            text: `Bem-vindos ao Bosque Luminal, ${playerLabel}. Os cristais daqui iluminam a floresta há muitas gerações.`,
+            action: "Observar bosque"
+          },
+          {
+            text: `Antes de investigar a instabilidade, aprenda a caminhar com ${starter.name}. Usem as trilhas abertas e observem o ambiente.`,
+            action: "Aprender movimento"
+          },
+          {
+            text: "O relógio detectou uma pequena essência voadora na clareira. Aproxime-se com calma: parece ser um Plumirel.",
+            action: "Começar exploração"
+          }
+        ];
+
+        writeForestDialogue(lines[forestDialogueIndex].text, lines[forestDialogueIndex].action);
+      };
+
+      const positionExplorerParty = () => {
+        explorerParty.style.left = `${playerPosition.x}%`;
+        explorerParty.style.top = `${playerPosition.y}%`;
+      };
+
+      const startForestChapter = () => {
+        selectedStarter ||= currentPlayer?.starter?.id || "axolume";
+        const starter = STARTERS[selectedStarter];
+        const battleData = BATTLE_STARTERS[selectedStarter];
+        if (!starter || !battleData || !currentPlayer) return;
+
+        forestScreen.style.setProperty("--starter-accent", battleData.accent);
+        forestCompanionImage.src = starter.image;
+        forestCompanionImage.alt = starter.name;
+        forestCompanionName.textContent = starter.name;
+        explorerHero.src = currentPlayer.character === "female"
+          ? "assets/selection/hero-female.webp"
+          : "assets/selection/hero-male.webp";
+        explorerHero.alt = currentPlayer.name;
+        explorerStarter.src = starter.image;
+        explorerStarter.alt = starter.name;
+        battleStarterImage.src = starter.image;
+        battleStarterImage.alt = starter.name;
+        victoryStarter.src = starter.image;
+        victoryStarter.alt = starter.name;
+        forestObjective.textContent = "Ouça a Dra. Íris";
+        forestDialogueIndex = 0;
+        forestExploring = false;
+        playerPosition = { x: 28, y: 72 };
+        movementCount = 0;
+        positionExplorerParty();
+        plumirelWorld.classList.remove("alert");
+        forestIntro.hidden = false;
+        forestExploration.hidden = true;
+        forestBattle.hidden = true;
+        forestComplete.hidden = true;
+        encounterBanner.hidden = true;
+        battleVictory.hidden = true;
+        saveForestProgress.disabled = false;
+        saveForestProgress.textContent = "Salvar progresso";
+        transitionScreens(storyScreen, forestScreen, forestDialogueAction);
+        window.setTimeout(renderForestDialogue, prefersLessMotion() ? 0 : 450);
+      };
+
+      const beginForestExploration = () => {
+        clearInterval(typingTimer);
+        forestIntro.hidden = true;
+        forestExploration.hidden = false;
+        forestObjective.textContent = "Aproxime-se do Plumirel";
+        movementHint.textContent = "Use WASD, as setas ou o controle na tela para caminhar.";
+        forestExploring = true;
+        playSequence([392, 494, 587], .07);
+        forestExploration.focus();
+      };
+
+      const triggerPlumirelEncounter = async () => {
+        if (!forestExploring) return;
+        forestExploring = false;
+        forestObjective.textContent = "Encontro selvagem!";
+        movementHint.textContent = "O Plumirel percebeu vocês. Prepare-se para a batalha!";
+        plumirelWorld.classList.add("alert");
+        encounterBanner.hidden = false;
+        playSequence([660, 784, 988, 784], .085);
+        await forestPause(1050);
+        encounterBanner.hidden = true;
+        startBattleTutorial();
+      };
+
+      const moveForestPlayer = (deltaX, deltaY) => {
+        if (!forestExploring || battleLocked) return;
+        playerPosition.x = Math.max(12, Math.min(88, playerPosition.x + deltaX));
+        playerPosition.y = Math.max(33, Math.min(82, playerPosition.y + deltaY));
+        movementCount += 1;
+        positionExplorerParty();
+        explorerParty.classList.remove("is-moving");
+        void explorerParty.offsetWidth;
+        explorerParty.classList.add("is-moving");
+
+        if (movementCount === 2) {
+          movementHint.textContent = "Muito bem! Agora siga em direção ao Plumirel na clareira.";
+          playSequence([392, 523], .06);
+        } else if (movementCount === 6) {
+          movementHint.textContent = "Continue pela trilha iluminada. Ele está logo adiante.";
+        }
+
+        if (movementCount % 2 === 0) playTone(165, 0, .035, "triangle");
+        if (playerPosition.x >= 60 && playerPosition.y <= 53) {
+          void triggerPlumirelEncounter();
+        }
+      };
+
+      const updateBattleBars = () => {
+        const battleData = BATTLE_STARTERS[selectedStarter];
+        const playerPercent = Math.max(0, playerBattleHp / battleData.maxHp * 100);
+        const wildPercent = Math.max(0, wildBattleHp / 26 * 100);
+        playerHpFill.style.setProperty("--bar-value", `${playerPercent}%`);
+        wildHpFill.style.setProperty("--bar-value", `${wildPercent}%`);
+        playerHpFill.classList.toggle("low", playerPercent <= 35);
+        wildHpFill.classList.toggle("low", wildPercent <= 35);
+        playerHpText.textContent = `${Math.max(0, playerBattleHp)}/${battleData.maxHp}`;
+        wildHpText.textContent = `${Math.max(0, wildBattleHp)}/26`;
+      };
+
+      const setBattleGuide = (message) => {
+        battleGuideText.textContent = message;
+      };
+
+      const setBattleControls = () => {
+        const expected = battleStep === 0 || battleStep === 3
+          ? "basic"
+          : battleStep === 1
+            ? "elemental"
+            : "defend";
+        const controls = [
+          [basicAttack, "basic"],
+          [elementalAttack, "elemental"],
+          [defendAction, "defend"]
+        ];
+
+        controls.forEach(([button, action]) => {
+          const enabled = !battleLocked && action === expected;
+          button.disabled = !enabled;
+          button.classList.toggle("tutorial-focus", enabled);
+        });
+      };
+
+      const showBattleMessage = async (message, duration = 540) => {
+        battleMessage.textContent = message;
+        battleMessage.classList.add("show");
+        await forestPause(duration);
+        battleMessage.classList.remove("show");
+      };
+
+      const createBattleSparks = (target, color, count = 16) => {
+        const isWildTarget = target === "wild";
+        for (let index = 0; index < count; index += 1) {
+          const spark = document.createElement("i");
+          spark.className = "battle-spark";
+          spark.style.setProperty("--spark-x", `${isWildTarget ? 72 : 27}%`);
+          spark.style.setProperty("--spark-y", `${isWildTarget ? 38 : 66}%`);
+          spark.style.setProperty("--spark-size", `${4 + Math.random() * 7}px`);
+          spark.style.setProperty("--spark-color", color);
+          spark.style.setProperty("--spark-radius", index % 3 === 0 ? "2px" : "50%");
+          spark.style.setProperty("--spark-dx", `${-42 + Math.random() * 84}px`);
+          spark.style.setProperty("--spark-dy", `${-45 + Math.random() * 90}px`);
+          spark.style.setProperty("--spark-delay", `${Math.random() * .13}s`);
+          battleEffects.append(spark);
+          window.setTimeout(() => spark.remove(), prefersLessMotion() ? 120 : 900);
+        }
+      };
+
+      const animateHit = async (target, damage, color) => {
+        const targetElement = target === "wild" ? battleWild : battlePlayer;
+        createBattleSparks(target, color);
+        targetElement.classList.add("hit");
+        if (target === "wild") {
+          wildBattleHp = Math.max(0, wildBattleHp - damage);
+        } else {
+          playerBattleHp = Math.max(0, playerBattleHp - damage);
+        }
+        updateBattleBars();
+        playSequence(target === "wild" ? [280, 210] : [220, 165], .045);
+        await forestPause(380);
+        targetElement.classList.remove("hit");
+      };
+
+      const runWildTurn = async (damage, defended = false) => {
+        await showBattleMessage(defended ? "Plumirel usa Rajada de Plumas!" : "Plumirel contra-ataca!");
+        battleWild.classList.add("strike");
+        playSequence([760, 920, 680], .045);
+        await forestPause(280);
+        await animateHit("player", damage, "#fff0af");
+        battleWild.classList.remove("strike");
+        if (defended) {
+          await showBattleMessage("A defesa reduziu o dano!", 430);
+        }
+      };
+
+      const resolveBattleVictory = async () => {
+        const starter = STARTERS[selectedStarter];
+        const battleData = BATTLE_STARTERS[selectedStarter];
+        battleWild.classList.add("defeated");
+        setBattleGuide("Excelente! Plumirel não consegue mais lutar. Seu primeiro combate foi concluído.");
+        playSequence([392, 523, 659, 784, 988], .09);
+        await forestPause(750);
+
+        currentPlayer = {
+          ...currentPlayer,
+          starter: {
+            ...currentPlayer.starter,
+            level: 5,
+            experience: 24,
+            experiencePercent: 42
+          },
+          tutorials: {
+            ...(currentPlayer.tutorials || {}),
+            movement: true,
+            battle: true
+          },
+          activeMission: {
+            ...currentPlayer.activeMission,
+            progress: "primeiro-encontro-concluido"
+          }
+        };
+        saveCurrentPlayer();
+
+        battleVictoryText.textContent = `${starter.name} venceu Plumirel e recebeu experiência.`;
+        victoryExpText.textContent = `${starter.name} recebeu +24 EXP`;
+        victoryXpFill.style.width = `${battleData.xpStart}%`;
+        battleVictory.hidden = false;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            victoryXpFill.style.width = "42%";
+          });
+        });
+        window.dispatchEvent(new CustomEvent("naturion:first-battle-completed", {
+          detail: currentPlayer
+        }));
+        completeBattleTutorial.focus();
+      };
+
+      const runBattleAction = async (action) => {
+        if (battleLocked) return;
+        const expected = battleStep === 0 || battleStep === 3
+          ? "basic"
+          : battleStep === 1
+            ? "elemental"
+            : "defend";
+        if (action !== expected) return;
+
+        const starter = STARTERS[selectedStarter];
+        const battleData = BATTLE_STARTERS[selectedStarter];
+        battleLocked = true;
+        setBattleControls();
+
+        if (battleStep === 0) {
+          await showBattleMessage(`${starter.name} usa Ataque Básico!`);
+          battlePlayer.classList.add("strike");
+          await forestPause(260);
+          await animateHit("wild", battleData.basicDamage, "#fff3a1");
+          battlePlayer.classList.remove("strike");
+          await runWildTurn(5);
+          battleStep = 1;
+          setBattleGuide(`Ótimo. Agora use ${battleData.skill}, a técnica elemental de ${starter.name}.`);
+        } else if (battleStep === 1) {
+          await showBattleMessage(`${starter.name} usa ${battleData.skill}!`);
+          battlePlayer.classList.add("strike");
+          playSequence(STARTERS[selectedStarter].sound, .045);
+          await forestPause(260);
+          await animateHit("wild", battleData.skillDamage, battleData.accent);
+          battlePlayer.classList.remove("strike");
+          await runWildTurn(4);
+          battleStep = 2;
+          setBattleGuide("Você também pode defender. A defesa reduz bastante o próximo dano recebido.");
+        } else if (battleStep === 2) {
+          await showBattleMessage(`${starter.name} assume posição defensiva!`);
+          createBattleSparks("player", "#9fffd0", 22);
+          playSequence([330, 392, 494], .06);
+          await forestPause(300);
+          await runWildTurn(2, true);
+          battleStep = 3;
+          setBattleGuide("Muito bem! Plumirel está cansado. Finalize o combate com outro ataque básico.");
+        } else {
+          await showBattleMessage(`${starter.name} avança com Ataque Básico!`);
+          battlePlayer.classList.add("strike");
+          await forestPause(260);
+          await animateHit("wild", wildBattleHp, "#fff3a1");
+          battlePlayer.classList.remove("strike");
+          await resolveBattleVictory();
+          return;
+        }
+
+        battleLocked = false;
+        setBattleControls();
+      };
+
+      const startBattleTutorial = () => {
+        const starter = STARTERS[selectedStarter];
+        const battleData = BATTLE_STARTERS[selectedStarter];
+        forestExploration.hidden = true;
+        forestBattle.hidden = false;
+        battleVictory.hidden = true;
+        battleWild.classList.remove("defeated", "strike", "hit");
+        battlePlayer.classList.remove("strike", "hit");
+        battleEffects.replaceChildren();
+        battleStarterName.textContent = starter.name;
+        battleStarterType.textContent = `${starter.type} · Nv. 5`;
+        battleStarterImage.src = starter.image;
+        battleStarterImage.alt = starter.name;
+        elementalAttackLabel.textContent = battleData.skill;
+        elementalAttackHint.textContent = battleData.skillHint;
+        playerBattleHp = battleData.maxHp;
+        wildBattleHp = 26;
+        battleStep = 0;
+        battleLocked = false;
+        playerXpFill.style.width = `${battleData.xpStart}%`;
+        playerXpText.textContent = `${battleData.xpStart}%`;
+        forestObjective.textContent = "Aprenda os comandos de batalha";
+        setBattleGuide("Comece com um ataque básico para observar a reação do Plumirel.");
+        updateBattleBars();
+        setBattleControls();
+        playSequence([220, 330, 440, 660], .075);
+        basicAttack.focus();
+      };
+
+      const showForestCompletion = () => {
+        const starter = STARTERS[selectedStarter];
+        forestBattle.hidden = true;
+        forestComplete.hidden = false;
+        forestObjective.textContent = "Tutorial de batalha concluído";
+        forestCompleteText.textContent = `Plumirel está bem e voltou para a clareira. ${starter.name} ganhou experiência e seu vínculo ficou mais forte.`;
+        playSequence([392, 494, 587, 784], .08);
+        saveForestProgress.focus();
+      };
+
       const updateFormState = () => {
         const normalizedName = playerName.value.trim().replace(/\s+/g, " ");
         nameHint.textContent = `${playerName.value.length}/16`;
@@ -3049,6 +5098,61 @@
         window.dispatchEvent(new CustomEvent("naturion:journey-started", {
           detail: currentPlayer
         }));
+        window.setTimeout(startForestChapter, prefersLessMotion() ? 0 : 720);
+      });
+
+      forestDialogueAction.addEventListener("click", () => {
+        if (forestDialogueAction.disabled) return;
+        playClick(330);
+        if (forestDialogueIndex < 2) {
+          forestDialogueIndex += 1;
+          renderForestDialogue();
+        } else {
+          beginForestExploration();
+        }
+      });
+
+      movementButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const movements = {
+            up: [0, -5],
+            left: [-5, 0],
+            down: [0, 5],
+            right: [5, 0]
+          };
+          const movement = movements[button.dataset.move];
+          if (movement) moveForestPlayer(...movement);
+        });
+      });
+
+      basicAttack.addEventListener("click", () => {
+        void runBattleAction("basic");
+      });
+
+      elementalAttack.addEventListener("click", () => {
+        void runBattleAction("elemental");
+      });
+
+      defendAction.addEventListener("click", () => {
+        void runBattleAction("defend");
+      });
+
+      completeBattleTutorial.addEventListener("click", showForestCompletion);
+
+      saveForestProgress.addEventListener("click", () => {
+        currentPlayer = {
+          ...currentPlayer,
+          lastCheckpoint: "bosque-luminal-primeiro-encontro",
+          savedAt: new Date().toISOString()
+        };
+        saveCurrentPlayer();
+        saveForestProgress.textContent = "Progresso salvo ✓";
+        saveForestProgress.disabled = true;
+        playSequence([392, 523, 659, 784], .075);
+        showToast("Progresso salvo no Bosque Luminal!");
+        window.dispatchEvent(new CustomEvent("naturion:forest-progress-saved", {
+          detail: currentPlayer
+        }));
       });
 
       optionsButton.addEventListener("click", openOptions);
@@ -3056,6 +5160,28 @@
 
       modal.addEventListener("click", (event) => {
         if (event.target === modal) closeOptions();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (forestScreen.hidden || forestExploration.hidden || !forestExploring) return;
+        const movementKeys = {
+          ArrowUp: [0, -5],
+          w: [0, -5],
+          W: [0, -5],
+          ArrowLeft: [-5, 0],
+          a: [-5, 0],
+          A: [-5, 0],
+          ArrowDown: [0, 5],
+          s: [0, 5],
+          S: [0, 5],
+          ArrowRight: [5, 0],
+          d: [5, 0],
+          D: [5, 0]
+        };
+        const movement = movementKeys[event.key];
+        if (!movement) return;
+        event.preventDefault();
+        moveForestPlayer(...movement);
       });
 
       document.addEventListener("keydown", (event) => {
