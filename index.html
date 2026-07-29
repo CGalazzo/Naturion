@@ -2401,7 +2401,66 @@
       position: absolute;
       z-index: 5;
       inset: 0;
+      overflow: hidden;
       outline: none;
+    }
+
+    .tutorial-world {
+      position: absolute;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      width: var(--tutorial-world-width, 2400px);
+      height: 100%;
+      overflow: hidden;
+      transform: translate3d(calc(var(--tutorial-camera-x, 0px) * -1), 0, 0);
+      will-change: transform;
+    }
+
+    .tutorial-scenery {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      background-image:
+        linear-gradient(180deg, rgba(4, 19, 11, .08), transparent 48%, rgba(3, 19, 11, .2)),
+        url("assets/map/bosque-luminal.webp");
+      background-position: left center;
+      background-repeat: repeat-x;
+      background-size: max(1280px, 64vw) 100%;
+      filter: saturate(1.04) contrast(1.02);
+    }
+
+    .tutorial-scenery::before,
+    .tutorial-scenery::after {
+      position: absolute;
+      right: 0;
+      left: 0;
+      content: "";
+      pointer-events: none;
+    }
+
+    .tutorial-scenery::before {
+      z-index: 1;
+      bottom: 0;
+      height: 25%;
+      opacity: .34;
+      background:
+        linear-gradient(180deg, transparent, rgba(8, 37, 20, .64)),
+        repeating-linear-gradient(96deg, transparent 0 105px, rgba(25, 71, 33, .4) 107px 119px, transparent 121px 208px);
+      mask-image: linear-gradient(180deg, transparent, #000 62%);
+    }
+
+    .tutorial-scenery::after {
+      z-index: 2;
+      bottom: 13.5%;
+      height: 5px;
+      opacity: .52;
+      background: linear-gradient(90deg, transparent, #9dc775 9%, #c3d88b 44%, #75a45c 82%, transparent);
+      box-shadow: 0 4px 18px rgba(16, 49, 24, .75);
+    }
+
+    .forest-screen.side-scroll-test > .forest-background {
+      opacity: 0;
     }
 
     .explorer-party {
@@ -2416,6 +2475,15 @@
         left .18s linear,
         top .18s linear;
       will-change: left, top;
+    }
+
+    .tutorial-world .explorer-party {
+      top: auto;
+      bottom: 13.7%;
+      left: 260px;
+      transform: translate3d(-50%, calc(-1 * var(--tutorial-jump-y, 0px)), 0);
+      transition: none;
+      will-change: left, transform;
     }
 
     .explorer-party::after {
@@ -2458,7 +2526,21 @@
     }
 
     .explorer-party.is-moving .explorer-hero {
-      animation: party-step .18s ease-in-out;
+      animation: tutorial-run .32s ease-in-out infinite alternate;
+    }
+
+    .explorer-party.is-jumping .explorer-hero {
+      animation: tutorial-jump-pose .4s ease-in-out infinite alternate;
+    }
+
+    .explorer-party.facing-left .explorer-hero {
+      transform: translateX(-50%) scaleX(-1);
+    }
+
+    .explorer-party.facing-left .explorer-starter {
+      right: auto;
+      left: -20%;
+      animation-name: companion-hop-left;
     }
 
     .plumirel-world {
@@ -2504,6 +2586,13 @@
         drop-shadow(5px 8px 7px rgba(0, 0, 0, .5));
       transform-origin: 50% 86%;
       animation: plumirel-flutter 1.65s ease-in-out infinite;
+    }
+
+    .tutorial-world .plumirel-world {
+      top: auto;
+      bottom: 14.5%;
+      left: 1900px;
+      transform: translateX(-50%);
     }
 
     .plumirel-world.alert {
@@ -2587,7 +2676,7 @@
       bottom: max(20px, env(safe-area-inset-bottom));
       display: none;
       grid-template-columns: repeat(3, 48px);
-      grid-template-rows: repeat(3, 48px);
+      grid-template-rows: 48px;
       gap: 4px;
     }
 
@@ -2601,7 +2690,8 @@
         0 4px 0 rgba(2, 15, 9, .9);
       font-size: 1.15rem;
       font-weight: 1000;
-      touch-action: manipulation;
+      touch-action: none;
+      user-select: none;
     }
 
     .mobile-pad button:active {
@@ -2609,24 +2699,19 @@
       box-shadow: 0 1px 0 rgba(2, 15, 9, .9);
     }
 
-    .mobile-pad [data-move="up"] {
+    .mobile-pad [data-move="left"] {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .mobile-pad [data-jump] {
       grid-column: 2;
       grid-row: 1;
     }
 
-    .mobile-pad [data-move="left"] {
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    .mobile-pad [data-move="down"] {
-      grid-column: 2;
-      grid-row: 2;
-    }
-
     .mobile-pad [data-move="right"] {
       grid-column: 3;
-      grid-row: 2;
+      grid-row: 1;
     }
 
     .encounter-banner {
@@ -3128,6 +3213,21 @@
     @keyframes party-step {
       0%, 100% { transform: translateX(-50%) translateY(0); }
       50% { transform: translateX(-50%) translateY(-6px); }
+    }
+
+    @keyframes tutorial-run {
+      from { bottom: 0; filter: drop-shadow(4px 6px 6px rgba(0, 0, 0, .5)) brightness(.98); }
+      to { bottom: 5px; filter: drop-shadow(4px 7px 6px rgba(0, 0, 0, .5)) brightness(1.05); }
+    }
+
+    @keyframes tutorial-jump-pose {
+      from { bottom: 2px; }
+      to { bottom: 6px; }
+    }
+
+    @keyframes companion-hop-left {
+      0%, 100% { transform: translateY(0) rotate(1deg) scaleX(-1); }
+      50% { transform: translateY(-5px) rotate(-2deg) scaleX(-1); }
     }
 
     @keyframes plumirel-flutter {
@@ -4983,52 +5083,56 @@
     <section
       class="forest-exploration"
       id="forestExploration"
-      aria-label="Área de exploração. Use as setas ou WASD para caminhar."
+      aria-label="Área de exploração lateral. Use A e D para andar e W para pular."
       tabindex="0"
       hidden
     >
-      <div class="explorer-party" id="explorerParty" aria-label="Seu grupo">
-        <img
-          class="explorer-hero"
-          id="explorerHero"
-          src="assets/selection/hero-male.webp"
-          alt="Seu personagem"
-        >
-        <img
-          class="explorer-starter"
-          id="explorerStarter"
-          src="assets/story/axolume.webp"
-          alt="Axolume"
-        >
-      </div>
+      <div class="tutorial-world" id="tutorialWorld" aria-hidden="true">
+        <div class="tutorial-scenery"></div>
 
-      <div class="plumirel-world" id="plumirelWorld" aria-label="Plumirel selvagem, nível 3">
-        <img
-          src="assets/map/plumirel.webp"
-          alt="Plumirel selvagem"
-          width="748"
-          height="713"
-        >
-        <span class="plumirel-world-name">Plumirel · Nv. 3</span>
+        <div class="explorer-party" id="explorerParty">
+          <img
+            class="explorer-hero"
+            id="explorerHero"
+            src="assets/selection/hero-male.webp"
+            alt=""
+          >
+          <img
+            class="explorer-starter"
+            id="explorerStarter"
+            src="assets/story/axolume.webp"
+            alt=""
+          >
+        </div>
+
+        <div class="plumirel-world" id="plumirelWorld">
+          <img
+            src="assets/map/plumirel.webp"
+            alt=""
+            width="748"
+            height="713"
+          >
+          <span class="plumirel-world-name">Plumirel · Nv. 3</span>
+        </div>
       </div>
 
       <aside class="movement-guide" aria-live="polite">
         <img src="assets/story/dr-iris.webp" alt="">
         <span>
           <strong>Dra. Íris · Movimentação</strong>
-          <em id="movementHint">Use WASD ou as setas para caminhar pelo bosque.</em>
+          <em id="movementHint">Use A e D para andar. Pressione W para pular.</em>
           <span class="movement-keys" aria-hidden="true">
-            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
-            <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>
+            <kbd>A</kbd><kbd>D</kbd>
+            <kbd>W · Pular</kbd>
+            <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd>
           </span>
         </span>
       </aside>
 
       <nav class="mobile-pad" aria-label="Controle de movimentação">
-        <button type="button" data-move="up" aria-label="Mover para cima">▲</button>
-        <button type="button" data-move="left" aria-label="Mover para a esquerda">◀</button>
-        <button type="button" data-move="down" aria-label="Mover para baixo">▼</button>
-        <button type="button" data-move="right" aria-label="Mover para a direita">▶</button>
+        <button type="button" data-move="left" aria-label="Andar para a esquerda">◀</button>
+        <button type="button" data-jump aria-label="Pular">▲</button>
+        <button type="button" data-move="right" aria-label="Andar para a direita">▶</button>
       </nav>
 
       <div class="encounter-banner" id="encounterBanner" hidden>Um Plumirel selvagem apareceu!</div>
@@ -5451,12 +5555,14 @@
       const forestDialogueText = document.getElementById("forestDialogueText");
       const forestDialogueAction = document.getElementById("forestDialogueAction");
       const forestExploration = document.getElementById("forestExploration");
+      const tutorialWorld = document.getElementById("tutorialWorld");
       const explorerParty = document.getElementById("explorerParty");
       const explorerHero = document.getElementById("explorerHero");
       const explorerStarter = document.getElementById("explorerStarter");
       const plumirelWorld = document.getElementById("plumirelWorld");
       const movementHint = document.getElementById("movementHint");
       const movementButtons = [...document.querySelectorAll("[data-move]")];
+      const jumpButton = document.querySelector("[data-jump]");
       const encounterBanner = document.getElementById("encounterBanner");
       const forestBattle = document.getElementById("forestBattle");
       const battlePlayer = document.getElementById("battlePlayer");
@@ -5535,8 +5641,19 @@
       let audioContext;
       let forestDialogueIndex = 0;
       let forestExploring = false;
-      let playerPosition = { x: 28, y: 72 };
       let movementCount = 0;
+      let tutorialWorldWidth = 2400;
+      let tutorialPlayerX = 260;
+      let tutorialVelocityX = 0;
+      let tutorialJumpY = 0;
+      let tutorialVelocityY = 0;
+      let tutorialCameraX = 0;
+      let tutorialPlumirelX = 1900;
+      let tutorialGrounded = true;
+      let tutorialFrame = 0;
+      let tutorialLastFrame = 0;
+      let tutorialLastStepCell = -1;
+      const tutorialInput = { left: false, right: false };
       let battleStep = 0;
       let battleLocked = false;
       let playerBattleHp = 34;
@@ -6093,7 +6210,7 @@
             action: "Observar bosque"
           },
           {
-            text: `Antes de investigar a instabilidade, aprenda a caminhar com ${starter.name}. Usem as trilhas abertas e observem o ambiente.`,
+            text: `Antes de investigar a instabilidade, aprenda a se mover com ${starter.name}. Ande para os lados e use o pulo para vencer obstáculos.`,
             action: "Aprender movimento"
           },
           {
@@ -6106,8 +6223,134 @@
       };
 
       const positionExplorerParty = () => {
-        explorerParty.style.left = `${playerPosition.x}%`;
-        explorerParty.style.top = `${playerPosition.y}%`;
+        tutorialWorld.style.setProperty("--tutorial-world-width", `${tutorialWorldWidth}px`);
+        tutorialWorld.style.setProperty("--tutorial-camera-x", `${tutorialCameraX}px`);
+        explorerParty.style.left = `${tutorialPlayerX}px`;
+        explorerParty.style.setProperty("--tutorial-jump-y", `${tutorialJumpY}px`);
+        plumirelWorld.style.left = `${tutorialPlumirelX}px`;
+      };
+
+      const stopTutorialMovement = () => {
+        tutorialInput.left = false;
+        tutorialInput.right = false;
+        tutorialVelocityX = 0;
+        tutorialLastFrame = 0;
+        explorerParty.classList.remove("is-moving");
+        if (tutorialFrame) {
+          window.cancelAnimationFrame(tutorialFrame);
+          tutorialFrame = 0;
+        }
+      };
+
+      const setupTutorialWorld = () => {
+        const viewportWidth = Math.max(320, forestExploration.clientWidth || window.innerWidth || 1024);
+        tutorialWorldWidth = Math.max(2200, Math.round(viewportWidth * 1.72));
+        tutorialPlayerX = Math.max(190, Math.min(270, viewportWidth * .22));
+        tutorialVelocityX = 0;
+        tutorialJumpY = 0;
+        tutorialVelocityY = 0;
+        tutorialCameraX = 0;
+        tutorialPlumirelX = tutorialWorldWidth - Math.max(280, viewportWidth * .18);
+        tutorialGrounded = true;
+        tutorialLastFrame = 0;
+        tutorialLastStepCell = -1;
+        movementCount = 0;
+        explorerParty.classList.remove("is-moving", "is-jumping", "facing-left");
+        positionExplorerParty();
+      };
+
+      const jumpForestPlayer = () => {
+        if (!forestExploring || battleLocked || !tutorialGrounded) return;
+        tutorialGrounded = false;
+        tutorialVelocityY = 620;
+        explorerParty.classList.add("is-jumping");
+        movementHint.textContent = "Ótimo pulo! Agora use A e D para seguir pela trilha.";
+        playSequence([330, 494, 659], .045);
+      };
+
+      const setForestDirection = (direction, active) => {
+        if (!forestExploring || battleLocked) return;
+        if (direction === "left") tutorialInput.left = active;
+        if (direction === "right") tutorialInput.right = active;
+      };
+
+      const stepTutorialMovement = (timestamp) => {
+        if (!forestExploring || forestExploration.hidden) {
+          tutorialFrame = 0;
+          tutorialLastFrame = 0;
+          return;
+        }
+
+        if (!tutorialLastFrame) tutorialLastFrame = timestamp;
+        const deltaTime = Math.min(.034, Math.max(.001, (timestamp - tutorialLastFrame) / 1000));
+        tutorialLastFrame = timestamp;
+        const direction = Number(tutorialInput.right) - Number(tutorialInput.left);
+        const targetVelocity = direction * 285;
+        const acceleration = direction ? 13 : 17;
+        tutorialVelocityX += (targetVelocity - tutorialVelocityX) * Math.min(1, deltaTime * acceleration);
+        if (!direction && Math.abs(tutorialVelocityX) < 2) tutorialVelocityX = 0;
+
+        tutorialPlayerX = Math.max(
+          90,
+          Math.min(tutorialWorldWidth - 90, tutorialPlayerX + tutorialVelocityX * deltaTime)
+        );
+
+        if (!tutorialGrounded) {
+          tutorialJumpY += tutorialVelocityY * deltaTime;
+          tutorialVelocityY -= 1540 * deltaTime;
+          if (tutorialJumpY <= 0) {
+            tutorialJumpY = 0;
+            tutorialVelocityY = 0;
+            tutorialGrounded = true;
+            explorerParty.classList.remove("is-jumping");
+            playTone(150, 0, .055, "triangle");
+          }
+        }
+
+        const viewportWidth = Math.max(320, forestExploration.clientWidth || window.innerWidth || 1024);
+        const maxCameraX = Math.max(0, tutorialWorldWidth - viewportWidth);
+        const cameraTarget = Math.max(
+          0,
+          Math.min(maxCameraX, tutorialPlayerX - viewportWidth * .38)
+        );
+        const cameraEase = prefersLessMotion() ? 1 : Math.min(1, deltaTime * 7.5);
+        tutorialCameraX += (cameraTarget - tutorialCameraX) * cameraEase;
+
+        const isMoving = Math.abs(tutorialVelocityX) > 18;
+        explorerParty.classList.toggle("is-moving", isMoving && tutorialGrounded);
+        if (tutorialVelocityX < -8) explorerParty.classList.add("facing-left");
+        if (tutorialVelocityX > 8) explorerParty.classList.remove("facing-left");
+
+        if (isMoving) {
+          const stepCell = Math.floor(tutorialPlayerX / 95);
+          if (stepCell !== tutorialLastStepCell) {
+            tutorialLastStepCell = stepCell;
+            playTone(155 + stepCell % 2 * 18, 0, .032, "triangle");
+          }
+        }
+
+        if (movementCount === 0 && Math.abs(tutorialPlayerX - Math.max(190, Math.min(270, viewportWidth * .22))) > 135) {
+          movementCount = 1;
+          movementHint.textContent = "Muito bem! A câmera acompanha você. Continue em direção ao Plumirel.";
+          playSequence([392, 523], .06);
+        } else if (movementCount === 1 && tutorialCameraX > viewportWidth * .38) {
+          movementCount = 2;
+          movementHint.textContent = "Continue pela trilha. O Plumirel está logo adiante.";
+        }
+
+        positionExplorerParty();
+
+        const partyWidth = explorerParty.getBoundingClientRect().width || 96;
+        const encounterDistance = Math.max(74, partyWidth * .72);
+        if (
+          Math.abs(tutorialPlayerX - tutorialPlumirelX) <= encounterDistance &&
+          tutorialJumpY < 72
+        ) {
+          void triggerPlumirelEncounter();
+          return;
+        }
+
+        tutorialFrame = window.requestAnimationFrame(stepTutorialMovement);
       };
 
       const startForestChapter = () => {
@@ -6133,9 +6376,9 @@
         forestObjective.textContent = "Ouça a Dra. Íris";
         forestDialogueIndex = 0;
         forestExploring = false;
-        playerPosition = { x: 28, y: 72 };
-        movementCount = 0;
-        positionExplorerParty();
+        stopTutorialMovement();
+        setupTutorialWorld();
+        forestScreen.classList.remove("side-scroll-test");
         plumirelWorld.classList.remove("alert");
         forestIntro.hidden = false;
         forestExploration.hidden = true;
@@ -6167,15 +6410,19 @@
         forestIntro.hidden = true;
         forestExploration.hidden = false;
         forestObjective.textContent = "Aproxime-se do Plumirel";
-        movementHint.textContent = "Use WASD, as setas ou o controle na tela para caminhar.";
+        movementHint.textContent = "Use A e D para andar. Pressione W para pular.";
+        setupTutorialWorld();
+        forestScreen.classList.add("side-scroll-test");
         forestExploring = true;
         playSequence([392, 494, 587], .07);
         forestExploration.focus();
+        tutorialFrame = window.requestAnimationFrame(stepTutorialMovement);
       };
 
       const triggerPlumirelEncounter = async () => {
         if (!forestExploring) return;
         forestExploring = false;
+        stopTutorialMovement();
         forestObjective.textContent = "Encontro selvagem!";
         movementHint.textContent = "O Plumirel percebeu vocês. Prepare-se para a batalha!";
         plumirelWorld.classList.add("alert");
@@ -6184,29 +6431,6 @@
         await forestPause(1050);
         encounterBanner.hidden = true;
         startBattleTutorial();
-      };
-
-      const moveForestPlayer = (deltaX, deltaY) => {
-        if (!forestExploring || battleLocked) return;
-        playerPosition.x = Math.max(12, Math.min(88, playerPosition.x + deltaX));
-        playerPosition.y = Math.max(33, Math.min(82, playerPosition.y + deltaY));
-        movementCount += 1;
-        positionExplorerParty();
-        explorerParty.classList.remove("is-moving");
-        void explorerParty.offsetWidth;
-        explorerParty.classList.add("is-moving");
-
-        if (movementCount === 2) {
-          movementHint.textContent = "Muito bem! Agora siga em direção ao Plumirel na clareira.";
-          playSequence([392, 523], .06);
-        } else if (movementCount === 6) {
-          movementHint.textContent = "Continue pela trilha iluminada. Ele está logo adiante.";
-        }
-
-        if (movementCount % 2 === 0) playTone(165, 0, .035, "triangle");
-        if (playerPosition.x >= 60 && playerPosition.y <= 53) {
-          void triggerPlumirelEncounter();
-        }
       };
 
       const updateBattleBars = () => {
@@ -6397,6 +6621,8 @@
       const startBattleTutorial = () => {
         const starter = STARTERS[selectedStarter];
         const battleData = BATTLE_STARTERS[selectedStarter];
+        stopTutorialMovement();
+        forestScreen.classList.remove("side-scroll-test");
         forestExploration.hidden = true;
         forestBattle.hidden = false;
         battleVictory.hidden = true;
@@ -7092,17 +7318,25 @@
       });
 
       movementButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const movements = {
-            up: [0, -5],
-            left: [-5, 0],
-            down: [0, 5],
-            right: [5, 0]
-          };
-          const movement = movements[button.dataset.move];
-          if (movement) moveForestPlayer(...movement);
+        const direction = button.dataset.move;
+        button.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          button.setPointerCapture?.(event.pointerId);
+          setForestDirection(direction, true);
+        });
+        ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
+          button.addEventListener(eventName, () => {
+            setForestDirection(direction, false);
+          });
+        });
+        button.addEventListener("click", (event) => {
+          if (event.detail !== 0) return;
+          setForestDirection(direction, true);
+          window.setTimeout(() => setForestDirection(direction, false), 180);
         });
       });
+
+      jumpButton.addEventListener("click", jumpForestPlayer);
 
       basicAttack.addEventListener("click", () => {
         void runBattleAction("basic");
@@ -7192,23 +7426,40 @@
       document.addEventListener("keydown", (event) => {
         if (forestScreen.hidden || forestExploration.hidden || !forestExploring) return;
         const movementKeys = {
-          ArrowUp: [0, -5],
-          w: [0, -5],
-          W: [0, -5],
-          ArrowLeft: [-5, 0],
-          a: [-5, 0],
-          A: [-5, 0],
-          ArrowDown: [0, 5],
-          s: [0, 5],
-          S: [0, 5],
-          ArrowRight: [5, 0],
-          d: [5, 0],
-          D: [5, 0]
+          ArrowLeft: "left",
+          a: "left",
+          A: "left",
+          ArrowRight: "right",
+          d: "right",
+          D: "right"
         };
-        const movement = movementKeys[event.key];
-        if (!movement) return;
+        const direction = movementKeys[event.key];
+        if (direction) {
+          event.preventDefault();
+          setForestDirection(direction, true);
+          return;
+        }
+        if (!["w", "W", "ArrowUp", " "].includes(event.key)) return;
         event.preventDefault();
-        moveForestPlayer(...movement);
+        if (!event.repeat) jumpForestPlayer();
+      });
+
+      document.addEventListener("keyup", (event) => {
+        const movementKeys = {
+          ArrowLeft: "left",
+          a: "left",
+          A: "left",
+          ArrowRight: "right",
+          d: "right",
+          D: "right"
+        };
+        const direction = movementKeys[event.key];
+        if (direction) setForestDirection(direction, false);
+      });
+
+      window.addEventListener("blur", () => {
+        tutorialInput.left = false;
+        tutorialInput.right = false;
       });
 
       document.addEventListener("keydown", (event) => {
