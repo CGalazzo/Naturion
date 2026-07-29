@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#102d1b">
   <meta name="color-scheme" content="dark">
   <title>Naturion — Guardiões da Natureza</title>
+  <link rel="preload" href="assets/start/naturion-voxel-valley.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/start/naturion-logo.png" as="image" type="image/png">
   <link rel="preload" href="assets/selection/forest-gate.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/selection/hero-male.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/selection/hero-female.webp" as="image" type="image/webp">
@@ -52,88 +54,6 @@
       min-height: 100svh;
       place-items: center;
       overflow: hidden;
-    }
-
-    .approved-stage {
-      position: relative;
-      width: min(100vw, calc(100svh * 16 / 9));
-      height: min(100svh, calc(100vw * 9 / 16));
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      background: #071018;
-      box-shadow: 0 20px 70px rgba(0, 0, 0, .55);
-    }
-
-    .approved-art {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity .2s ease;
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    .approved-art.ready {
-      opacity: 1;
-    }
-
-    .title-loading {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      background: linear-gradient(145deg, #123821, #071018);
-      font-weight: 900;
-      letter-spacing: .04em;
-      text-align: center;
-    }
-
-    .title-loading[hidden] {
-      display: none;
-    }
-
-    .approved-hit {
-      position: absolute;
-      z-index: 2;
-      border: 0;
-      border-radius: 18px;
-      outline: none;
-      background: transparent;
-      color: transparent;
-      cursor: pointer;
-      font-size: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .approved-hit:disabled {
-      cursor: default;
-    }
-
-    .approved-hit:not(:disabled):hover,
-    .approved-hit:not(:disabled):focus-visible {
-      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, .72), 0 0 30px rgba(255, 225, 82, .8);
-    }
-
-    .approved-hit:not(:disabled):active {
-      transform: translateY(3px);
-    }
-
-    #newJourney {
-      top: 59.1%;
-      left: 35.05%;
-      width: 29.25%;
-      height: 11.65%;
-    }
-
-    #optionsButton {
-      top: 74.85%;
-      left: 35.55%;
-      width: 28.6%;
-      height: 12.1%;
     }
 
     .scene {
@@ -1962,16 +1882,39 @@
 </head>
 <body>
   <main class="title-screen" id="titleScreen" aria-label="Tela inicial do Naturion">
-    <div class="approved-stage">
-      <img
-        class="approved-art"
-        id="screenArt"
-        alt="Tela inicial de Naturion: Guardiões da Natureza"
-        fetchpriority="high"
-      >
-      <div class="title-loading" id="titleLoading" role="status">Carregando Naturion...</div>
-      <button class="approved-hit" id="newJourney" type="button" aria-label="Nova Jornada" disabled>Nova Jornada</button>
-      <button class="approved-hit" id="optionsButton" type="button" aria-label="Opções" disabled>Opções</button>
+    <img
+      class="scene"
+      data-essential-asset
+      src="assets/start/naturion-voxel-valley.webp"
+      alt=""
+      width="1920"
+      height="1080"
+      fetchpriority="high"
+    >
+    <div class="light-rays" aria-hidden="true"></div>
+    <i class="spark" aria-hidden="true" style="--left:11%;--size:7px;--duration:10s;--delay:-6s"></i>
+    <i class="spark" aria-hidden="true" style="--left:24%;--size:5px;--duration:12s;--delay:-2s"></i>
+    <i class="spark" aria-hidden="true" style="--left:68%;--size:6px;--duration:11s;--delay:-8s"></i>
+    <i class="spark" aria-hidden="true" style="--left:82%;--size:8px;--duration:13s;--delay:-4s"></i>
+    <i class="spark" aria-hidden="true" style="--left:92%;--size:4px;--duration:9s;--delay:-1s"></i>
+
+    <div class="content">
+      <header class="brand">
+        <img
+          class="logo"
+          data-essential-asset
+          src="assets/start/naturion-logo.png"
+          alt="Naturion"
+          width="1029"
+          height="327"
+        >
+        <p class="subtitle">Guardiões da Natureza</p>
+      </header>
+
+      <nav class="menu" aria-label="Menu principal">
+        <button class="pixel-button" id="newJourney" type="button">Nova Jornada</button>
+        <button class="pixel-button secondary" id="optionsButton" type="button">Opções</button>
+      </nav>
     </div>
   </main>
 
@@ -2228,8 +2171,6 @@
       const titleScreen = document.getElementById("titleScreen");
       const selectionScreen = document.getElementById("selectionScreen");
       const storyScreen = document.getElementById("storyScreen");
-      const screenArt = document.getElementById("screenArt");
-      const titleLoading = document.getElementById("titleLoading");
       const assetError = document.getElementById("assetError");
       const modal = document.getElementById("optionsModal");
       const optionsButton = document.getElementById("optionsButton");
@@ -2320,31 +2261,6 @@
         image.addEventListener("error", showAssetError, { once: true });
         if (image.complete && image.naturalWidth === 0) showAssetError();
       });
-
-      const loadApprovedArt = async () => {
-        try {
-          const paths = [0, 1, 2, 3, 4].map((index) => `assets/start/bg${index}.txt?v=3`);
-          const pieces = await Promise.all(paths.map(async (path) => {
-            const response = await fetch(path, { cache: "no-store" });
-            if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
-            return (await response.text()).trim();
-          }));
-
-          await new Promise((resolve, reject) => {
-            screenArt.onload = resolve;
-            screenArt.onerror = () => reject(new Error("A imagem aprovada não pôde ser decodificada."));
-            screenArt.src = `data:image/webp;base64,${pieces.join("")}`;
-          });
-
-          screenArt.classList.add("ready");
-          titleLoading.hidden = true;
-          newJourneyButton.disabled = false;
-          optionsButton.disabled = false;
-        } catch (error) {
-          console.error(error);
-          titleLoading.textContent = "Não foi possível carregar a arte da tela inicial. Atualize a página para tentar novamente.";
-        }
-      };
 
       const readSettings = () => {
         try {
@@ -2837,7 +2753,6 @@
       });
 
       updateFormState();
-      loadApprovedArt();
     })();
   </script>
 </body>
