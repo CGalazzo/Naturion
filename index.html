@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0a4f2a">
+  <title>Naturion — Guardiões da Natureza</title>
+  <style>
+    :root{color-scheme:dark;--panel:rgba(6,18,13,.95);--gold:#e3c45c;--green:#65aa40;--text:#fff8df}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020709;font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+    body{display:grid;place-items:center}
+    .game{position:relative;width:min(100vw,calc(100vh * 25 / 16));height:min(100vh,calc(100vw * 16 / 25));aspect-ratio:25/16;overflow:hidden;background:#0d5a39 url('assets/naturion-start.webp') center/cover no-repeat;box-shadow:0 0 60px rgba(0,0,0,.55)}
+    .menu-hit{position:absolute;border:0;border-radius:18px;background:transparent;cursor:pointer;color:transparent;font-size:0;outline:none;transition:background .16s ease,box-shadow .16s ease,transform .16s ease}
+    .menu-hit::after{content:"";position:absolute;inset:0;border-radius:18px;box-shadow:inset 0 0 0 0 rgba(255,255,255,0);transition:box-shadow .16s ease}
+    .menu-hit:hover::after,.menu-hit:focus-visible::after{box-shadow:inset 0 0 0 4px rgba(255,255,255,.55),0 0 28px rgba(255,239,139,.65)}
+    .menu-hit:active{transform:translateY(3px)}
+    #newJourney{left:34.8%;top:53.8%;width:31.6%;height:11.5%}
+    #optionsButton{left:35.5%;top:67.2%;width:30.5%;height:11.3%}
+    .modal{position:fixed;inset:0;display:grid;place-items:center;padding:22px;background:rgba(0,0,0,.58);backdrop-filter:blur(5px);z-index:10}
+    .modal[hidden]{display:none}
+    .card{width:min(92vw,540px);padding:26px;border:2px solid rgba(227,196,92,.55);border-radius:22px;background:linear-gradient(180deg,rgba(17,48,29,.98),rgba(7,24,16,.98));box-shadow:0 24px 70px rgba(0,0,0,.55)}
+    .card h2{margin:0 0 22px;text-align:center;color:#f1d57b;font-size:clamp(1.5rem,4vw,2.1rem)}
+    .setting{display:grid;gap:8px;margin:18px 0;padding:14px;border-radius:14px;background:rgba(255,255,255,.055)}
+    .setting label{font-weight:800}
+    .setting input[type=range]{width:100%;accent-color:var(--green)}
+    .toggle{display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .toggle input{width:23px;height:23px;accent-color:var(--green)}
+    .actions{display:flex;justify-content:center;margin-top:24px}
+    .close{min-width:190px;padding:13px 22px;border:2px solid #2b641f;border-radius:14px;background:linear-gradient(#84c84d,#35722f);color:white;font-size:1rem;font-weight:900;text-transform:uppercase;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.25)}
+    .close:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(0,0,0,.25)}
+    .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);max-width:min(90vw,560px);padding:14px 20px;border:1px solid rgba(227,196,92,.55);border-radius:14px;background:var(--panel);box-shadow:0 14px 36px rgba(0,0,0,.4);font-weight:800;text-align:center;opacity:0;pointer-events:none;transition:.22s ease;z-index:20}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    @media (max-width:720px){.card{padding:20px}.modal{padding:14px}}
+  </style>
+</head>
+<body>
+  <main class="game" aria-label="Tela inicial do Naturion">
+    <button class="menu-hit" id="newJourney" type="button" aria-label="Nova Jornada">Nova Jornada</button>
+    <button class="menu-hit" id="optionsButton" type="button" aria-label="Opções">Opções</button>
+  </main>
+
+  <section class="modal" id="optionsModal" hidden aria-hidden="true">
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="optionsTitle">
+      <h2 id="optionsTitle">Opções</h2>
+      <div class="setting">
+        <label for="musicVolume">Volume da música</label>
+        <input id="musicVolume" type="range" min="0" max="100" value="70">
+      </div>
+      <div class="setting">
+        <label for="effectsVolume">Volume dos efeitos</label>
+        <input id="effectsVolume" type="range" min="0" max="100" value="85">
+      </div>
+      <div class="setting toggle">
+        <label for="fullscreen">Tela cheia</label>
+        <input id="fullscreen" type="checkbox">
+      </div>
+      <div class="actions"><button class="close" id="closeOptions" type="button">Fechar</button></div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const SETTINGS_KEY='naturion-settings-v1';
+    const optionsModal=document.getElementById('optionsModal');
+    const musicVolume=document.getElementById('musicVolume');
+    const effectsVolume=document.getElementById('effectsVolume');
+    const fullscreen=document.getElementById('fullscreen');
+    const toast=document.getElementById('toast');
+    let toastTimer;
+
+    function showToast(message){
+      toast.textContent=message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>toast.classList.remove('show'),2600);
+    }
+
+    function loadSettings(){
+      try{
+        const saved=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+        if(Number.isFinite(saved.music)) musicVolume.value=saved.music;
+        if(Number.isFinite(saved.effects)) effectsVolume.value=saved.effects;
+      }catch(error){console.warn('Falha ao carregar opções',error)}
+    }
+
+    function saveSettings(){
+      localStorage.setItem(SETTINGS_KEY,JSON.stringify({music:Number(musicVolume.value),effects:Number(effectsVolume.value)}));
+    }
+
+    function openOptions(){
+      optionsModal.hidden=false;
+      optionsModal.setAttribute('aria-hidden','false');
+      document.getElementById('closeOptions').focus();
+    }
+
+    function closeOptions(){
+      saveSettings();
+      optionsModal.hidden=true;
+      optionsModal.setAttribute('aria-hidden','true');
+      document.getElementById('optionsButton').focus();
+    }
+
+    document.getElementById('newJourney').addEventListener('click',()=>showToast('A escolha do Naturion inicial será adicionada na próxima etapa.'));
+    document.getElementById('optionsButton').addEventListener('click',openOptions);
+    document.getElementById('closeOptions').addEventListener('click',closeOptions);
+    optionsModal.addEventListener('click',event=>{if(event.target===optionsModal) closeOptions()});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!optionsModal.hidden) closeOptions()});
+    musicVolume.addEventListener('input',saveSettings);
+    effectsVolume.addEventListener('input',saveSettings);
+    fullscreen.addEventListener('change',async()=>{
+      try{
+        if(fullscreen.checked&&!document.fullscreenElement) await document.documentElement.requestFullscreen();
+        if(!fullscreen.checked&&document.fullscreenElement) await document.exitFullscreen();
+      }catch(error){fullscreen.checked=Boolean(document.fullscreenElement);showToast('O navegador não permitiu ativar a tela cheia.')}
+    });
+    document.addEventListener('fullscreenchange',()=>fullscreen.checked=Boolean(document.fullscreenElement));
+    loadSettings();
+  </script>
+</body>
+</html>
