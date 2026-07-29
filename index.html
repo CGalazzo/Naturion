@@ -4175,7 +4175,7 @@
       --crystal-dark: #164d76;
       position: absolute;
       z-index: 6;
-      top: 64%;
+      top: 80.5%;
       left: 50%;
       display: grid;
       justify-items: center;
@@ -4198,7 +4198,6 @@
     }
 
     .puzzle-crystal[data-seal="estrela"] {
-      top: 61.5%;
       left: 50%;
       --crystal-main: #ffd85f;
       --crystal-bright: #fffbe0;
@@ -4221,12 +4220,28 @@
       display: block;
       width: 78%;
       height: 82%;
+      isolation: isolate;
       pointer-events: none;
+    }
+
+    .crystal-visual::before {
+      position: absolute;
+      z-index: 0;
+      inset: 8% 12% 22%;
+      border-radius: 48%;
+      content: "";
+      opacity: 0;
+      background:
+        radial-gradient(ellipse, var(--crystal-bright) 0 8%, var(--crystal-main) 34%, transparent 72%);
+      filter: blur(11px);
+      mix-blend-mode: screen;
+      transition: opacity .18s ease;
     }
 
     .crystal-base,
     .crystal-gem {
       position: absolute;
+      z-index: 1;
       inset: 0;
       display: block;
       width: 100%;
@@ -4234,19 +4249,22 @@
       opacity: .74;
       object-fit: contain;
       object-position: bottom;
+      mix-blend-mode: screen;
     }
 
     .crystal-base {
       clip-path: inset(79% 0 0 0);
       filter:
+        contrast(1.5)
         saturate(.56)
-        brightness(.5)
-        drop-shadow(0 10px 8px rgba(0,0,0,.58));
+        brightness(.5);
     }
 
     .crystal-gem {
+      z-index: 2;
       clip-path: inset(0 0 20% 0);
       filter:
+        contrast(1.5)
         saturate(.56)
         brightness(.5);
       transition: filter .18s ease, opacity .18s ease;
@@ -4272,14 +4290,15 @@
 
     .puzzle-crystal:not(:disabled):hover,
     .puzzle-crystal:not(:disabled):focus-visible {
-      filter: brightness(1.16);
       outline: none;
       transform: translate(-50%, -100%);
     }
 
-    .puzzle-crystal:not(:disabled):focus-visible .crystal-gem {
-      outline: 3px solid #fff3a6;
-      outline-offset: 5px;
+    .puzzle-crystal:not(:disabled):hover small,
+    .puzzle-crystal:not(:disabled):focus-visible small {
+      border-color: #fff3a6;
+      color: #fffbd1;
+      opacity: 1;
     }
 
     .puzzle-crystal.is-preview .crystal-gem,
@@ -4287,11 +4306,15 @@
     .puzzle-crystal.is-awake .crystal-gem {
       opacity: 1;
       filter:
+        contrast(1.55)
         saturate(1.25)
-        brightness(1.42)
-        drop-shadow(0 0 5px var(--crystal-bright))
-        drop-shadow(0 0 13px var(--crystal-main))
-        drop-shadow(0 0 24px var(--crystal-main));
+        brightness(1.42);
+    }
+
+    .puzzle-crystal.is-preview .crystal-visual::before,
+    .puzzle-crystal.is-input .crystal-visual::before,
+    .puzzle-crystal.is-awake .crystal-visual::before {
+      opacity: .72;
     }
 
     .puzzle-crystal.is-preview small,
@@ -4768,13 +4791,9 @@
       }
 
       .puzzle-crystal {
-        top: 64%;
+        top: 76%;
         width: clamp(60px, 20vw, 82px);
         height: clamp(100px, 31vw, 132px);
-      }
-
-      .puzzle-crystal[data-seal="estrela"] {
-        top: 61.5%;
       }
 
       .puzzle-crystal[data-seal="lua"] {
@@ -6393,7 +6412,7 @@
       const positionExplorerParty = () => {
         tutorialWorld.style.setProperty("--tutorial-world-width", `${tutorialWorldWidth}px`);
         tutorialWorld.style.setProperty("--tutorial-camera-x", `${tutorialCameraX}px`);
-        const viewportHeight = Math.max(520, forestExploration.clientHeight || window.innerHeight || 720);
+        const viewportHeight = Math.max(320, forestExploration.clientHeight || window.innerHeight || 720);
         const footInset = Math.max(5, Math.min(8, viewportHeight * .008));
         explorerParty.style.left = `${tutorialPlayerX}px`;
         explorerParty.style.bottom = `${tutorialPlayerY - footInset}px`;
@@ -6422,13 +6441,13 @@
 
       const setupTutorialWorld = () => {
         const viewportWidth = Math.max(320, forestExploration.clientWidth || window.innerWidth || 1024);
-        const viewportHeight = Math.max(520, forestExploration.clientHeight || window.innerHeight || 720);
+        const viewportHeight = Math.max(320, forestExploration.clientHeight || window.innerHeight || 720);
         tutorialWorldWidth = Math.max(
           2172,
           Math.round(viewportHeight * 3),
           Math.round(viewportWidth * 1.35)
         );
-        tutorialGroundY = viewportHeight * .18;
+        tutorialGroundY = viewportHeight * .135;
         tutorialPlayerX = Math.max(190, Math.min(270, viewportWidth * .22));
         tutorialPlayerY = tutorialGroundY;
         tutorialVelocityX = 0;
@@ -6437,15 +6456,15 @@
         tutorialJumpSpeed = Math.sqrt(2 * 1700 * viewportHeight * .185);
         tutorialPlatforms = [
           { id: "ground", x1: 0, x2: tutorialWorldWidth, y: tutorialGroundY },
-          { id: "stone-one", x1: tutorialWorldWidth * .195, x2: tutorialWorldWidth * .305, y: viewportHeight * .325 },
-          { id: "ruin-low", x1: tutorialWorldWidth * .365, x2: tutorialWorldWidth * .45, y: viewportHeight * .305 },
-          { id: "ruin-high", x1: tutorialWorldWidth * .435, x2: tutorialWorldWidth * .51, y: viewportHeight * .445 },
-          { id: "fallen-log", x1: tutorialWorldWidth * .49, x2: tutorialWorldWidth * .585, y: viewportHeight * .285 },
-          { id: "stone-two", x1: tutorialWorldWidth * .605, x2: tutorialWorldWidth * .72, y: viewportHeight * .34 },
-          { id: "final-step-one", x1: tutorialWorldWidth * .775, x2: tutorialWorldWidth * .835, y: viewportHeight * .255 },
-          { id: "final-step-two", x1: tutorialWorldWidth * .805, x2: tutorialWorldWidth * .87, y: viewportHeight * .345 },
-          { id: "final-step-three", x1: tutorialWorldWidth * .83, x2: tutorialWorldWidth * .905, y: viewportHeight * .445 },
-          { id: "plumirel-rock", x1: tutorialWorldWidth * .865, x2: tutorialWorldWidth * .965, y: viewportHeight * .59 }
+          { id: "stone-one", x1: tutorialWorldWidth * .208, x2: tutorialWorldWidth * .307, y: viewportHeight * .293 },
+          { id: "ruin-low", x1: tutorialWorldWidth * .385, x2: tutorialWorldWidth * .476, y: viewportHeight * .304 },
+          { id: "ruin-high", x1: tutorialWorldWidth * .452, x2: tutorialWorldWidth * .527, y: viewportHeight * .431 },
+          { id: "fallen-log", x1: tutorialWorldWidth * .49, x2: tutorialWorldWidth * .602, y: viewportHeight * .285 },
+          { id: "stone-two", x1: tutorialWorldWidth * .624, x2: tutorialWorldWidth * .742, y: viewportHeight * .315 },
+          { id: "final-step-one", x1: tutorialWorldWidth * .818, x2: tutorialWorldWidth * .894, y: viewportHeight * .268 },
+          { id: "final-step-two", x1: tutorialWorldWidth * .837, x2: tutorialWorldWidth * .908, y: viewportHeight * .378 },
+          { id: "final-step-three", x1: tutorialWorldWidth * .87, x2: tutorialWorldWidth * .932, y: viewportHeight * .467 },
+          { id: "plumirel-rock", x1: tutorialWorldWidth * .886, x2: tutorialWorldWidth * .958, y: viewportHeight * .566 }
         ];
         const finalRock = tutorialPlatforms[tutorialPlatforms.length - 1];
         tutorialPlumirelX = finalRock.x1 + (finalRock.x2 - finalRock.x1) * .57;
