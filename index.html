@@ -12,6 +12,7 @@
   <link rel="preload" href="assets/selection/hero-male.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/selection/hero-female.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/story/research-outpost.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/story/crystal-watch-round.webp" as="image" type="image/webp">
   <style>
     :root {
       --gold-light: #fff8ad;
@@ -1235,9 +1236,9 @@
     .watch-reveal {
       position: absolute;
       z-index: 2;
-      top: 10vh;
-      left: 52%;
-      width: min(34vw, 440px);
+      top: 14vh;
+      left: 58%;
+      width: min(24vw, 300px);
       opacity: 0;
       filter: drop-shadow(0 0 22px rgba(93, 226, 255, .7));
       transform: translate(-50%, 25px) scale(.7) rotate(-7deg);
@@ -1684,6 +1685,161 @@
       animation-delay: .18s;
     }
 
+    .post-journey-pair[hidden] {
+      display: none;
+    }
+
+    .post-journey-pair {
+      position: absolute;
+      z-index: 2;
+      right: 1%;
+      bottom: 17vh;
+      display: flex;
+      width: min(52vw, 680px);
+      height: 66vh;
+      align-items: end;
+      justify-content: center;
+      gap: clamp(0px, 1vw, 18px);
+      pointer-events: none;
+    }
+
+    .post-hero,
+    .post-creature {
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 13px 10px rgba(0, 0, 0, .58));
+      animation: partner-appear .65s cubic-bezier(.18, .82, .24, 1) both;
+    }
+
+    .post-hero {
+      width: min(35%, 240px);
+    }
+
+    .post-creature {
+      width: min(54%, 390px);
+      max-height: 76%;
+      animation-delay: .16s;
+    }
+
+    .mission-step {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: max(20px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 50% 32%, rgba(94, 220, 134, .18), transparent 38%),
+        rgba(1, 12, 7, .74);
+      backdrop-filter: blur(5px);
+    }
+
+    .mission-card {
+      width: min(94vw, 880px);
+      max-height: 94svh;
+      overflow: auto;
+      padding: clamp(22px, 4vw, 38px);
+      border: 4px solid #102d1b;
+      border-radius: 15px;
+      outline: 3px solid var(--gold);
+      outline-offset: -11px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .025) 50%, transparent 50%) 0 0 / 100% 6px,
+        linear-gradient(145deg, rgba(31, 87, 50, .98), rgba(4, 23, 14, .99));
+      box-shadow: 0 12px 0 #03130a, 0 30px 75px rgba(0, 0, 0, .72);
+      text-align: center;
+      animation: card-in .48s cubic-bezier(.18, .8, .22, 1) both;
+    }
+
+    .mission-eyebrow {
+      display: inline-block;
+      padding: 7px 13px;
+      border: 1px solid rgba(255, 232, 130, .6);
+      border-radius: 999px;
+      background: rgba(2, 20, 11, .6);
+      color: #fff0a4;
+      font: 1000 clamp(.65rem, 1.4vw, .82rem)/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .mission-card h1 {
+      margin: 13px 0 5px;
+      color: #fff2a6;
+      font: 1000 clamp(1.45rem, 4.7vw, 2.8rem)/1.05 ui-monospace, "Courier New", monospace;
+      letter-spacing: .06em;
+      text-shadow: 3px 3px #3a2708;
+      text-transform: uppercase;
+    }
+
+    .mission-intro,
+    .mission-note {
+      color: #deefd7;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .mission-intro {
+      margin: 0 0 15px;
+    }
+
+    .mission-layout {
+      display: grid;
+      grid-template-columns: minmax(100px, 160px) 1fr minmax(120px, 220px);
+      align-items: center;
+      gap: clamp(12px, 3vw, 28px);
+      padding: 14px;
+      border: 2px solid rgba(232, 193, 59, .48);
+      border-radius: 11px;
+      background: rgba(2, 18, 10, .52);
+    }
+
+    .mission-emblem img,
+    .mission-creature {
+      display: block;
+      width: 100%;
+      height: 190px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 13px rgba(91, 218, 255, .35));
+    }
+
+    .mission-creature {
+      filter: drop-shadow(0 10px 8px rgba(0, 0, 0, .52));
+      animation: starter-idle 3.8s ease-in-out infinite;
+    }
+
+    .mission-details {
+      display: grid;
+      gap: 9px;
+      text-align: left;
+    }
+
+    .mission-details p {
+      display: grid;
+      gap: 3px;
+      margin: 0;
+      padding: 8px 10px;
+      border-left: 3px solid var(--gold);
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .mission-details strong {
+      color: #fff0a2;
+      font: 1000 .72rem/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .mission-details span {
+      color: #f1f4e4;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .mission-note {
+      margin: 14px 0 18px;
+    }
+
     @keyframes story-breathe {
       from { transform: scale(1.02) translate3d(-4px, 0, 0); }
       to { transform: scale(1.055) translate3d(5px, -3px, 0); }
@@ -1742,9 +1898,9 @@
       }
 
       .watch-reveal {
-        top: 12vh;
-        left: 68%;
-        width: min(42vw, 280px);
+        top: 13vh;
+        left: 70%;
+        width: min(31vw, 210px);
       }
 
       .dialogue-box {
@@ -1841,6 +1997,50 @@
       .result-creature {
         width: 55%;
       }
+
+      .post-journey-pair {
+        right: -7%;
+        bottom: 25vh;
+        width: 69vw;
+        height: 45vh;
+      }
+
+      .post-hero {
+        width: 32%;
+      }
+
+      .post-creature {
+        width: 58%;
+        max-height: 72%;
+      }
+
+      .mission-card {
+        padding: 18px 15px 21px;
+      }
+
+      .mission-layout {
+        grid-template-columns: 1fr minmax(105px, 145px);
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .mission-emblem {
+        display: none;
+      }
+
+      .mission-emblem img,
+      .mission-creature {
+        height: 145px;
+      }
+
+      .mission-details p {
+        padding: 7px 8px;
+      }
+
+      .mission-note {
+        margin-block: 11px 14px;
+        font-size: .85rem;
+      }
     }
 
     @media (max-height: 650px) and (min-width: 761px) {
@@ -1850,8 +2050,8 @@
       }
 
       .watch-reveal {
-        top: 5vh;
-        width: min(29vw, 340px);
+        top: 7vh;
+        width: min(22vw, 250px);
       }
 
       .dialogue-box {
@@ -1865,6 +2065,24 @@
 
       .starter-grid {
         max-height: 64vh;
+      }
+
+      .post-journey-pair {
+        bottom: 22vh;
+        height: 60vh;
+      }
+
+      .mission-card {
+        padding-block: 18px;
+      }
+
+      .mission-emblem img,
+      .mission-creature {
+        height: 130px;
+      }
+
+      .mission-note {
+        margin-block: 9px 12px;
       }
     }
 
@@ -1998,7 +2216,7 @@
     >
 
     <div class="story-hud" id="watchHud" aria-label="Relógio Cristalíneo recebido">
-      <img src="assets/story/crystal-watch.webp" alt="" width="608" height="672">
+      <img src="assets/story/crystal-watch-round.webp" alt="" width="652" height="648">
       <span>Relógio recebido</span>
     </div>
 
@@ -2016,11 +2234,16 @@
           class="watch-reveal"
           id="watchReveal"
           data-essential-asset
-          src="assets/story/crystal-watch.webp"
+          src="assets/story/crystal-watch-round.webp"
           alt="Relógio Cristalíneo"
-          width="608"
-          height="672"
+          width="652"
+          height="648"
         >
+
+        <div class="post-journey-pair" id="postJourneyPair" hidden>
+          <img class="post-hero" id="postHero" src="assets/selection/hero-male.webp" alt="Seu personagem">
+          <img class="post-creature" id="postCreature" src="assets/story/axolume.webp" alt="Seu Naturion inicial">
+        </div>
 
         <div class="dialogue-box">
           <p class="speaker-name">Dra. Íris</p>
@@ -2097,8 +2320,31 @@
           <img class="result-hero" id="resultHero" src="assets/selection/hero-male.webp" alt="Seu personagem">
           <img class="result-creature" id="resultCreature" src="assets/story/axolume.webp" alt="Seu Naturion inicial">
         </div>
-        <button class="finish-story" id="finishStory" type="button">Tudo pronto!</button>
+        <button class="finish-story" id="finishStory" type="button">Falar com Dra. Íris</button>
       </div>
+    </section>
+
+    <section class="story-step mission-step" id="missionStep" hidden>
+      <article class="mission-card">
+        <span class="mission-eyebrow">Nova missão</span>
+        <h1>Ecos no Bosque</h1>
+        <p class="mission-intro">A primeira página da sua jornada começa no Bosque Luminal.</p>
+
+        <div class="mission-layout">
+          <div class="mission-emblem" aria-hidden="true">
+            <img src="assets/story/crystal-watch-round.webp" alt="">
+          </div>
+          <div class="mission-details">
+            <p><strong>Local</strong><span>Bosque Luminal</span></p>
+            <p><strong>Objetivo</strong><span>Investigue a instabilidade cristalina.</span></p>
+            <p><strong>Companheiro</strong><span id="missionCompanion">Axolume</span></p>
+          </div>
+          <img class="mission-creature" id="missionCreature" src="assets/story/axolume.webp" alt="Seu Naturion inicial">
+        </div>
+
+        <p class="mission-note">Siga o brilho dos cristais e observe os Naturions selvagens pelo caminho.</p>
+        <button class="finish-story" id="beginMission" type="button">Começar Jornada</button>
+      </article>
     </section>
   </main>
 
@@ -2118,7 +2364,7 @@
     <div class="sync-scene">
       <img class="sync-creature" id="syncCreature" src="assets/story/axolume.webp" alt="">
       <span class="sync-beam" aria-hidden="true"></span>
-      <img class="sync-watch" src="assets/story/crystal-watch.webp" alt="Relógio Cristalíneo">
+      <img class="sync-watch" src="assets/story/crystal-watch-round.webp" alt="Relógio Cristalíneo">
     </div>
     <div id="particleField" aria-hidden="true"></div>
     <p class="sync-message" id="syncMessage">Iniciando sintonia...</p>
@@ -2205,6 +2451,13 @@
       const resultCreature = document.getElementById("resultCreature");
       const resultMessage = document.getElementById("resultMessage");
       const finishStory = document.getElementById("finishStory");
+      const postJourneyPair = document.getElementById("postJourneyPair");
+      const postHero = document.getElementById("postHero");
+      const postCreature = document.getElementById("postCreature");
+      const missionStep = document.getElementById("missionStep");
+      const missionCompanion = document.getElementById("missionCompanion");
+      const missionCreature = document.getElementById("missionCreature");
+      const beginMission = document.getElementById("beginMission");
       const toastBox = document.getElementById("toast");
       const musicVolume = document.getElementById("musicVolume");
       const effectsVolume = document.getElementById("effectsVolume");
@@ -2216,6 +2469,7 @@
       let currentPlayer = null;
       let selectedStarter = "";
       let dialogueIndex = 0;
+      let dialogueMode = "intro";
       let typingTimer;
       let toastTimer;
       let audioContext;
@@ -2426,13 +2680,44 @@
         writeDialogue(lines[dialogueIndex].text, lines[dialogueIndex].action);
       };
 
+      const renderPostDialogue = () => {
+        const starter = STARTERS[selectedStarter];
+        const lines = [
+          {
+            text: `Parabéns, ${currentPlayer.name}! O Relógio Cristalíneo reconheceu seu vínculo com ${starter.name}.`,
+            action: "Continuar"
+          },
+          {
+            text: "Os Naturions nascem das essências que mantêm nosso mundo em equilíbrio: água, fogo, plantas e muitas outras.",
+            action: "Sobre os vínculos"
+          },
+          {
+            text: "O relógio não controla um Naturion. Ele registra a confiança que cresce entre vocês e guarda a memória de cada descoberta.",
+            action: "Continuar"
+          },
+          {
+            text: "Ultimamente, os cristais da região estão instáveis. Alguns Naturions selvagens começaram a agir de maneira incomum.",
+            action: "O que devemos fazer?"
+          },
+          {
+            text: `Leve ${starter.name} até o Bosque Luminal e investigue a origem dessa instabilidade. O mundo dos Naturions espera por vocês.`,
+            action: "Ver missão"
+          }
+        ];
+
+        writeDialogue(lines[dialogueIndex].text, lines[dialogueIndex].action);
+      };
+
       const startStory = (player) => {
         currentPlayer = player;
         selectedStarter = "";
         dialogueIndex = 0;
+        dialogueMode = "intro";
         introStep.hidden = false;
         startersStep.hidden = true;
         resultStep.hidden = true;
+        missionStep.hidden = true;
+        postJourneyPair.hidden = true;
         watchReveal.classList.remove("visible");
         watchHud.classList.toggle("visible", Boolean(player.hasCrystalWatch));
         starterCards.forEach((card) => {
@@ -2444,6 +2729,46 @@
         starterGreeting.textContent = `${player.name}, qual essência combina com você?`;
         transitionScreens(selectionScreen, storyScreen);
         window.setTimeout(renderDialogue, prefersLessMotion() ? 0 : 470);
+      };
+
+      const startPostDialogue = () => {
+        const starter = STARTERS[selectedStarter];
+        if (!starter || !currentPlayer) return;
+
+        resultStep.hidden = true;
+        missionStep.hidden = true;
+        startersStep.hidden = true;
+        introStep.hidden = false;
+        watchReveal.classList.remove("visible");
+        postJourneyPair.hidden = false;
+        postHero.src = currentPlayer.character === "female"
+          ? "assets/selection/hero-female.webp"
+          : "assets/selection/hero-male.webp";
+        postHero.alt = currentPlayer.name;
+        postCreature.src = starter.image;
+        postCreature.alt = starter.name;
+        dialogueMode = "post";
+        dialogueIndex = 0;
+        playSequence([392, 494, 587], .08);
+        renderPostDialogue();
+        window.dispatchEvent(new CustomEvent("naturion:starter-selected", {
+          detail: currentPlayer
+        }));
+      };
+
+      const showMission = () => {
+        const starter = STARTERS[selectedStarter];
+        clearInterval(typingTimer);
+        introStep.hidden = true;
+        postJourneyPair.hidden = true;
+        missionCompanion.textContent = starter.name;
+        missionCreature.src = starter.image;
+        missionCreature.alt = starter.name;
+        beginMission.disabled = false;
+        beginMission.textContent = "Começar Jornada";
+        missionStep.hidden = false;
+        playSequence([330, 440, 554, 659], .1);
+        beginMission.focus();
       };
 
       const showStarterSelection = () => {
@@ -2645,6 +2970,16 @@
         if (dialogueAction.disabled) return;
         playClick(320);
 
+        if (dialogueMode === "post") {
+          if (dialogueIndex < 4) {
+            dialogueIndex += 1;
+            renderPostDialogue();
+          } else {
+            showMission();
+          }
+          return;
+        }
+
         if (dialogueIndex < 2) {
           dialogueIndex += 1;
           renderDialogue();
@@ -2685,10 +3020,28 @@
       });
 
       finishStory.addEventListener("click", () => {
+        startPostDialogue();
+      });
+
+      beginMission.addEventListener("click", () => {
         const starter = STARTERS[selectedStarter];
-        playSequence([392, 523, 659], .08);
-        showToast(`${currentPlayer.name} e ${starter.name}: vínculo salvo!`);
-        window.dispatchEvent(new CustomEvent("naturion:starter-selected", {
+        currentPlayer = {
+          ...currentPlayer,
+          journeyStarted: true,
+          activeMission: {
+            id: "ecos-no-bosque",
+            title: "Ecos no Bosque",
+            location: "Bosque Luminal",
+            status: "active",
+            startedAt: new Date().toISOString()
+          }
+        };
+        saveCurrentPlayer();
+        beginMission.textContent = "Jornada iniciada!";
+        beginMission.disabled = true;
+        playSequence([330, 440, 554, 659, 784], .09);
+        showToast(`${currentPlayer.name} e ${starter.name} partiram para o Bosque Luminal!`);
+        window.dispatchEvent(new CustomEvent("naturion:journey-started", {
           detail: currentPlayer
         }));
       });
