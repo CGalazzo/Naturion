@@ -3,157 +3,2842 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#071018">
+  <meta name="theme-color" content="#102d1b">
+  <meta name="color-scheme" content="dark">
   <title>Naturion — Guardiões da Natureza</title>
+  <link rel="preload" href="assets/selection/forest-gate.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/selection/hero-male.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/selection/hero-female.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/story/research-outpost.webp" as="image" type="image/webp">
   <style>
-    *{box-sizing:border-box}
-    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#071018;color:#fff;font-family:Arial,Helvetica,sans-serif}
-    body{display:grid;place-items:center}
-    button,input{font:inherit}
-    .stage{position:relative;width:min(100vw,calc(100vh * 16 / 9));height:min(100vh,calc(100vw * 9 / 16));aspect-ratio:16/9;overflow:hidden;background:#071018;box-shadow:0 20px 70px rgba(0,0,0,.55)}
-    .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .2s ease;user-select:none;-webkit-user-drag:none}
-    .art.ready{opacity:1}
-    .loading{position:absolute;inset:0;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#123821,#071018);font-weight:900;letter-spacing:.04em;text-align:center}
-    .loading[hidden]{display:none}
-    .hit{position:absolute;z-index:2;border:0;border-radius:18px;background:transparent;color:transparent;font-size:0;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
-    .hit:disabled{cursor:default}
-    .hit:not(:disabled):hover,.hit:not(:disabled):focus-visible{box-shadow:inset 0 0 0 5px rgba(255,255,255,.72),0 0 30px rgba(255,225,82,.8)}
-    .hit:not(:disabled):active{transform:translateY(3px)}
-    #newJourney{left:35.05%;top:59.1%;width:29.25%;height:11.65%}
-    #optionsButton{left:35.55%;top:74.85%;width:28.6%;height:12.1%}
-    .modal[hidden]{display:none}
-    .modal{position:fixed;z-index:20;inset:0;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.66);backdrop-filter:blur(6px)}
-    .card{width:min(92vw,540px);padding:26px;border:2px solid #d8b94f;border-radius:22px;background:linear-gradient(#183d28,#081a11);box-shadow:0 20px 60px rgba(0,0,0,.6)}
-    .card h2{margin:0 0 22px;text-align:center;color:#f2d77d}
-    .setting{display:grid;gap:8px;margin:17px 0;padding:13px;border-radius:14px;background:rgba(255,255,255,.06)}
-    .setting input[type=range]{width:100%;accent-color:#63a944}
-    .toggle{display:flex;align-items:center;justify-content:space-between;gap:16px}
-    .toggle input{width:23px;height:23px;accent-color:#63a944}
-    .close{display:block;min-width:180px;margin:22px auto 0;padding:13px 28px;border:2px solid #2c641f;border-radius:13px;background:linear-gradient(#7dc84d,#34712d);color:#fff;font-weight:900;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.28)}
-    .close:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(0,0,0,.28)}
-    .toast{position:fixed;z-index:30;left:50%;bottom:max(24px,env(safe-area-inset-bottom));max-width:min(90vw,560px);padding:13px 18px;border:1px solid #d8b94f;border-radius:13px;background:rgba(8,24,16,.97);font-weight:800;text-align:center;opacity:0;pointer-events:none;transform:translateX(-50%) translateY(18px);transition:.2s}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    :root {
+      --gold-light: #fff8ad;
+      --gold: #e8bd35;
+      --gold-dark: #7c5412;
+      --ink: #07150d;
+      --panel: rgba(9, 35, 22, .96);
+      --scene-x: 0px;
+      --scene-y: 0px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #06130d;
+      color: #fff;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .title-screen {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      min-height: 100svh;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .approved-stage {
+      position: relative;
+      width: min(100vw, calc(100svh * 16 / 9));
+      height: min(100svh, calc(100vw * 9 / 16));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #071018;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, .55);
+    }
+
+    .approved-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .2s ease;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .approved-art.ready {
+      opacity: 1;
+    }
+
+    .title-loading {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: linear-gradient(145deg, #123821, #071018);
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-align: center;
+    }
+
+    .title-loading[hidden] {
+      display: none;
+    }
+
+    .approved-hit {
+      position: absolute;
+      z-index: 2;
+      border: 0;
+      border-radius: 18px;
+      outline: none;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+      font-size: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .approved-hit:disabled {
+      cursor: default;
+    }
+
+    .approved-hit:not(:disabled):hover,
+    .approved-hit:not(:disabled):focus-visible {
+      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, .72), 0 0 30px rgba(255, 225, 82, .8);
+    }
+
+    .approved-hit:not(:disabled):active {
+      transform: translateY(3px);
+    }
+
+    #newJourney {
+      top: 59.1%;
+      left: 35.05%;
+      width: 29.25%;
+      height: 11.65%;
+    }
+
+    #optionsButton {
+      top: 74.85%;
+      left: 35.55%;
+      width: 28.6%;
+      height: 12.1%;
+    }
+
+    .scene {
+      position: absolute;
+      z-index: -4;
+      inset: -24px;
+      width: calc(100% + 48px);
+      height: calc(100% + 48px);
+      object-fit: cover;
+      object-position: center;
+      transform: translate3d(var(--scene-x), var(--scene-y), 0) scale(1.035);
+      filter: saturate(1.04) contrast(1.02);
+      transition: transform 1.1s cubic-bezier(.2, .7, .2, 1);
+    }
+
+    .title-screen::before {
+      position: absolute;
+      z-index: -3;
+      inset: 0;
+      content: "";
+      background:
+        linear-gradient(180deg, rgba(3, 15, 9, .2), transparent 29%),
+        radial-gradient(circle at 50% 26%, transparent 7%, rgba(1, 12, 7, .04) 50%, rgba(1, 10, 6, .48) 100%),
+        linear-gradient(0deg, rgba(2, 12, 7, .7), transparent 45%);
+      pointer-events: none;
+    }
+
+    .title-screen::after {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      content: "";
+      opacity: .14;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .24) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .16) 1px, transparent 1px);
+      background-size: 4px 4px;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .light-rays {
+      position: absolute;
+      z-index: -1;
+      top: -35%;
+      left: 8%;
+      width: 52vw;
+      height: 115vh;
+      opacity: .2;
+      transform: rotate(-19deg);
+      background: linear-gradient(90deg, transparent, #fff3ad 48%, transparent 50%, #fff3ad 54%, transparent 72%);
+      filter: blur(18px);
+      pointer-events: none;
+      animation: rays 8s ease-in-out infinite alternate;
+    }
+
+    .spark {
+      position: absolute;
+      z-index: 0;
+      width: var(--size);
+      height: var(--size);
+      left: var(--left);
+      bottom: -18px;
+      opacity: 0;
+      border: 1px solid rgba(255, 255, 190, .8);
+      background: #eaff9d;
+      box-shadow: 0 0 12px #bfff6f;
+      transform: rotate(45deg);
+      pointer-events: none;
+      animation: drift var(--duration) linear var(--delay) infinite;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      width: min(94vw, 1050px);
+      min-height: 100svh;
+      flex-direction: column;
+      align-items: center;
+      padding: max(3vh, env(safe-area-inset-top)) 20px max(4vh, env(safe-area-inset-bottom));
+      text-align: center;
+    }
+
+    .brand {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      animation: reveal .9s cubic-bezier(.18, .8, .24, 1) both;
+    }
+
+    .logo {
+      display: block;
+      width: min(73vw, 850px);
+      height: auto;
+      max-height: 31vh;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 6px 0 rgba(32, 20, 2, .72))
+        drop-shadow(0 17px 19px rgba(0, 0, 0, .58))
+        drop-shadow(0 0 17px rgba(255, 235, 101, .24));
+      transform-origin: 50% 55%;
+      animation: logo-float 4.6s ease-in-out 1s infinite;
+    }
+
+    .subtitle {
+      margin: -1.2vh 0 0;
+      padding: 8px 24px 7px;
+      border: 2px solid rgba(255, 230, 112, .75);
+      border-radius: 5px;
+      background: linear-gradient(180deg, rgba(24, 63, 31, .94), rgba(8, 29, 17, .94));
+      box-shadow:
+        0 4px 0 #49300a,
+        0 8px 16px rgba(0, 0, 0, .45),
+        inset 0 1px rgba(255, 255, 255, .2);
+      color: #fff0a3;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.66rem, 1.35vw, 1rem);
+      font-weight: 900;
+      letter-spacing: .23em;
+      text-shadow: 2px 2px 0 #122415;
+      text-transform: uppercase;
+    }
+
+    .menu {
+      display: grid;
+      width: min(88vw, 440px);
+      gap: clamp(14px, 2vh, 21px);
+      margin-top: auto;
+      margin-bottom: clamp(2vh, 5vh, 8vh);
+      animation: menu-rise .75s cubic-bezier(.18, .82, .25, 1) .25s both;
+    }
+
+    .pixel-button {
+      --top: #6fc84b;
+      --mid: #378b37;
+      --bottom: #174f29;
+      --edge: #112c18;
+      position: relative;
+      min-height: clamp(66px, 9.4vh, 88px);
+      padding: 13px 28px 16px;
+      border: 4px solid var(--edge);
+      border-radius: 9px;
+      outline: 3px solid var(--gold);
+      outline-offset: -9px;
+      background: linear-gradient(180deg, var(--top) 0 18%, var(--mid) 19% 76%, var(--bottom) 77% 100%);
+      box-shadow:
+        0 8px 0 #0a2414,
+        0 13px 0 rgba(4, 12, 7, .7),
+        0 20px 30px rgba(0, 0, 0, .5),
+        inset 0 3px 0 rgba(255, 255, 255, .42),
+        inset 0 -4px 0 rgba(0, 0, 0, .24);
+      color: #fff;
+      cursor: pointer;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(1.14rem, 2.45vw, 1.72rem);
+      font-weight: 1000;
+      letter-spacing: .075em;
+      line-height: 1;
+      text-shadow:
+        3px 3px 0 rgba(4, 32, 13, .9),
+        -1px -1px 0 rgba(255, 255, 255, .12);
+      text-transform: uppercase;
+      transition: transform .13s ease, filter .13s ease, box-shadow .13s ease;
+    }
+
+    .pixel-button::before,
+    .pixel-button::after {
+      position: absolute;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      content: "";
+      background: var(--gold-light);
+      box-shadow: 0 0 9px rgba(255, 242, 130, .8);
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .pixel-button::before {
+      left: 20px;
+    }
+
+    .pixel-button::after {
+      right: 20px;
+    }
+
+    .pixel-button.secondary {
+      --top: #55b6d9;
+      --mid: #2779af;
+      --bottom: #173d77;
+      --edge: #102948;
+    }
+
+    .pixel-button:hover,
+    .pixel-button:focus-visible {
+      filter: brightness(1.13) saturate(1.08);
+      transform: translateY(-3px) scale(1.018);
+      box-shadow:
+        0 11px 0 #0a2414,
+        0 16px 0 rgba(4, 12, 7, .68),
+        0 24px 36px rgba(0, 0, 0, .54),
+        0 0 24px rgba(255, 235, 105, .28),
+        inset 0 3px 0 rgba(255, 255, 255, .5),
+        inset 0 -4px 0 rgba(0, 0, 0, .24);
+    }
+
+    .pixel-button:active,
+    .pixel-button.is-pressed {
+      transform: translateY(7px);
+      box-shadow:
+        0 1px 0 #0a2414,
+        0 4px 10px rgba(0, 0, 0, .45),
+        inset 0 3px 7px rgba(0, 0, 0, .28);
+    }
+
+    .version {
+      position: absolute;
+      z-index: 4;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: max(14px, env(safe-area-inset-left));
+      margin: 0;
+      color: rgba(255, 255, 255, .7);
+      font: 800 .7rem/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .08em;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .title-screen[hidden],
+    .selection-screen[hidden] {
+      display: none;
+    }
+
+    .title-screen,
+    .selection-screen {
+      transition:
+        opacity .42s ease,
+        transform .42s cubic-bezier(.2, .75, .2, 1),
+        filter .42s ease;
+    }
+
+    .screen-leaving {
+      opacity: 0;
+      transform: scale(1.035);
+      filter: blur(3px);
+      pointer-events: none;
+    }
+
+    .screen-entering {
+      opacity: 0;
+      transform: scale(.975);
+      filter: blur(3px);
+    }
+
+    .selection-screen {
+      position: fixed;
+      z-index: 8;
+      inset: 0;
+      isolation: isolate;
+      min-height: 100svh;
+      overflow: hidden;
+      background: #07150d;
+    }
+
+    .selection-background {
+      position: absolute;
+      z-index: -4;
+      inset: -22px;
+      width: calc(100% + 44px);
+      height: calc(100% + 44px);
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.025);
+      filter: saturate(1.04) contrast(1.02);
+      animation: selection-breathe 12s ease-in-out infinite alternate;
+    }
+
+    .selection-screen::before {
+      position: absolute;
+      z-index: -3;
+      inset: 0;
+      content: "";
+      background:
+        linear-gradient(180deg, rgba(2, 14, 8, .7), transparent 28%),
+        radial-gradient(ellipse at 50% 54%, transparent 0 35%, rgba(1, 11, 6, .24) 70%, rgba(1, 9, 5, .68) 100%),
+        linear-gradient(0deg, rgba(2, 12, 7, .82), transparent 38%);
+      pointer-events: none;
+    }
+
+    .selection-screen::after {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      content: "";
+      opacity: .12;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .16) 1px, transparent 1px);
+      background-size: 4px 4px;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .selection-shell {
+      display: grid;
+      width: min(100%, 1280px);
+      height: 100svh;
+      margin: 0 auto;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: clamp(8px, 1.2vh, 16px);
+      padding:
+        max(18px, env(safe-area-inset-top))
+        clamp(14px, 3vw, 40px)
+        max(18px, env(safe-area-inset-bottom));
+    }
+
+    .selection-header {
+      position: relative;
+      z-index: 4;
+      justify-self: center;
+      min-width: min(92vw, 620px);
+      padding: 12px clamp(28px, 5vw, 56px) 11px;
+      border: 3px solid #17351f;
+      border-radius: 8px;
+      outline: 3px solid var(--gold);
+      outline-offset: -9px;
+      background: linear-gradient(180deg, rgba(31, 87, 45, .96), rgba(7, 30, 17, .97));
+      box-shadow:
+        0 7px 0 rgba(5, 22, 11, .92),
+        0 16px 32px rgba(0, 0, 0, .42),
+        inset 0 2px 0 rgba(255, 255, 255, .2);
+      text-align: center;
+      animation: header-drop .62s cubic-bezier(.18, .8, .24, 1) both;
+    }
+
+    .selection-header h1 {
+      margin: 0;
+      color: #fff4ae;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(1.24rem, 3.1vw, 2rem);
+      letter-spacing: .055em;
+      line-height: 1.1;
+      text-shadow: 3px 3px 0 #3d2909;
+      text-transform: uppercase;
+    }
+
+    .selection-header p {
+      margin: 5px 0 0;
+      color: rgba(255, 255, 255, .82);
+      font-size: clamp(.72rem, 1.4vw, .92rem);
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .back-button {
+      position: absolute;
+      z-index: 8;
+      top: max(18px, env(safe-area-inset-top));
+      left: max(18px, env(safe-area-inset-left));
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border: 3px solid #122b19;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(#467a42, #24512e);
+      box-shadow: 0 5px 0 #081d10, 0 10px 20px rgba(0, 0, 0, .35);
+      color: #fff4af;
+      cursor: pointer;
+      font: 1000 1.55rem/1 ui-monospace, "Courier New", monospace;
+      text-shadow: 2px 2px 0 #18331d;
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .back-button:hover,
+    .back-button:focus-visible {
+      filter: brightness(1.14);
+      transform: translateY(-2px);
+    }
+
+    .back-button:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #081d10;
+    }
+
+    .character-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      min-height: 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(10px, 7vw, 110px);
+      align-items: end;
+      padding: 0 clamp(4px, 5vw, 62px);
+    }
+
+    .character-card {
+      --card-color: #65c75e;
+      position: relative;
+      display: grid;
+      min-width: 0;
+      height: 100%;
+      min-height: 250px;
+      place-items: end center;
+      padding: 0 8px 8px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      outline: 0;
+      perspective: 900px;
+    }
+
+    .character-card::before {
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      bottom: 16px;
+      width: min(92%, 360px);
+      height: min(74%, 480px);
+      content: "";
+      border: 4px solid rgba(232, 189, 53, .25);
+      border-radius: 46% 46% 13% 13%;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(111, 229, 125, .23), transparent 48%),
+        linear-gradient(180deg, rgba(14, 55, 28, .08), rgba(4, 23, 12, .6));
+      box-shadow:
+        inset 0 0 34px rgba(162, 255, 152, .08),
+        0 20px 40px rgba(0, 0, 0, .25);
+      opacity: .52;
+      transform: translateX(-50%) scale(.93);
+      transition: opacity .25s ease, transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+
+    .character-card::after {
+      position: absolute;
+      z-index: -1;
+      right: 12%;
+      bottom: 10%;
+      left: 12%;
+      height: 11%;
+      content: "";
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, .58), transparent 69%);
+      filter: blur(5px);
+      transform: scale(.82);
+      transition: transform .25s ease;
+    }
+
+    .character-art {
+      display: block;
+      width: auto;
+      max-width: 90%;
+      height: min(57vh, 570px);
+      max-height: calc(100% - 14px);
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 14px 11px rgba(0, 0, 0, .42));
+      transform-origin: 50% 92%;
+      transition: filter .25s ease, transform .25s cubic-bezier(.2, .75, .2, 1);
+      animation: character-idle 4.3s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .character-card:nth-child(2) .character-art {
+      animation-delay: -2.1s;
+    }
+
+    .character-card:hover .character-art,
+    .character-card:focus-visible .character-art {
+      filter:
+        drop-shadow(0 15px 12px rgba(0, 0, 0, .46))
+        drop-shadow(0 0 16px rgba(199, 255, 150, .34));
+      transform: translateY(-7px) rotateY(var(--tilt, 0deg)) scale(1.035);
+    }
+
+    .character-card:hover::before,
+    .character-card:focus-visible::before {
+      border-color: rgba(255, 231, 112, .65);
+      opacity: .88;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .character-card.selected::before {
+      border-color: #ffdf66;
+      opacity: 1;
+      transform: translateX(-50%) scale(1.025);
+      box-shadow:
+        inset 0 0 45px rgba(181, 255, 141, .24),
+        0 0 0 5px rgba(28, 91, 42, .7),
+        0 0 35px rgba(255, 225, 90, .38),
+        0 22px 42px rgba(0, 0, 0, .35);
+      animation: selected-glow 1.8s ease-in-out infinite alternate;
+    }
+
+    .character-card.selected .character-art {
+      filter:
+        drop-shadow(0 16px 12px rgba(0, 0, 0, .5))
+        drop-shadow(0 0 20px rgba(232, 255, 167, .48));
+      transform: translateY(-9px) scale(1.045);
+    }
+
+    .selection-mark {
+      position: absolute;
+      z-index: 5;
+      top: 15%;
+      right: 11%;
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 3px solid #4d340a;
+      background: linear-gradient(145deg, #fff6a5, #d49a17);
+      box-shadow: 0 5px 0 #53340a, 0 9px 20px rgba(0, 0, 0, .4);
+      color: #173c1e;
+      font: 1000 1.35rem/1 ui-monospace, "Courier New", monospace;
+      opacity: 0;
+      transform: rotate(45deg) scale(.4);
+      transition: opacity .22s ease, transform .3s cubic-bezier(.2, 1.4, .4, 1);
+    }
+
+    .selection-mark span {
+      transform: rotate(-45deg);
+    }
+
+    .character-card.selected .selection-mark {
+      opacity: 1;
+      transform: rotate(45deg) scale(1);
+    }
+
+    .character-label {
+      position: absolute;
+      z-index: 6;
+      bottom: 9px;
+      left: 50%;
+      min-width: min(78%, 260px);
+      padding: 11px 18px 12px;
+      border: 3px solid #15331d;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(180deg, rgba(65, 151, 67, .97), rgba(20, 75, 36, .98));
+      box-shadow: 0 6px 0 #0a2915, 0 12px 22px rgba(0, 0, 0, .42);
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.85rem, 2vw, 1.18rem);
+      font-weight: 1000;
+      letter-spacing: .08em;
+      line-height: 1;
+      text-shadow: 2px 2px 0 #18341c;
+      text-transform: uppercase;
+      transform: translateX(-50%);
+      transition: filter .2s ease, transform .2s ease;
+    }
+
+    .character-card:hover .character-label,
+    .character-card:focus-visible .character-label,
+    .character-card.selected .character-label {
+      filter: brightness(1.14);
+      transform: translateX(-50%) translateY(-3px);
+    }
+
+    .identity-panel {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      width: min(96%, 820px);
+      justify-self: center;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+      padding: 15px 18px 18px;
+      border: 4px solid #17351f;
+      border-radius: 9px;
+      outline: 3px solid var(--gold);
+      outline-offset: -10px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .035) 50%, transparent 50%) 0 0 / 100% 6px,
+        linear-gradient(145deg, rgba(30, 87, 45, .97), rgba(6, 27, 15, .98));
+      box-shadow:
+        0 8px 0 #061a0d,
+        0 18px 38px rgba(0, 0, 0, .5),
+        inset 0 2px 0 rgba(255, 255, 255, .15);
+      animation: panel-rise .62s cubic-bezier(.18, .8, .24, 1) .16s both;
+    }
+
+    .name-field {
+      display: grid;
+      min-width: 0;
+      gap: 7px;
+      text-align: left;
+    }
+
+    .name-field label {
+      color: #fff0a5;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.75rem, 1.5vw, .93rem);
+      font-weight: 1000;
+      letter-spacing: .055em;
+      text-transform: uppercase;
+    }
+
+    .input-shell {
+      position: relative;
+    }
+
+    .player-name {
+      width: 100%;
+      height: 52px;
+      padding: 0 66px 0 15px;
+      border: 3px solid #112b19;
+      border-radius: 6px;
+      outline: 2px solid rgba(232, 189, 53, .78);
+      outline-offset: -7px;
+      background: rgba(244, 238, 201, .96);
+      box-shadow: inset 0 4px 0 rgba(0, 0, 0, .13), 0 4px 0 #071b0e;
+      color: #14351d;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: 1.05rem;
+      font-weight: 1000;
+      letter-spacing: .04em;
+    }
+
+    .player-name::placeholder {
+      color: rgba(30, 64, 36, .48);
+    }
+
+    .player-name:focus {
+      outline-color: #ffda4c;
+      box-shadow: inset 0 4px 0 rgba(0, 0, 0, .13), 0 4px 0 #071b0e, 0 0 20px rgba(255, 221, 86, .35);
+    }
+
+    .name-count {
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      color: #4c694d;
+      font: 900 .72rem/1 ui-monospace, "Courier New", monospace;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .journey-button {
+      min-width: 230px;
+      min-height: 56px;
+      padding: 12px 23px 15px;
+      border: 3px solid #16331d;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(#75ce52, #2f8137 68%, #1e5f2b);
+      box-shadow: 0 6px 0 #092614, 0 12px 24px rgba(0, 0, 0, .38), inset 0 2px 0 rgba(255, 255, 255, .35);
+      color: #fff;
+      cursor: pointer;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.83rem, 1.7vw, 1rem);
+      font-weight: 1000;
+      letter-spacing: .045em;
+      line-height: 1.1;
+      text-shadow: 2px 2px 0 #173b1d;
+      text-transform: uppercase;
+      transition: filter .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+
+    .journey-button:not(:disabled):hover,
+    .journey-button:not(:disabled):focus-visible {
+      filter: brightness(1.14);
+      transform: translateY(-2px);
+    }
+
+    .journey-button:not(:disabled):active {
+      transform: translateY(5px);
+      box-shadow: 0 1px 0 #092614;
+    }
+
+    .journey-button:disabled {
+      cursor: not-allowed;
+      filter: grayscale(.72) brightness(.68);
+      opacity: .72;
+    }
+
+    .asset-error[hidden] {
+      display: none;
+    }
+
+    .asset-error {
+      position: fixed;
+      z-index: 40;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: linear-gradient(145deg, #123821, #06150d);
+      text-align: center;
+    }
+
+    .asset-error p {
+      width: min(92vw, 560px);
+      margin: 0;
+      padding: 24px;
+      border: 3px solid var(--gold);
+      border-radius: 8px;
+      background: rgba(4, 20, 11, .9);
+      box-shadow: 0 8px 0 #071009;
+      color: #fff0a4;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-weight: 900;
+      line-height: 1.6;
+    }
+
+    .modal[hidden] {
+      display: none;
+    }
+
+    .modal {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 10, 6, .72);
+      backdrop-filter: blur(7px);
+      animation: fade-in .18s ease-out both;
+    }
+
+    .options-card {
+      position: relative;
+      width: min(92vw, 540px);
+      max-height: min(90svh, 680px);
+      overflow: auto;
+      padding: 28px clamp(20px, 5vw, 40px) 32px;
+      border: 4px solid #19351f;
+      border-radius: 11px;
+      outline: 4px solid var(--gold);
+      outline-offset: -11px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .03) 50%, transparent 50%) 0 0 / 100% 6px,
+        linear-gradient(145deg, rgba(35, 94, 50, .98), var(--panel));
+      box-shadow:
+        0 11px 0 rgba(4, 18, 9, .92),
+        0 26px 70px rgba(0, 0, 0, .7),
+        inset 0 3px rgba(255, 255, 255, .12);
+      animation: card-in .25s cubic-bezier(.18, .8, .22, 1) both;
+    }
+
+    .options-card h2 {
+      margin: 0 0 26px;
+      color: #fff2a8;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(1.5rem, 5vw, 2.1rem);
+      letter-spacing: .09em;
+      text-align: center;
+      text-shadow: 3px 3px 0 #3a2709;
+      text-transform: uppercase;
+    }
+
+    .setting {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0;
+      padding: 15px 17px;
+      border: 2px solid rgba(239, 208, 81, .38);
+      border-radius: 7px;
+      background: rgba(2, 16, 9, .48);
+      font-weight: 800;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .value {
+      min-width: 3ch;
+      color: #fff0a4;
+      font-family: ui-monospace, "Courier New", monospace;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 0;
+      accent-color: #e4c143;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      width: 23px;
+      height: 23px;
+      flex: 0 0 auto;
+      accent-color: #dabb3f;
+      cursor: pointer;
+    }
+
+    .close-button {
+      display: block;
+      min-width: 180px;
+      margin: 25px auto 0;
+      padding: 13px 24px 15px;
+      border: 3px solid #142d1b;
+      border-radius: 6px;
+      outline: 2px solid #e8c54e;
+      outline-offset: -7px;
+      background: linear-gradient(#68b649, #2e7233);
+      box-shadow: 0 5px 0 #0c2714;
+      color: #fff;
+      cursor: pointer;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-weight: 1000;
+      letter-spacing: .06em;
+      text-shadow: 2px 2px 0 #17381c;
+      text-transform: uppercase;
+    }
+
+    .close-button:hover,
+    .close-button:focus-visible {
+      filter: brightness(1.14);
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 30;
+      bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+      left: 50%;
+      width: max-content;
+      max-width: min(90vw, 620px);
+      padding: 13px 20px;
+      border: 2px solid var(--gold);
+      border-radius: 6px;
+      background: rgba(7, 30, 17, .96);
+      box-shadow: 0 7px 0 rgba(3, 14, 8, .8), 0 16px 32px rgba(0, 0, 0, .45);
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.78rem, 2.5vw, .98rem);
+      font-weight: 900;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 22px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    body.no-motion *,
+    body.no-motion *::before,
+    body.no-motion *::after {
+      scroll-behavior: auto !important;
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(-24px) scale(.96); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes menu-rise {
+      from { opacity: 0; transform: translateY(35px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes logo-float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-7px) scale(1.006); }
+    }
+
+    @keyframes rays {
+      from { opacity: .12; transform: translateX(-3vw) rotate(-19deg); }
+      to { opacity: .25; transform: translateX(3vw) rotate(-17deg); }
+    }
+
+    @keyframes drift {
+      0% { opacity: 0; transform: translateY(0) rotate(45deg) scale(.55); }
+      12%, 68% { opacity: .72; }
+      100% { opacity: 0; transform: translateY(-105vh) rotate(225deg) scale(1.15); }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+    }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(18px) scale(.96); }
+    }
+
+    @keyframes selection-breathe {
+      from { transform: scale(1.025) translate3d(-4px, 0, 0); }
+      to { transform: scale(1.055) translate3d(5px, -3px, 0); }
+    }
+
+    @keyframes header-drop {
+      from { opacity: 0; transform: translateY(-24px) scale(.96); }
+    }
+
+    @keyframes panel-rise {
+      from { opacity: 0; transform: translateY(25px); }
+    }
+
+    @keyframes character-idle {
+      0%, 100% { transform: translateY(0) rotate(.25deg); }
+      50% { transform: translateY(-6px) rotate(-.25deg); }
+    }
+
+    @keyframes selected-glow {
+      from { filter: brightness(.96); }
+      to { filter: brightness(1.12); }
+    }
+
+    @media (max-aspect-ratio: 4/5) {
+      .content {
+        width: 100%;
+        padding-top: max(8vh, env(safe-area-inset-top));
+      }
+
+      .scene {
+        object-position: 52% center;
+      }
+
+      .logo {
+        width: min(96vw, 720px);
+        max-height: 25vh;
+      }
+
+      .subtitle {
+        margin-top: 0;
+        padding-inline: 14px;
+        letter-spacing: .14em;
+      }
+
+      .menu {
+        width: min(88vw, 430px);
+        margin-bottom: clamp(5vh, 10vh, 13vh);
+      }
+
+      .selection-shell {
+        gap: 6px;
+        padding-inline: 8px;
+      }
+
+      .selection-header {
+        min-width: min(82vw, 480px);
+        padding: 10px 16px 9px;
+      }
+
+      .selection-header p {
+        display: none;
+      }
+
+      .back-button {
+        width: 41px;
+        height: 41px;
+        top: max(14px, env(safe-area-inset-top));
+        left: max(10px, env(safe-area-inset-left));
+        font-size: 1.25rem;
+      }
+
+      .character-grid {
+        gap: 0;
+        padding-inline: 0;
+      }
+
+      .character-card {
+        min-height: 230px;
+        padding-inline: 0;
+      }
+
+      .character-art {
+        max-width: 106%;
+        height: min(49vh, 460px);
+      }
+
+      .character-card::before {
+        bottom: 13px;
+        width: 98%;
+        height: 72%;
+      }
+
+      .character-label {
+        min-width: 88%;
+        padding: 9px 6px 10px;
+        font-size: clamp(.67rem, 3.5vw, .85rem);
+      }
+
+      .selection-mark {
+        top: 19%;
+        right: 4%;
+        width: 31px;
+        height: 31px;
+        font-size: .95rem;
+      }
+
+      .identity-panel {
+        width: calc(100% - 10px);
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 13px 14px 16px;
+      }
+
+      .journey-button {
+        width: 100%;
+        min-height: 50px;
+      }
+    }
+
+    @media (max-height: 620px) and (min-aspect-ratio: 6/5) {
+      .content {
+        padding-top: 8px;
+        padding-bottom: 12px;
+      }
+
+      .logo {
+        width: min(58vw, 680px);
+        max-height: 29vh;
+      }
+
+      .subtitle {
+        padding-block: 5px;
+      }
+
+      .menu {
+        width: min(42vw, 390px);
+        gap: 12px;
+        margin-bottom: 3vh;
+      }
+
+      .pixel-button {
+        min-height: 58px;
+      }
+
+      .selection-shell {
+        gap: 5px;
+        padding-block: 8px 10px;
+      }
+
+      .selection-header {
+        padding-block: 8px;
+      }
+
+      .selection-header p {
+        display: none;
+      }
+
+      .back-button {
+        top: 9px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+      }
+
+      .character-grid {
+        padding-inline: 10vw;
+      }
+
+      .character-art {
+        height: min(52vh, 390px);
+      }
+
+      .character-label {
+        padding-block: 8px 9px;
+      }
+
+      .identity-panel {
+        width: min(84%, 720px);
+        padding-block: 11px 14px;
+      }
+
+      .player-name {
+        height: 46px;
+      }
+
+      .journey-button {
+        min-height: 50px;
+      }
+    }
+
+    .story-screen {
+      position: relative;
+      isolation: isolate;
+      min-height: 100svh;
+      overflow: hidden;
+      background: #06130d;
+    }
+
+    .story-screen[hidden],
+    .story-step[hidden],
+    .confirmation-modal[hidden],
+    .sync-overlay[hidden] {
+      display: none;
+    }
+
+    .story-background {
+      position: absolute;
+      z-index: -3;
+      inset: -20px;
+      width: calc(100% + 40px);
+      height: calc(100% + 40px);
+      object-fit: cover;
+      filter: saturate(1.04) contrast(1.03) brightness(.82);
+      animation: story-breathe 12s ease-in-out infinite alternate;
+    }
+
+    .story-screen::before {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      content: "";
+      background:
+        radial-gradient(circle at 50% 34%, transparent 12%, rgba(0, 10, 8, .16) 60%, rgba(0, 8, 5, .68) 100%),
+        linear-gradient(180deg, rgba(1, 10, 8, .12), rgba(1, 12, 7, .4));
+      pointer-events: none;
+    }
+
+    .story-hud {
+      position: absolute;
+      z-index: 5;
+      top: max(14px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 12px 7px 8px;
+      border: 2px solid rgba(237, 205, 76, .78);
+      border-radius: 999px;
+      background: rgba(5, 25, 16, .88);
+      box-shadow: 0 5px 0 rgba(1, 12, 7, .65);
+      color: #fff1a4;
+      font: 900 clamp(.62rem, 1.3vw, .78rem)/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .05em;
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity .35s ease, transform .35s ease;
+      text-transform: uppercase;
+    }
+
+    .story-hud.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    .story-hud img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 7px #8ce8ff);
+    }
+
+    .story-stage {
+      position: relative;
+      width: min(100%, 1450px);
+      min-height: 100svh;
+      margin: auto;
+    }
+
+    .researcher {
+      position: absolute;
+      z-index: 1;
+      bottom: 15vh;
+      left: clamp(1%, 4vw, 6%);
+      width: min(33vw, 440px);
+      max-height: 76vh;
+      object-fit: contain;
+      object-position: bottom;
+      filter: drop-shadow(0 14px 13px rgba(0, 0, 0, .62));
+      transform-origin: 50% 100%;
+      animation: researcher-idle 4.5s ease-in-out infinite;
+    }
+
+    .watch-reveal {
+      position: absolute;
+      z-index: 2;
+      top: 10vh;
+      left: 52%;
+      width: min(34vw, 440px);
+      opacity: 0;
+      filter: drop-shadow(0 0 22px rgba(93, 226, 255, .7));
+      transform: translate(-50%, 25px) scale(.7) rotate(-7deg);
+      transition: opacity .55s ease, transform .7s cubic-bezier(.17, .85, .24, 1.14);
+      pointer-events: none;
+    }
+
+    .watch-reveal.visible {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1) rotate(0);
+      animation: watch-float 3.2s ease-in-out .7s infinite;
+    }
+
+    .dialogue-box {
+      position: absolute;
+      z-index: 6;
+      right: clamp(16px, 4vw, 54px);
+      bottom: max(24px, calc(env(safe-area-inset-bottom) + 18px));
+      left: clamp(16px, 4vw, 54px);
+      display: grid;
+      grid-template-columns: minmax(112px, 180px) 1fr auto;
+      align-items: center;
+      gap: clamp(12px, 2vw, 24px);
+      min-height: 132px;
+      padding: 19px clamp(18px, 3vw, 34px);
+      border: 4px solid #102d1b;
+      border-radius: 10px;
+      outline: 3px solid var(--gold);
+      outline-offset: -10px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .025) 50%, transparent 50%) 0 0 / 100% 6px,
+        linear-gradient(145deg, rgba(20, 66, 37, .98), rgba(4, 24, 14, .98));
+      box-shadow: 0 9px 0 rgba(2, 15, 8, .88), 0 24px 45px rgba(0, 0, 0, .5);
+    }
+
+    .speaker-name {
+      align-self: start;
+      margin: 8px 0 0;
+      color: #fff0a0;
+      font: 1000 clamp(.85rem, 1.8vw, 1.08rem)/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .06em;
+      text-shadow: 2px 2px #422c08;
+      text-transform: uppercase;
+    }
+
+    .dialogue-text {
+      min-height: 3.4em;
+      margin: 0;
+      color: #f8f4d9;
+      font-size: clamp(.92rem, 1.7vw, 1.18rem);
+      font-weight: 800;
+      line-height: 1.55;
+      text-shadow: 1px 2px rgba(0, 0, 0, .7);
+    }
+
+    .story-action,
+    .starter-confirm,
+    .confirm-choice,
+    .cancel-choice,
+    .finish-story {
+      min-height: 48px;
+      padding: 10px 18px 12px;
+      border: 3px solid #102b18;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(#79cc50, #2e7c34 70%, #1e5a29);
+      box-shadow: 0 5px 0 #071d0f, inset 0 2px rgba(255, 255, 255, .32);
+      color: #fff;
+      cursor: pointer;
+      font: 1000 clamp(.72rem, 1.5vw, .9rem)/1.15 ui-monospace, "Courier New", monospace;
+      letter-spacing: .04em;
+      text-shadow: 2px 2px #17401d;
+      text-transform: uppercase;
+    }
+
+    .story-action:hover,
+    .story-action:focus-visible,
+    .starter-confirm:not(:disabled):hover,
+    .starter-confirm:not(:disabled):focus-visible,
+    .confirm-choice:hover,
+    .confirm-choice:focus-visible,
+    .cancel-choice:hover,
+    .cancel-choice:focus-visible,
+    .finish-story:hover,
+    .finish-story:focus-visible {
+      filter: brightness(1.14);
+      transform: translateY(-2px);
+    }
+
+    .story-action:active,
+    .starter-confirm:not(:disabled):active,
+    .confirm-choice:active,
+    .cancel-choice:active,
+    .finish-story:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #071d0f;
+    }
+
+    .starters-step {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: max(23px, env(safe-area-inset-top)) clamp(16px, 4vw, 60px) max(24px, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(3, 20, 13, .18), rgba(3, 17, 10, .66));
+      animation: fade-in .45s ease both;
+    }
+
+    .starters-header {
+      width: min(94%, 780px);
+      margin: auto;
+      padding: 12px 26px;
+      border: 3px solid #102d1b;
+      border-radius: 8px;
+      outline: 2px solid var(--gold);
+      outline-offset: -8px;
+      background: rgba(7, 36, 21, .92);
+      box-shadow: 0 6px 0 rgba(2, 15, 8, .72);
+      text-align: center;
+    }
+
+    .starters-header h1 {
+      margin: 0 0 4px;
+      color: #fff0a1;
+      font: 1000 clamp(1.05rem, 2.7vw, 1.7rem)/1.1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .05em;
+      text-shadow: 3px 3px #3b2808;
+      text-transform: uppercase;
+    }
+
+    .starters-header p {
+      margin: 0;
+      color: #d9efcf;
+      font-weight: 800;
+    }
+
+    .starter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+      gap: clamp(10px, 2vw, 26px);
+      width: min(100%, 1200px);
+      max-height: 69vh;
+      margin: auto;
+    }
+
+    .starter-card {
+      --type: #d1e79f;
+      position: relative;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-width: 0;
+      overflow: hidden;
+      padding: 8px 10px 13px;
+      border: 3px solid rgba(11, 39, 23, .96);
+      border-radius: 14px;
+      outline: 2px solid rgba(225, 194, 68, .74);
+      outline-offset: -8px;
+      background: linear-gradient(170deg, rgba(24, 68, 42, .88), rgba(4, 24, 14, .94));
+      box-shadow: 0 9px 0 rgba(2, 15, 8, .78), 0 18px 33px rgba(0, 0, 0, .38);
+      color: #fff;
+      cursor: pointer;
+      transform: perspective(900px) rotateY(var(--starter-tilt, 0deg));
+      transition: transform .25s ease, filter .25s ease, box-shadow .25s ease;
+    }
+
+    .starter-card[data-starter="axolume"] { --type: #52d9ff; }
+    .starter-card[data-starter="brasguax"] { --type: #ff6a2a; }
+    .starter-card[data-starter="musgurso"] { --type: #82d866; }
+
+    .starter-card:hover,
+    .starter-card:focus-visible,
+    .starter-card.selected {
+      filter: brightness(1.08);
+      transform: perspective(900px) translateY(-7px) rotateY(var(--starter-tilt, 0deg));
+      box-shadow: 0 9px 0 rgba(2, 15, 8, .78), 0 0 32px color-mix(in srgb, var(--type) 62%, transparent);
+    }
+
+    .starter-card.selected {
+      outline-color: var(--type);
+    }
+
+    .starter-image {
+      width: 100%;
+      height: min(47vh, 500px);
+      object-fit: contain;
+      filter: drop-shadow(0 12px 8px rgba(0, 0, 0, .52));
+      transform-origin: 50% 85%;
+      animation: starter-idle 3.7s ease-in-out infinite;
+    }
+
+    .starter-card:nth-child(2) .starter-image { animation-delay: -.9s; }
+    .starter-card:nth-child(3) .starter-image { animation-delay: -1.8s; }
+
+    .starter-copy {
+      display: grid;
+      gap: 4px;
+      text-align: center;
+    }
+
+    .starter-name {
+      color: #fff5be;
+      font: 1000 clamp(.94rem, 2vw, 1.3rem)/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .06em;
+      text-shadow: 2px 2px #342307;
+      text-transform: uppercase;
+    }
+
+    .starter-type {
+      color: var(--type);
+      font: 1000 clamp(.68rem, 1.4vw, .83rem)/1 ui-monospace, "Courier New", monospace;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .starter-description {
+      margin: 3px auto 0;
+      color: #dbe8d6;
+      font-size: clamp(.69rem, 1.3vw, .85rem);
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .starter-confirm {
+      min-width: min(92vw, 330px);
+      margin: auto;
+    }
+
+    .starter-confirm:disabled {
+      cursor: not-allowed;
+      filter: grayscale(.7) brightness(.65);
+      opacity: .7;
+    }
+
+    .confirmation-modal {
+      position: fixed;
+      z-index: 45;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 9, 5, .8);
+      backdrop-filter: blur(8px);
+    }
+
+    .confirmation-card {
+      width: min(92vw, 560px);
+      padding: 25px;
+      border: 4px solid #102d1b;
+      border-radius: 12px;
+      outline: 3px solid var(--gold);
+      outline-offset: -10px;
+      background: linear-gradient(145deg, rgba(30, 86, 49, .98), rgba(4, 25, 14, .99));
+      box-shadow: 0 10px 0 #031209, 0 25px 60px rgba(0, 0, 0, .7);
+      text-align: center;
+      animation: card-in .28s cubic-bezier(.18, .8, .22, 1) both;
+    }
+
+    .confirmation-card img {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 7px rgba(0, 0, 0, .52));
+    }
+
+    .confirmation-card h2 {
+      margin: 4px 0 10px;
+      color: #fff0a3;
+      font: 1000 clamp(1.1rem, 3vw, 1.55rem)/1.2 ui-monospace, "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .confirmation-card p {
+      margin: 0 auto 22px;
+      color: #f3f0d9;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .confirmation-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .cancel-choice {
+      background: linear-gradient(#6c7c69, #344d3b);
+    }
+
+    .sync-overlay {
+      --sync-color: #52d9ff;
+      --sync-glow: #1b8fff;
+      position: fixed;
+      z-index: 50;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--sync-color) 18%, transparent), transparent 35%),
+        rgba(1, 10, 7, .94);
+    }
+
+    .sync-overlay.active {
+      animation: fade-in .3s ease both;
+    }
+
+    .sync-scene {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      place-items: center;
+      gap: 9vw;
+      padding: 9vh 9vw 17vh;
+    }
+
+    .sync-creature,
+    .sync-watch {
+      position: relative;
+      z-index: 2;
+      width: min(38vw, 520px);
+      max-height: 64vh;
+      object-fit: contain;
+      filter: drop-shadow(0 0 24px color-mix(in srgb, var(--sync-color) 72%, transparent));
+    }
+
+    .sync-creature.absorbing {
+      animation: essence-release 2.25s cubic-bezier(.45, .02, .8, .35) .45s forwards;
+    }
+
+    .sync-watch {
+      width: min(33vw, 430px);
+      animation: sync-watch-pulse .7s ease-in-out infinite alternate;
+    }
+
+    .sync-beam {
+      position: absolute;
+      z-index: 1;
+      top: 48%;
+      left: 36%;
+      width: 30%;
+      height: 8px;
+      opacity: 0;
+      background: linear-gradient(90deg, transparent, var(--sync-color), #fff, var(--sync-color), transparent);
+      box-shadow: 0 0 22px 7px var(--sync-glow);
+      transform: rotate(-3deg) scaleX(.2);
+      transform-origin: right;
+    }
+
+    .sync-overlay.active .sync-beam {
+      animation: beam-on 1.6s ease .65s forwards;
+    }
+
+    .sync-particle {
+      position: absolute;
+      z-index: 4;
+      top: var(--start-y);
+      left: var(--start-x);
+      width: var(--size);
+      height: var(--size);
+      border-radius: var(--radius, 2px);
+      opacity: 0;
+      background: var(--sync-color);
+      box-shadow: 0 0 12px 3px var(--sync-glow);
+      animation: particle-absorb var(--duration) cubic-bezier(.42, .05, .65, 1) var(--delay) forwards;
+    }
+
+    .sync-message {
+      position: absolute;
+      z-index: 6;
+      right: 0;
+      bottom: 7vh;
+      left: 0;
+      margin: 0;
+      color: #fff5bd;
+      font: 1000 clamp(1rem, 3vw, 2rem)/1.3 ui-monospace, "Courier New", monospace;
+      letter-spacing: .07em;
+      text-align: center;
+      text-shadow: 0 0 12px var(--sync-glow), 3px 3px #18200d;
+      text-transform: uppercase;
+    }
+
+    .result-step {
+      position: absolute;
+      z-index: 4;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: radial-gradient(circle at center, rgba(87, 193, 96, .14), rgba(2, 16, 10, .64));
+    }
+
+    .result-card {
+      width: min(94vw, 920px);
+      padding: clamp(18px, 3vw, 32px);
+      border: 4px solid #102d1b;
+      border-radius: 14px;
+      outline: 3px solid var(--gold);
+      outline-offset: -11px;
+      background: linear-gradient(145deg, rgba(26, 78, 45, .96), rgba(4, 23, 14, .98));
+      box-shadow: 0 11px 0 #03130a, 0 28px 70px rgba(0, 0, 0, .65);
+      text-align: center;
+      animation: card-in .5s cubic-bezier(.18, .8, .22, 1) both;
+    }
+
+    .result-card h1 {
+      margin: 0;
+      color: #fff1a3;
+      font: 1000 clamp(1.2rem, 3.8vw, 2.2rem)/1.2 ui-monospace, "Courier New", monospace;
+      letter-spacing: .05em;
+      text-shadow: 3px 3px #3b2708;
+      text-transform: uppercase;
+    }
+
+    .result-card > p {
+      margin: 8px 0 10px;
+      color: #ddf0d4;
+      font-weight: 800;
+    }
+
+    .result-pair {
+      display: flex;
+      height: min(52vh, 480px);
+      align-items: end;
+      justify-content: center;
+      gap: clamp(2px, 3vw, 35px);
+      margin: 4px 0 10px;
+    }
+
+    .result-hero,
+    .result-creature {
+      width: min(35%, 260px);
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 13px 10px rgba(0, 0, 0, .55));
+      animation: partner-appear .7s cubic-bezier(.18, .82, .24, 1) both;
+    }
+
+    .result-creature {
+      width: min(48%, 380px);
+      animation-delay: .18s;
+    }
+
+    @keyframes story-breathe {
+      from { transform: scale(1.02) translate3d(-4px, 0, 0); }
+      to { transform: scale(1.055) translate3d(5px, -3px, 0); }
+    }
+
+    @keyframes researcher-idle {
+      0%, 100% { transform: translateY(0) rotate(.2deg); }
+      50% { transform: translateY(-6px) rotate(-.25deg); }
+    }
+
+    @keyframes watch-float {
+      0%, 100% { transform: translate(-50%, 0) rotate(-1deg); }
+      50% { transform: translate(-50%, -10px) rotate(1deg); }
+    }
+
+    @keyframes starter-idle {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-7px) scale(1.012); }
+    }
+
+    @keyframes essence-release {
+      0% { opacity: 1; filter: drop-shadow(0 0 24px var(--sync-color)); transform: scale(1); }
+      55% { opacity: .78; filter: brightness(1.8) saturate(1.4) drop-shadow(0 0 44px var(--sync-color)); transform: scale(.88); }
+      100% { opacity: 0; filter: brightness(2.5) blur(7px); transform: translate(34vw, -2vh) scale(.08) rotate(24deg); }
+    }
+
+    @keyframes sync-watch-pulse {
+      from { filter: brightness(.92) drop-shadow(0 0 18px var(--sync-color)); transform: scale(.98); }
+      to { filter: brightness(1.24) drop-shadow(0 0 50px var(--sync-glow)); transform: scale(1.04); }
+    }
+
+    @keyframes beam-on {
+      0% { opacity: 0; transform: rotate(-3deg) scaleX(.2); }
+      25%, 75% { opacity: .9; }
+      100% { opacity: 0; transform: rotate(-3deg) scaleX(1); }
+    }
+
+    @keyframes particle-absorb {
+      0% { opacity: 0; transform: translate(0, 0) rotate(0) scale(.4); }
+      14% { opacity: 1; }
+      48% { transform: translate(var(--arc-x), var(--arc-y)) rotate(190deg) scale(1.15); }
+      88% { opacity: 1; }
+      100% { opacity: 0; transform: translate(var(--end-x), var(--end-y)) rotate(460deg) scale(.1); }
+    }
+
+    @keyframes partner-appear {
+      from { opacity: 0; filter: brightness(2.2) blur(5px); transform: translateY(26px) scale(.72); }
+      to { opacity: 1; filter: drop-shadow(0 13px 10px rgba(0, 0, 0, .55)); transform: none; }
+    }
+
+    @media (max-width: 760px) {
+      .researcher {
+        bottom: 24vh;
+        left: -3%;
+        width: min(42vw, 280px);
+      }
+
+      .watch-reveal {
+        top: 12vh;
+        left: 68%;
+        width: min(42vw, 280px);
+      }
+
+      .dialogue-box {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        min-height: 190px;
+        padding: 16px 18px 18px;
+      }
+
+      .speaker-name {
+        margin: 0;
+      }
+
+      .dialogue-text {
+        min-height: 4.4em;
+        font-size: .9rem;
+      }
+
+      .story-action {
+        width: 100%;
+      }
+
+      .starters-step {
+        gap: 8px;
+        padding-inline: 10px;
+      }
+
+      .starters-header {
+        width: 91%;
+        padding: 10px 12px;
+      }
+
+      .starter-grid {
+        width: 100%;
+        gap: 5px;
+      }
+
+      .starter-card {
+        padding: 5px 3px 10px;
+        border-width: 2px;
+        border-radius: 9px;
+      }
+
+      .starter-image {
+        height: min(41vh, 330px);
+      }
+
+      .starter-description {
+        display: none;
+      }
+
+      .starter-name {
+        font-size: clamp(.64rem, 3.2vw, .9rem);
+      }
+
+      .starter-type {
+        font-size: clamp(.56rem, 2.7vw, .73rem);
+      }
+
+      .starter-confirm {
+        min-height: 45px;
+      }
+
+      .confirmation-actions {
+        flex-direction: column;
+      }
+
+      .sync-scene {
+        gap: 1vw;
+        padding: 10vh 3vw 19vh;
+      }
+
+      .sync-creature {
+        width: 51vw;
+      }
+
+      .sync-watch {
+        width: 42vw;
+      }
+
+      .sync-beam {
+        left: 39%;
+        width: 25%;
+      }
+
+      .result-pair {
+        height: min(47vh, 380px);
+      }
+
+      .result-hero {
+        width: 38%;
+      }
+
+      .result-creature {
+        width: 55%;
+      }
+    }
+
+    @media (max-height: 650px) and (min-width: 761px) {
+      .researcher {
+        bottom: 21vh;
+        width: min(28vw, 340px);
+      }
+
+      .watch-reveal {
+        top: 5vh;
+        width: min(29vw, 340px);
+      }
+
+      .dialogue-box {
+        min-height: 112px;
+        padding-block: 14px;
+      }
+
+      .starter-image {
+        height: min(42vh, 320px);
+      }
+
+      .starter-grid {
+        max-height: 64vh;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <main class="stage" aria-label="Tela inicial do Naturion">
-    <img id="screenArt" class="art" alt="Tela inicial de Naturion: Guardiões da Natureza">
-    <div id="loading" class="loading" role="status">Carregando Naturion...</div>
-    <button id="newJourney" class="hit" type="button" aria-label="Nova Jornada" disabled>Nova Jornada</button>
-    <button id="optionsButton" class="hit" type="button" aria-label="Opções" disabled>Opções</button>
+  <main class="title-screen" id="titleScreen" aria-label="Tela inicial do Naturion">
+    <div class="approved-stage">
+      <img
+        class="approved-art"
+        id="screenArt"
+        alt="Tela inicial de Naturion: Guardiões da Natureza"
+        fetchpriority="high"
+      >
+      <div class="title-loading" id="titleLoading" role="status">Carregando Naturion...</div>
+      <button class="approved-hit" id="newJourney" type="button" aria-label="Nova Jornada" disabled>Nova Jornada</button>
+      <button class="approved-hit" id="optionsButton" type="button" aria-label="Opções" disabled>Opções</button>
+    </div>
   </main>
 
-  <section id="optionsModal" class="modal" hidden aria-hidden="true">
-    <div class="card" role="dialog" aria-modal="true" aria-labelledby="optionsTitle">
-      <h2 id="optionsTitle">Opções</h2>
-      <div class="setting">
-        <label for="musicVolume">Volume da música</label>
-        <input id="musicVolume" type="range" min="0" max="100" value="70">
+  <main class="selection-screen" id="selectionScreen" aria-label="Seleção de personagem" hidden>
+    <img
+      class="selection-background"
+      data-essential-asset
+      src="assets/selection/forest-gate.webp"
+      alt=""
+      width="1920"
+      height="1080"
+    >
+
+    <button class="back-button" id="backToTitle" type="button" aria-label="Voltar ao menu principal">‹</button>
+
+    <div class="selection-shell">
+      <header class="selection-header">
+        <h1>Escolha seu personagem</h1>
+        <p>Quem vai viver esta jornada?</p>
+      </header>
+
+      <div class="character-grid" role="group" aria-label="Personagens disponíveis">
+        <button class="character-card" type="button" data-character="male" aria-pressed="false">
+          <img
+            class="character-art"
+            data-essential-asset
+            src="assets/selection/hero-male.webp"
+            alt="Personagem masculino, jovem aventureiro da natureza"
+            width="465"
+            height="1100"
+          >
+          <span class="selection-mark" aria-hidden="true"><span>✓</span></span>
+          <span class="character-label">Masculino</span>
+        </button>
+
+        <button class="character-card" type="button" data-character="female" aria-pressed="false">
+          <img
+            class="character-art"
+            data-essential-asset
+            src="assets/selection/hero-female.webp"
+            alt="Personagem feminino, jovem aventureira da natureza"
+            width="412"
+            height="1100"
+          >
+          <span class="selection-mark" aria-hidden="true"><span>✓</span></span>
+          <span class="character-label">Feminino</span>
+        </button>
       </div>
-      <div class="setting">
-        <label for="effectsVolume">Volume dos efeitos</label>
-        <input id="effectsVolume" type="range" min="0" max="100" value="85">
+
+      <form class="identity-panel" id="identityForm" novalidate>
+        <div class="name-field">
+          <label for="playerName">Como devemos chamar você?</label>
+          <div class="input-shell">
+            <input
+              class="player-name"
+              id="playerName"
+              name="playerName"
+              type="text"
+              minlength="2"
+              maxlength="16"
+              autocomplete="nickname"
+              placeholder="Digite seu nome"
+              aria-describedby="nameHint"
+            >
+            <span class="name-count" id="nameHint">0/16</span>
+          </div>
+        </div>
+        <button class="journey-button" id="confirmCharacter" type="submit" disabled>Começar Jornada</button>
+      </form>
+    </div>
+  </main>
+
+  <main class="story-screen" id="storyScreen" aria-label="Relógio Cristalíneo e escolha do Naturion inicial" hidden>
+    <img
+      class="story-background"
+      data-essential-asset
+      src="assets/story/research-outpost.webp"
+      alt=""
+      width="1920"
+      height="1080"
+    >
+
+    <div class="story-hud" id="watchHud" aria-label="Relógio Cristalíneo recebido">
+      <img src="assets/story/crystal-watch.webp" alt="" width="608" height="672">
+      <span>Relógio recebido</span>
+    </div>
+
+    <section class="story-step" id="introStep">
+      <div class="story-stage">
+        <img
+          class="researcher"
+          data-essential-asset
+          src="assets/story/dr-iris.webp"
+          alt="Dra. Íris, pesquisadora local dos cristais vivos"
+          width="571"
+          height="1090"
+        >
+        <img
+          class="watch-reveal"
+          id="watchReveal"
+          data-essential-asset
+          src="assets/story/crystal-watch.webp"
+          alt="Relógio Cristalíneo"
+          width="608"
+          height="672"
+        >
+
+        <div class="dialogue-box">
+          <p class="speaker-name">Dra. Íris</p>
+          <p class="dialogue-text" id="dialogueText" aria-live="polite"></p>
+          <button class="story-action" id="dialogueAction" type="button">Continuar</button>
+        </div>
       </div>
-      <div class="setting toggle">
-        <label for="fullscreen">Tela cheia</label>
-        <input id="fullscreen" type="checkbox">
+    </section>
+
+    <section class="story-step starters-step" id="startersStep" hidden>
+      <header class="starters-header">
+        <h1>Escolha seu Naturion inicial</h1>
+        <p id="starterGreeting">Qual essência combina com você?</p>
+      </header>
+
+      <div class="starter-grid" role="group" aria-label="Naturions iniciais disponíveis">
+        <button class="starter-card" type="button" data-starter="axolume" aria-pressed="false">
+          <img
+            class="starter-image"
+            data-essential-asset
+            src="assets/story/axolume.webp"
+            alt="Axolume, Naturion inicial de Água"
+            width="655"
+            height="796"
+          >
+          <span class="starter-copy">
+            <span class="starter-name">Axolume</span>
+            <span class="starter-type">💧 Água</span>
+            <span class="starter-description">Alegre e curioso, transforma cada caminho em descoberta.</span>
+          </span>
+        </button>
+
+        <button class="starter-card" type="button" data-starter="brasguax" aria-pressed="false">
+          <img
+            class="starter-image"
+            data-essential-asset
+            src="assets/story/brasguax.webp"
+            alt="Brasguax, Naturion inicial de Fogo"
+            width="703"
+            height="796"
+          >
+          <span class="starter-copy">
+            <span class="starter-name">Brasguax</span>
+            <span class="starter-type">🔥 Fogo</span>
+            <span class="starter-description">Corajoso e impulsivo, enfrenta qualquer desafio de frente.</span>
+          </span>
+        </button>
+
+        <button class="starter-card" type="button" data-starter="musgurso" aria-pressed="false">
+          <img
+            class="starter-image"
+            data-essential-asset
+            src="assets/story/musgurso.webp"
+            alt="Musgurso, Naturion inicial de Planta"
+            width="772"
+            height="796"
+          >
+          <span class="starter-copy">
+            <span class="starter-name">Musgurso</span>
+            <span class="starter-type">🌿 Planta</span>
+            <span class="starter-description">Calmo e protetor, carrega a força paciente da floresta.</span>
+          </span>
+        </button>
       </div>
-      <button id="closeOptions" class="close" type="button">Fechar</button>
+
+      <button class="starter-confirm" id="openStarterConfirmation" type="button" disabled>Escolha um Naturion</button>
+    </section>
+
+    <section class="story-step result-step" id="resultStep" hidden>
+      <div class="result-card">
+        <h1>Sintonia inicial concluída!</h1>
+        <p id="resultMessage">Um novo vínculo acaba de nascer.</p>
+        <div class="result-pair">
+          <img class="result-hero" id="resultHero" src="assets/selection/hero-male.webp" alt="Seu personagem">
+          <img class="result-creature" id="resultCreature" src="assets/story/axolume.webp" alt="Seu Naturion inicial">
+        </div>
+        <button class="finish-story" id="finishStory" type="button">Tudo pronto!</button>
+      </div>
+    </section>
+  </main>
+
+  <section class="confirmation-modal" id="starterConfirmation" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" hidden>
+    <div class="confirmation-card">
+      <img id="confirmationCreature" src="assets/story/axolume.webp" alt="">
+      <h2 id="confirmationTitle">Confirmar escolha</h2>
+      <p id="confirmationText">Tem certeza de que deseja escolher este Naturion?</p>
+      <div class="confirmation-actions">
+        <button class="confirm-choice" id="confirmStarter" type="button">Sim, tenho certeza</button>
+        <button class="cancel-choice" id="cancelStarter" type="button">Voltar</button>
+      </div>
     </div>
   </section>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <section class="sync-overlay" id="syncOverlay" aria-live="polite" hidden>
+    <div class="sync-scene">
+      <img class="sync-creature" id="syncCreature" src="assets/story/axolume.webp" alt="">
+      <span class="sync-beam" aria-hidden="true"></span>
+      <img class="sync-watch" src="assets/story/crystal-watch.webp" alt="Relógio Cristalíneo">
+    </div>
+    <div id="particleField" aria-hidden="true"></div>
+    <p class="sync-message" id="syncMessage">Iniciando sintonia...</p>
+  </section>
+
+  <aside class="asset-error" id="assetError" role="alert" hidden>
+    <p>Não foi possível carregar a arte da tela inicial.<br>Atualize a página para tentar novamente.</p>
+  </aside>
+
+  <section class="modal" id="optionsModal" role="dialog" aria-modal="true" aria-labelledby="optionsTitle" hidden>
+    <div class="options-card">
+      <h2 id="optionsTitle">Opções</h2>
+
+      <label class="setting" for="musicVolume">
+        <span class="setting-row">
+          <span>Volume da música</span>
+          <output class="value" id="musicValue">70</output>
+        </span>
+        <input id="musicVolume" type="range" min="0" max="100" value="70">
+      </label>
+
+      <label class="setting" for="effectsVolume">
+        <span class="setting-row">
+          <span>Volume dos efeitos</span>
+          <output class="value" id="effectsValue">85</output>
+        </span>
+        <input id="effectsVolume" type="range" min="0" max="100" value="85">
+      </label>
+
+      <label class="setting setting-row" for="fullscreen">
+        <span>Tela cheia</span>
+        <input id="fullscreen" type="checkbox">
+      </label>
+
+      <label class="setting setting-row" for="motion">
+        <span>Animações</span>
+        <input id="motion" type="checkbox" checked>
+      </label>
+
+      <button class="close-button" id="closeOptions" type="button">Concluído</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    const SETTINGS_KEY='naturion-settings-v2';
-    const art=document.getElementById('screenArt');
-    const loading=document.getElementById('loading');
-    const newJourney=document.getElementById('newJourney');
-    const optionsButton=document.getElementById('optionsButton');
-    const modal=document.getElementById('optionsModal');
-    const closeOptions=document.getElementById('closeOptions');
-    const music=document.getElementById('musicVolume');
-    const effects=document.getElementById('effectsVolume');
-    const fullscreen=document.getElementById('fullscreen');
-    const toastBox=document.getElementById('toast');
-    let toastTimer;
+    (() => {
+      const STORAGE_KEY = "naturion-settings-v2";
+      const PLAYER_KEY = "naturion-player-v1";
+      const titleScreen = document.getElementById("titleScreen");
+      const selectionScreen = document.getElementById("selectionScreen");
+      const storyScreen = document.getElementById("storyScreen");
+      const screenArt = document.getElementById("screenArt");
+      const titleLoading = document.getElementById("titleLoading");
+      const assetError = document.getElementById("assetError");
+      const modal = document.getElementById("optionsModal");
+      const optionsButton = document.getElementById("optionsButton");
+      const closeButton = document.getElementById("closeOptions");
+      const newJourneyButton = document.getElementById("newJourney");
+      const backButton = document.getElementById("backToTitle");
+      const characterCards = [...document.querySelectorAll(".character-card")];
+      const identityForm = document.getElementById("identityForm");
+      const playerName = document.getElementById("playerName");
+      const nameHint = document.getElementById("nameHint");
+      const confirmCharacter = document.getElementById("confirmCharacter");
+      const introStep = document.getElementById("introStep");
+      const dialogueText = document.getElementById("dialogueText");
+      const dialogueAction = document.getElementById("dialogueAction");
+      const watchReveal = document.getElementById("watchReveal");
+      const watchHud = document.getElementById("watchHud");
+      const startersStep = document.getElementById("startersStep");
+      const starterGreeting = document.getElementById("starterGreeting");
+      const starterCards = [...document.querySelectorAll(".starter-card")];
+      const openStarterConfirmation = document.getElementById("openStarterConfirmation");
+      const starterConfirmation = document.getElementById("starterConfirmation");
+      const confirmationCreature = document.getElementById("confirmationCreature");
+      const confirmationText = document.getElementById("confirmationText");
+      const confirmStarter = document.getElementById("confirmStarter");
+      const cancelStarter = document.getElementById("cancelStarter");
+      const syncOverlay = document.getElementById("syncOverlay");
+      const syncCreature = document.getElementById("syncCreature");
+      const syncMessage = document.getElementById("syncMessage");
+      const particleField = document.getElementById("particleField");
+      const resultStep = document.getElementById("resultStep");
+      const resultHero = document.getElementById("resultHero");
+      const resultCreature = document.getElementById("resultCreature");
+      const resultMessage = document.getElementById("resultMessage");
+      const finishStory = document.getElementById("finishStory");
+      const toastBox = document.getElementById("toast");
+      const musicVolume = document.getElementById("musicVolume");
+      const effectsVolume = document.getElementById("effectsVolume");
+      const musicValue = document.getElementById("musicValue");
+      const effectsValue = document.getElementById("effectsValue");
+      const fullscreen = document.getElementById("fullscreen");
+      const motion = document.getElementById("motion");
+      let selectedCharacter = "";
+      let currentPlayer = null;
+      let selectedStarter = "";
+      let dialogueIndex = 0;
+      let typingTimer;
+      let toastTimer;
+      let audioContext;
 
-    function showToast(message){
-      toastBox.textContent=message;
-      toastBox.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer=setTimeout(()=>toastBox.classList.remove('show'),2600);
-    }
+      const STARTERS = {
+        axolume: {
+          id: "axolume",
+          name: "Axolume",
+          type: "Água",
+          image: "assets/story/axolume.webp",
+          color: "#52d9ff",
+          glow: "#1b8fff",
+          sound: [392, 523, 659, 784]
+        },
+        brasguax: {
+          id: "brasguax",
+          name: "Brasguax",
+          type: "Fogo",
+          image: "assets/story/brasguax.webp",
+          color: "#ff642a",
+          glow: "#ffac2d",
+          sound: [220, 330, 440, 659]
+        },
+        musgurso: {
+          id: "musgurso",
+          name: "Musgurso",
+          type: "Planta",
+          image: "assets/story/musgurso.webp",
+          color: "#82d866",
+          glow: "#d2bd43",
+          sound: [262, 330, 392, 523]
+        }
+      };
 
-    function saveSettings(){
-      localStorage.setItem(SETTINGS_KEY,JSON.stringify({music:+music.value,effects:+effects.value}));
-    }
-
-    function loadSettings(){
-      try{
-        const saved=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
-        if(Number.isFinite(saved.music)) music.value=saved.music;
-        if(Number.isFinite(saved.effects)) effects.value=saved.effects;
-      }catch(error){console.warn('Falha ao carregar opções.',error)}
-    }
-
-    async function loadApprovedArt(){
-      try{
-        const paths=[0,1,2,3,4].map(index=>`assets/start/bg${index}.txt?v=3`);
-        const pieces=await Promise.all(paths.map(async path=>{
-          const response=await fetch(path,{cache:'no-store'});
-          if(!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
-          return (await response.text()).trim();
-        }));
-        const source='data:image/webp;base64,'+pieces.join('');
-        await new Promise((resolve,reject)=>{
-          art.onload=resolve;
-          art.onerror=()=>reject(new Error('A imagem aprovada não pôde ser decodificada.'));
-          art.src=source;
+      const showAssetError = () => {
+        assetError.hidden = false;
+        document.querySelectorAll("button").forEach((button) => {
+          button.disabled = true;
         });
-        art.classList.add('ready');
-        loading.hidden=true;
-        newJourney.disabled=false;
-        optionsButton.disabled=false;
-      }catch(error){
-        console.error(error);
-        loading.textContent='Não foi possível carregar a arte da tela inicial. Atualize a página para tentar novamente.';
-      }
-    }
+      };
 
-    function openOptions(){
-      modal.hidden=false;
-      modal.setAttribute('aria-hidden','false');
-      closeOptions.focus();
-    }
+      document.querySelectorAll("[data-essential-asset]").forEach((image) => {
+        image.addEventListener("error", showAssetError, { once: true });
+        if (image.complete && image.naturalWidth === 0) showAssetError();
+      });
 
-    function closeOptionsPanel(){
+      const loadApprovedArt = async () => {
+        try {
+          const paths = [0, 1, 2, 3, 4].map((index) => `assets/start/bg${index}.txt?v=3`);
+          const pieces = await Promise.all(paths.map(async (path) => {
+            const response = await fetch(path, { cache: "no-store" });
+            if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
+            return (await response.text()).trim();
+          }));
+
+          await new Promise((resolve, reject) => {
+            screenArt.onload = resolve;
+            screenArt.onerror = () => reject(new Error("A imagem aprovada não pôde ser decodificada."));
+            screenArt.src = `data:image/webp;base64,${pieces.join("")}`;
+          });
+
+          screenArt.classList.add("ready");
+          titleLoading.hidden = true;
+          newJourneyButton.disabled = false;
+          optionsButton.disabled = false;
+        } catch (error) {
+          console.error(error);
+          titleLoading.textContent = "Não foi possível carregar a arte da tela inicial. Atualize a página para tentar novamente.";
+        }
+      };
+
+      const readSettings = () => {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        } catch {
+          return {};
+        }
+      };
+
+      const updateLabels = () => {
+        musicValue.value = musicVolume.value;
+        musicValue.textContent = musicVolume.value;
+        effectsValue.value = effectsVolume.value;
+        effectsValue.textContent = effectsVolume.value;
+      };
+
+      const saveSettings = () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          music: Number(musicVolume.value),
+          effects: Number(effectsVolume.value),
+          motion: motion.checked
+        }));
+        document.body.classList.toggle("no-motion", !motion.checked);
+        updateLabels();
+      };
+
+      const settings = readSettings();
+      if (Number.isFinite(settings.music)) musicVolume.value = settings.music;
+      if (Number.isFinite(settings.effects)) effectsVolume.value = settings.effects;
+      if (typeof settings.motion === "boolean") motion.checked = settings.motion;
       saveSettings();
-      modal.hidden=true;
-      modal.setAttribute('aria-hidden','true');
-      optionsButton.focus();
-    }
 
-    newJourney.addEventListener('click',()=>showToast('A escolha do Naturion inicial será adicionada na próxima etapa.'));
-    optionsButton.addEventListener('click',openOptions);
-    closeOptions.addEventListener('click',closeOptionsPanel);
-    modal.addEventListener('click',event=>{if(event.target===modal) closeOptionsPanel()});
-    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!modal.hidden) closeOptionsPanel()});
-    music.addEventListener('input',saveSettings);
-    effects.addEventListener('input',saveSettings);
-    fullscreen.addEventListener('change',async()=>{
-      try{
-        if(fullscreen.checked&&!document.fullscreenElement) await document.documentElement.requestFullscreen();
-        if(!fullscreen.checked&&document.fullscreenElement) await document.exitFullscreen();
-      }catch(error){
-        fullscreen.checked=!!document.fullscreenElement;
-        showToast('O navegador não permitiu ativar a tela cheia.');
-      }
-    });
-    document.addEventListener('fullscreenchange',()=>fullscreen.checked=!!document.fullscreenElement);
+      const playTone = (pitch = 310, delay = 0, duration = .08, type = "square") => {
+        if (Number(effectsVolume.value) === 0) return;
+        try {
+          audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          const start = audioContext.currentTime + delay;
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(pitch, start);
+          oscillator.frequency.exponentialRampToValueAtTime(pitch * 1.14, start + duration);
+          gain.gain.setValueAtTime(Math.min(.05, Number(effectsVolume.value) / 1900), start);
+          gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(start);
+          oscillator.stop(start + duration + .01);
+        } catch {
+          // Som é opcional; a interface continua funcional sem Web Audio.
+        }
+      };
 
-    loadSettings();
-    loadApprovedArt();
+      const playClick = (pitch = 310) => playTone(pitch);
+
+      const playSequence = (pitches, spacing = .07) => {
+        pitches.forEach((pitch, index) => {
+          playTone(pitch, index * spacing, .11, index === pitches.length - 1 ? "triangle" : "square");
+        });
+      };
+
+      const showToast = (message) => {
+        toastBox.textContent = message;
+        toastBox.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastBox.classList.remove("show"), 2600);
+      };
+
+      const openOptions = () => {
+        playClick(260);
+        modal.hidden = false;
+        requestAnimationFrame(() => closeButton.focus());
+      };
+
+      const closeOptions = () => {
+        saveSettings();
+        playClick(220);
+        modal.hidden = true;
+        optionsButton.focus();
+      };
+
+      const prefersLessMotion = () => (
+        !motion.checked || matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+
+      const transitionScreens = (from, to, focusTarget) => {
+        const duration = prefersLessMotion() ? 0 : 430;
+        to.hidden = false;
+
+        if (!duration) {
+          from.hidden = true;
+          from.classList.remove("screen-leaving");
+          to.classList.remove("screen-entering");
+          focusTarget?.focus();
+          return;
+        }
+
+        to.classList.add("screen-entering");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            from.classList.add("screen-leaving");
+            to.classList.remove("screen-entering");
+          });
+        });
+
+        window.setTimeout(() => {
+          from.hidden = true;
+          from.classList.remove("screen-leaving");
+          focusTarget?.focus();
+        }, duration);
+      };
+
+      const saveCurrentPlayer = () => {
+        if (currentPlayer) localStorage.setItem(PLAYER_KEY, JSON.stringify(currentPlayer));
+      };
+
+      const writeDialogue = (message, buttonLabel) => {
+        clearInterval(typingTimer);
+        dialogueText.textContent = "";
+        dialogueAction.textContent = buttonLabel;
+        dialogueAction.disabled = true;
+
+        if (prefersLessMotion()) {
+          dialogueText.textContent = message;
+          dialogueAction.disabled = false;
+          dialogueAction.focus();
+          return;
+        }
+
+        let cursor = 0;
+        typingTimer = window.setInterval(() => {
+          dialogueText.textContent += message[cursor];
+          if (cursor % 5 === 0 && message[cursor] !== " ") playTone(720, 0, .025, "sine");
+          cursor += 1;
+          if (cursor >= message.length) {
+            clearInterval(typingTimer);
+            dialogueAction.disabled = false;
+          }
+        }, 19);
+      };
+
+      const renderDialogue = () => {
+        const playerLabel = currentPlayer?.name || "jovem explorador";
+        const lines = [
+          {
+            text: `Olá, ${playerLabel}. Eu sou a Dra. Íris, pesquisadora dos cristais vivos desta região.`,
+            action: "Continuar"
+          },
+          {
+            text: "Antes de conhecer seu primeiro parceiro, há algo que todo explorador precisa receber.",
+            action: "Ver artefato"
+          },
+          {
+            text: "Este é o Relógio Cristalíneo. Ele reconhece a essência dos Naturions e registra cada vínculo verdadeiro.",
+            action: "Receber relógio"
+          },
+          {
+            text: "Perfeito! O cristal reconheceu você. Agora escolha o Naturion que caminhará ao seu lado.",
+            action: "Conhecer iniciais"
+          }
+        ];
+
+        if (dialogueIndex >= 2) watchReveal.classList.add("visible");
+        writeDialogue(lines[dialogueIndex].text, lines[dialogueIndex].action);
+      };
+
+      const startStory = (player) => {
+        currentPlayer = player;
+        selectedStarter = "";
+        dialogueIndex = 0;
+        introStep.hidden = false;
+        startersStep.hidden = true;
+        resultStep.hidden = true;
+        watchReveal.classList.remove("visible");
+        watchHud.classList.toggle("visible", Boolean(player.hasCrystalWatch));
+        starterCards.forEach((card) => {
+          card.classList.remove("selected");
+          card.setAttribute("aria-pressed", "false");
+        });
+        openStarterConfirmation.disabled = true;
+        openStarterConfirmation.textContent = "Escolha um Naturion";
+        starterGreeting.textContent = `${player.name}, qual essência combina com você?`;
+        transitionScreens(selectionScreen, storyScreen);
+        window.setTimeout(renderDialogue, prefersLessMotion() ? 0 : 470);
+      };
+
+      const showStarterSelection = () => {
+        clearInterval(typingTimer);
+        introStep.hidden = true;
+        startersStep.hidden = false;
+        playSequence([392, 494, 587], .08);
+        starterCards[0].focus();
+      };
+
+      const selectStarter = (card) => {
+        selectedStarter = card.dataset.starter;
+        const starter = STARTERS[selectedStarter];
+        starterCards.forEach((item) => {
+          const isSelected = item === card;
+          item.classList.toggle("selected", isSelected);
+          item.setAttribute("aria-pressed", String(isSelected));
+        });
+        openStarterConfirmation.disabled = false;
+        openStarterConfirmation.textContent = `Escolher ${starter.name}`;
+        playSequence(starter.sound.slice(0, 2), .08);
+      };
+
+      const openConfirmation = () => {
+        if (!selectedStarter) return;
+        const starter = STARTERS[selectedStarter];
+        confirmationCreature.src = starter.image;
+        confirmationCreature.alt = starter.name;
+        confirmationText.textContent = `Tem certeza de que deseja escolher ${starter.name} como seu Naturion inicial?`;
+        starterConfirmation.hidden = false;
+        playClick(330);
+        confirmStarter.focus();
+      };
+
+      const closeConfirmation = () => {
+        starterConfirmation.hidden = true;
+        playClick(250);
+        openStarterConfirmation.focus();
+      };
+
+      const createSyncParticles = (starter) => {
+        particleField.replaceChildren();
+        const particleCount = prefersLessMotion() ? 18 : 72;
+
+        for (let index = 0; index < particleCount; index += 1) {
+          const particle = document.createElement("i");
+          const startX = 10 + Math.random() * 29;
+          const startY = 18 + Math.random() * 60;
+          const endX = 72 - startX + Math.random() * 5;
+          const endY = 49 - startY + Math.random() * 5;
+          particle.className = "sync-particle";
+          particle.style.setProperty("--start-x", `${startX}vw`);
+          particle.style.setProperty("--start-y", `${startY}vh`);
+          particle.style.setProperty("--arc-x", `${12 + Math.random() * 20}vw`);
+          particle.style.setProperty("--arc-y", `${-18 + Math.random() * 36}vh`);
+          particle.style.setProperty("--end-x", `${endX}vw`);
+          particle.style.setProperty("--end-y", `${endY}vh`);
+          particle.style.setProperty("--size", `${3 + Math.random() * 8}px`);
+          particle.style.setProperty("--radius", starter.id === "axolume" ? "50%" : starter.id === "musgurso" ? "1px 70%" : "2px");
+          particle.style.setProperty("--duration", `${1.45 + Math.random() * .85}s`);
+          particle.style.setProperty("--delay", `${.28 + Math.random() * .95}s`);
+          particleField.append(particle);
+        }
+      };
+
+      const showStoryResult = (starter) => {
+        syncOverlay.hidden = true;
+        syncOverlay.classList.remove("active");
+        syncCreature.classList.remove("absorbing");
+        particleField.replaceChildren();
+        startersStep.hidden = true;
+        resultStep.hidden = false;
+        resultHero.src = currentPlayer.character === "female"
+          ? "assets/selection/hero-female.webp"
+          : "assets/selection/hero-male.webp";
+        resultHero.alt = currentPlayer.name;
+        resultCreature.src = starter.image;
+        resultCreature.alt = starter.name;
+        resultMessage.textContent = `${currentPlayer.name} e ${starter.name}, o primeiro capítulo desta jornada começa agora.`;
+        playSequence([392, 494, 587, 784], .1);
+        finishStory.focus();
+      };
+
+      const beginSynchronization = () => {
+        const starter = STARTERS[selectedStarter];
+        if (!starter || !currentPlayer) return;
+
+        starterConfirmation.hidden = true;
+        currentPlayer = {
+          ...currentPlayer,
+          hasCrystalWatch: true,
+          starter: {
+            id: starter.id,
+            name: starter.name,
+            type: starter.type
+          }
+        };
+        saveCurrentPlayer();
+
+        syncOverlay.style.setProperty("--sync-color", starter.color);
+        syncOverlay.style.setProperty("--sync-glow", starter.glow);
+        syncCreature.src = starter.image;
+        syncCreature.alt = `${starter.name} se transformando em essência`;
+        syncMessage.textContent = `Sintonia com ${starter.name} iniciada...`;
+        createSyncParticles(starter);
+        syncOverlay.hidden = false;
+        requestAnimationFrame(() => {
+          syncOverlay.classList.add("active");
+          syncCreature.classList.add("absorbing");
+        });
+
+        playSequence(starter.sound, .13);
+        const successDelay = prefersLessMotion() ? 450 : 2600;
+        const resultDelay = prefersLessMotion() ? 850 : 3600;
+        window.setTimeout(() => {
+          syncMessage.textContent = "Sintonia inicial concluída!";
+          playSequence(starter.sound.slice().reverse(), .09);
+        }, successDelay);
+        window.setTimeout(() => showStoryResult(starter), resultDelay);
+      };
+
+      const updateFormState = () => {
+        const normalizedName = playerName.value.trim().replace(/\s+/g, " ");
+        nameHint.textContent = `${playerName.value.length}/16`;
+        confirmCharacter.disabled = !selectedCharacter || normalizedName.length < 2;
+        if (confirmCharacter.textContent !== "Começar Jornada") {
+          confirmCharacter.textContent = "Começar Jornada";
+        }
+      };
+
+      const selectCharacter = (card) => {
+        selectedCharacter = card.dataset.character;
+        characterCards.forEach((item) => {
+          const isSelected = item === card;
+          item.classList.toggle("selected", isSelected);
+          item.setAttribute("aria-pressed", String(isSelected));
+        });
+        playSequence(selectedCharacter === "male" ? [260, 330] : [300, 390]);
+        updateFormState();
+        window.setTimeout(() => playerName.focus(), prefersLessMotion() ? 0 : 180);
+      };
+
+      newJourneyButton.addEventListener("click", () => {
+        playSequence([300, 390, 520], .06);
+        newJourneyButton.classList.add("is-pressed");
+        window.setTimeout(() => newJourneyButton.classList.remove("is-pressed"), 170);
+        window.dispatchEvent(new CustomEvent("naturion:new-journey"));
+        transitionScreens(titleScreen, selectionScreen, characterCards[0]);
+      });
+
+      backButton.addEventListener("click", () => {
+        playSequence([360, 270], .06);
+        transitionScreens(selectionScreen, titleScreen, newJourneyButton);
+      });
+
+      characterCards.forEach((card) => {
+        card.addEventListener("click", () => selectCharacter(card));
+
+        card.addEventListener("pointermove", (event) => {
+          if (prefersLessMotion()) return;
+          const bounds = card.getBoundingClientRect();
+          const tilt = ((event.clientX - bounds.left) / bounds.width - .5) * 5;
+          card.style.setProperty("--tilt", `${tilt}deg`);
+        }, { passive: true });
+
+        card.addEventListener("pointerleave", () => {
+          card.style.setProperty("--tilt", "0deg");
+        });
+      });
+
+      playerName.addEventListener("input", updateFormState);
+
+      identityForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const normalizedName = playerName.value.trim().replace(/\s+/g, " ");
+        if (!selectedCharacter || normalizedName.length < 2) {
+          showToast("Escolha um personagem e informe seu nome.");
+          return;
+        }
+
+        const player = {
+          name: normalizedName,
+          character: selectedCharacter,
+          createdAt: new Date().toISOString()
+        };
+
+        localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+        playerName.value = normalizedName;
+        updateFormState();
+        confirmCharacter.textContent = "Jornada pronta!";
+        confirmCharacter.disabled = true;
+        playSequence([330, 440, 554, 659], .09);
+        showToast(`${normalizedName}, sua jornada está pronta!`);
+        window.dispatchEvent(new CustomEvent("naturion:player-created", { detail: player }));
+        window.setTimeout(() => startStory(player), prefersLessMotion() ? 0 : 900);
+      });
+
+      dialogueAction.addEventListener("click", () => {
+        if (dialogueAction.disabled) return;
+        playClick(320);
+
+        if (dialogueIndex < 2) {
+          dialogueIndex += 1;
+          renderDialogue();
+          return;
+        }
+
+        if (dialogueIndex === 2) {
+          currentPlayer = { ...currentPlayer, hasCrystalWatch: true };
+          saveCurrentPlayer();
+          watchHud.classList.add("visible");
+          dialogueIndex = 3;
+          playSequence([392, 523, 659, 784], .09);
+          renderDialogue();
+          return;
+        }
+
+        showStarterSelection();
+      });
+
+      starterCards.forEach((card) => {
+        card.addEventListener("click", () => selectStarter(card));
+        card.addEventListener("pointermove", (event) => {
+          if (prefersLessMotion()) return;
+          const bounds = card.getBoundingClientRect();
+          const tilt = ((event.clientX - bounds.left) / bounds.width - .5) * 5;
+          card.style.setProperty("--starter-tilt", `${tilt}deg`);
+        }, { passive: true });
+        card.addEventListener("pointerleave", () => {
+          card.style.setProperty("--starter-tilt", "0deg");
+        });
+      });
+
+      openStarterConfirmation.addEventListener("click", openConfirmation);
+      confirmStarter.addEventListener("click", beginSynchronization);
+      cancelStarter.addEventListener("click", closeConfirmation);
+      starterConfirmation.addEventListener("click", (event) => {
+        if (event.target === starterConfirmation) closeConfirmation();
+      });
+
+      finishStory.addEventListener("click", () => {
+        const starter = STARTERS[selectedStarter];
+        playSequence([392, 523, 659], .08);
+        showToast(`${currentPlayer.name} e ${starter.name}: vínculo salvo!`);
+        window.dispatchEvent(new CustomEvent("naturion:starter-selected", {
+          detail: currentPlayer
+        }));
+      });
+
+      optionsButton.addEventListener("click", openOptions);
+      closeButton.addEventListener("click", closeOptions);
+
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeOptions();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        if (!modal.hidden) {
+          closeOptions();
+        } else if (!starterConfirmation.hidden) {
+          closeConfirmation();
+        } else if (!selectionScreen.hidden) {
+          backButton.click();
+        }
+      });
+
+      [musicVolume, effectsVolume].forEach((input) => {
+        input.addEventListener("input", saveSettings);
+        input.addEventListener("change", () => playClick(300));
+      });
+
+      motion.addEventListener("change", () => {
+        saveSettings();
+        playClick(330);
+      });
+
+      fullscreen.addEventListener("change", async () => {
+        playClick(330);
+        try {
+          if (fullscreen.checked && !document.fullscreenElement) {
+            await document.documentElement.requestFullscreen();
+          } else if (!fullscreen.checked && document.fullscreenElement) {
+            await document.exitFullscreen();
+          }
+        } catch {
+          fullscreen.checked = Boolean(document.fullscreenElement);
+          showToast("O navegador não permitiu ativar a tela cheia.");
+        }
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        fullscreen.checked = Boolean(document.fullscreenElement);
+      });
+
+      titleScreen.addEventListener("pointermove", (event) => {
+        if (prefersLessMotion()) return;
+        const x = (event.clientX / innerWidth - .5) * -10;
+        const y = (event.clientY / innerHeight - .5) * -7;
+        titleScreen.style.setProperty("--scene-x", `${x}px`);
+        titleScreen.style.setProperty("--scene-y", `${y}px`);
+      }, { passive: true });
+
+      titleScreen.addEventListener("pointerleave", () => {
+        titleScreen.style.setProperty("--scene-x", "0px");
+        titleScreen.style.setProperty("--scene-y", "0px");
+      });
+
+      updateFormState();
+      loadApprovedArt();
+    })();
   </script>
 </body>
 </html>
