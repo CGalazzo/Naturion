@@ -8,6 +8,9 @@
   <title>Naturion — Guardiões da Natureza</title>
   <link rel="preload" href="assets/start/naturion-voxel-valley.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/start/naturion-logo.png" as="image" type="image/png">
+  <link rel="preload" href="assets/selection/forest-gate.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/selection/hero-male.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/selection/hero-female.webp" as="image" type="image/webp">
   <style>
     :root {
       --gold-light: #fff8ad;
@@ -278,6 +281,462 @@
       text-shadow: 2px 2px 0 #000;
     }
 
+    .title-screen[hidden],
+    .selection-screen[hidden] {
+      display: none;
+    }
+
+    .title-screen,
+    .selection-screen {
+      transition:
+        opacity .42s ease,
+        transform .42s cubic-bezier(.2, .75, .2, 1),
+        filter .42s ease;
+    }
+
+    .screen-leaving {
+      opacity: 0;
+      transform: scale(1.035);
+      filter: blur(3px);
+      pointer-events: none;
+    }
+
+    .screen-entering {
+      opacity: 0;
+      transform: scale(.975);
+      filter: blur(3px);
+    }
+
+    .selection-screen {
+      position: fixed;
+      z-index: 8;
+      inset: 0;
+      isolation: isolate;
+      min-height: 100svh;
+      overflow: hidden;
+      background: #07150d;
+    }
+
+    .selection-background {
+      position: absolute;
+      z-index: -4;
+      inset: -22px;
+      width: calc(100% + 44px);
+      height: calc(100% + 44px);
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.025);
+      filter: saturate(1.04) contrast(1.02);
+      animation: selection-breathe 12s ease-in-out infinite alternate;
+    }
+
+    .selection-screen::before {
+      position: absolute;
+      z-index: -3;
+      inset: 0;
+      content: "";
+      background:
+        linear-gradient(180deg, rgba(2, 14, 8, .7), transparent 28%),
+        radial-gradient(ellipse at 50% 54%, transparent 0 35%, rgba(1, 11, 6, .24) 70%, rgba(1, 9, 5, .68) 100%),
+        linear-gradient(0deg, rgba(2, 12, 7, .82), transparent 38%);
+      pointer-events: none;
+    }
+
+    .selection-screen::after {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      content: "";
+      opacity: .12;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .16) 1px, transparent 1px);
+      background-size: 4px 4px;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .selection-shell {
+      display: grid;
+      width: min(100%, 1280px);
+      height: 100svh;
+      margin: 0 auto;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: clamp(8px, 1.2vh, 16px);
+      padding:
+        max(18px, env(safe-area-inset-top))
+        clamp(14px, 3vw, 40px)
+        max(18px, env(safe-area-inset-bottom));
+    }
+
+    .selection-header {
+      position: relative;
+      z-index: 4;
+      justify-self: center;
+      min-width: min(92vw, 620px);
+      padding: 12px clamp(28px, 5vw, 56px) 11px;
+      border: 3px solid #17351f;
+      border-radius: 8px;
+      outline: 3px solid var(--gold);
+      outline-offset: -9px;
+      background: linear-gradient(180deg, rgba(31, 87, 45, .96), rgba(7, 30, 17, .97));
+      box-shadow:
+        0 7px 0 rgba(5, 22, 11, .92),
+        0 16px 32px rgba(0, 0, 0, .42),
+        inset 0 2px 0 rgba(255, 255, 255, .2);
+      text-align: center;
+      animation: header-drop .62s cubic-bezier(.18, .8, .24, 1) both;
+    }
+
+    .selection-header h1 {
+      margin: 0;
+      color: #fff4ae;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(1.24rem, 3.1vw, 2rem);
+      letter-spacing: .055em;
+      line-height: 1.1;
+      text-shadow: 3px 3px 0 #3d2909;
+      text-transform: uppercase;
+    }
+
+    .selection-header p {
+      margin: 5px 0 0;
+      color: rgba(255, 255, 255, .82);
+      font-size: clamp(.72rem, 1.4vw, .92rem);
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .back-button {
+      position: absolute;
+      z-index: 8;
+      top: max(18px, env(safe-area-inset-top));
+      left: max(18px, env(safe-area-inset-left));
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border: 3px solid #122b19;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(#467a42, #24512e);
+      box-shadow: 0 5px 0 #081d10, 0 10px 20px rgba(0, 0, 0, .35);
+      color: #fff4af;
+      cursor: pointer;
+      font: 1000 1.55rem/1 ui-monospace, "Courier New", monospace;
+      text-shadow: 2px 2px 0 #18331d;
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .back-button:hover,
+    .back-button:focus-visible {
+      filter: brightness(1.14);
+      transform: translateY(-2px);
+    }
+
+    .back-button:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #081d10;
+    }
+
+    .character-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      min-height: 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(10px, 7vw, 110px);
+      align-items: end;
+      padding: 0 clamp(4px, 5vw, 62px);
+    }
+
+    .character-card {
+      --card-color: #65c75e;
+      position: relative;
+      display: grid;
+      min-width: 0;
+      height: 100%;
+      min-height: 250px;
+      place-items: end center;
+      padding: 0 8px 8px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      outline: 0;
+      perspective: 900px;
+    }
+
+    .character-card::before {
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      bottom: 16px;
+      width: min(92%, 360px);
+      height: min(74%, 480px);
+      content: "";
+      border: 4px solid rgba(232, 189, 53, .25);
+      border-radius: 46% 46% 13% 13%;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(111, 229, 125, .23), transparent 48%),
+        linear-gradient(180deg, rgba(14, 55, 28, .08), rgba(4, 23, 12, .6));
+      box-shadow:
+        inset 0 0 34px rgba(162, 255, 152, .08),
+        0 20px 40px rgba(0, 0, 0, .25);
+      opacity: .52;
+      transform: translateX(-50%) scale(.93);
+      transition: opacity .25s ease, transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+
+    .character-card::after {
+      position: absolute;
+      z-index: -1;
+      right: 12%;
+      bottom: 10%;
+      left: 12%;
+      height: 11%;
+      content: "";
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, .58), transparent 69%);
+      filter: blur(5px);
+      transform: scale(.82);
+      transition: transform .25s ease;
+    }
+
+    .character-art {
+      display: block;
+      width: auto;
+      max-width: 90%;
+      height: min(57vh, 570px);
+      max-height: calc(100% - 14px);
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 14px 11px rgba(0, 0, 0, .42));
+      transform-origin: 50% 92%;
+      transition: filter .25s ease, transform .25s cubic-bezier(.2, .75, .2, 1);
+      animation: character-idle 4.3s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .character-card:nth-child(2) .character-art {
+      animation-delay: -2.1s;
+    }
+
+    .character-card:hover .character-art,
+    .character-card:focus-visible .character-art {
+      filter:
+        drop-shadow(0 15px 12px rgba(0, 0, 0, .46))
+        drop-shadow(0 0 16px rgba(199, 255, 150, .34));
+      transform: translateY(-7px) rotateY(var(--tilt, 0deg)) scale(1.035);
+    }
+
+    .character-card:hover::before,
+    .character-card:focus-visible::before {
+      border-color: rgba(255, 231, 112, .65);
+      opacity: .88;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .character-card.selected::before {
+      border-color: #ffdf66;
+      opacity: 1;
+      transform: translateX(-50%) scale(1.025);
+      box-shadow:
+        inset 0 0 45px rgba(181, 255, 141, .24),
+        0 0 0 5px rgba(28, 91, 42, .7),
+        0 0 35px rgba(255, 225, 90, .38),
+        0 22px 42px rgba(0, 0, 0, .35);
+      animation: selected-glow 1.8s ease-in-out infinite alternate;
+    }
+
+    .character-card.selected .character-art {
+      filter:
+        drop-shadow(0 16px 12px rgba(0, 0, 0, .5))
+        drop-shadow(0 0 20px rgba(232, 255, 167, .48));
+      transform: translateY(-9px) scale(1.045);
+    }
+
+    .selection-mark {
+      position: absolute;
+      z-index: 5;
+      top: 15%;
+      right: 11%;
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 3px solid #4d340a;
+      background: linear-gradient(145deg, #fff6a5, #d49a17);
+      box-shadow: 0 5px 0 #53340a, 0 9px 20px rgba(0, 0, 0, .4);
+      color: #173c1e;
+      font: 1000 1.35rem/1 ui-monospace, "Courier New", monospace;
+      opacity: 0;
+      transform: rotate(45deg) scale(.4);
+      transition: opacity .22s ease, transform .3s cubic-bezier(.2, 1.4, .4, 1);
+    }
+
+    .selection-mark span {
+      transform: rotate(-45deg);
+    }
+
+    .character-card.selected .selection-mark {
+      opacity: 1;
+      transform: rotate(45deg) scale(1);
+    }
+
+    .character-label {
+      position: absolute;
+      z-index: 6;
+      bottom: 9px;
+      left: 50%;
+      min-width: min(78%, 260px);
+      padding: 11px 18px 12px;
+      border: 3px solid #15331d;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(180deg, rgba(65, 151, 67, .97), rgba(20, 75, 36, .98));
+      box-shadow: 0 6px 0 #0a2915, 0 12px 22px rgba(0, 0, 0, .42);
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.85rem, 2vw, 1.18rem);
+      font-weight: 1000;
+      letter-spacing: .08em;
+      line-height: 1;
+      text-shadow: 2px 2px 0 #18341c;
+      text-transform: uppercase;
+      transform: translateX(-50%);
+      transition: filter .2s ease, transform .2s ease;
+    }
+
+    .character-card:hover .character-label,
+    .character-card:focus-visible .character-label,
+    .character-card.selected .character-label {
+      filter: brightness(1.14);
+      transform: translateX(-50%) translateY(-3px);
+    }
+
+    .identity-panel {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      width: min(96%, 820px);
+      justify-self: center;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+      padding: 15px 18px 18px;
+      border: 4px solid #17351f;
+      border-radius: 9px;
+      outline: 3px solid var(--gold);
+      outline-offset: -10px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .035) 50%, transparent 50%) 0 0 / 100% 6px,
+        linear-gradient(145deg, rgba(30, 87, 45, .97), rgba(6, 27, 15, .98));
+      box-shadow:
+        0 8px 0 #061a0d,
+        0 18px 38px rgba(0, 0, 0, .5),
+        inset 0 2px 0 rgba(255, 255, 255, .15);
+      animation: panel-rise .62s cubic-bezier(.18, .8, .24, 1) .16s both;
+    }
+
+    .name-field {
+      display: grid;
+      min-width: 0;
+      gap: 7px;
+      text-align: left;
+    }
+
+    .name-field label {
+      color: #fff0a5;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.75rem, 1.5vw, .93rem);
+      font-weight: 1000;
+      letter-spacing: .055em;
+      text-transform: uppercase;
+    }
+
+    .input-shell {
+      position: relative;
+    }
+
+    .player-name {
+      width: 100%;
+      height: 52px;
+      padding: 0 66px 0 15px;
+      border: 3px solid #112b19;
+      border-radius: 6px;
+      outline: 2px solid rgba(232, 189, 53, .78);
+      outline-offset: -7px;
+      background: rgba(244, 238, 201, .96);
+      box-shadow: inset 0 4px 0 rgba(0, 0, 0, .13), 0 4px 0 #071b0e;
+      color: #14351d;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: 1.05rem;
+      font-weight: 1000;
+      letter-spacing: .04em;
+    }
+
+    .player-name::placeholder {
+      color: rgba(30, 64, 36, .48);
+    }
+
+    .player-name:focus {
+      outline-color: #ffda4c;
+      box-shadow: inset 0 4px 0 rgba(0, 0, 0, .13), 0 4px 0 #071b0e, 0 0 20px rgba(255, 221, 86, .35);
+    }
+
+    .name-count {
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      color: #4c694d;
+      font: 900 .72rem/1 ui-monospace, "Courier New", monospace;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .journey-button {
+      min-width: 230px;
+      min-height: 56px;
+      padding: 12px 23px 15px;
+      border: 3px solid #16331d;
+      border-radius: 7px;
+      outline: 2px solid var(--gold);
+      outline-offset: -7px;
+      background: linear-gradient(#75ce52, #2f8137 68%, #1e5f2b);
+      box-shadow: 0 6px 0 #092614, 0 12px 24px rgba(0, 0, 0, .38), inset 0 2px 0 rgba(255, 255, 255, .35);
+      color: #fff;
+      cursor: pointer;
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: clamp(.83rem, 1.7vw, 1rem);
+      font-weight: 1000;
+      letter-spacing: .045em;
+      line-height: 1.1;
+      text-shadow: 2px 2px 0 #173b1d;
+      text-transform: uppercase;
+      transition: filter .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+
+    .journey-button:not(:disabled):hover,
+    .journey-button:not(:disabled):focus-visible {
+      filter: brightness(1.14);
+      transform: translateY(-2px);
+    }
+
+    .journey-button:not(:disabled):active {
+      transform: translateY(5px);
+      box-shadow: 0 1px 0 #092614;
+    }
+
+    .journey-button:disabled {
+      cursor: not-allowed;
+      filter: grayscale(.72) brightness(.68);
+      opacity: .72;
+    }
+
     .asset-error[hidden] {
       display: none;
     }
@@ -490,6 +949,29 @@
       from { opacity: 0; transform: translateY(18px) scale(.96); }
     }
 
+    @keyframes selection-breathe {
+      from { transform: scale(1.025) translate3d(-4px, 0, 0); }
+      to { transform: scale(1.055) translate3d(5px, -3px, 0); }
+    }
+
+    @keyframes header-drop {
+      from { opacity: 0; transform: translateY(-24px) scale(.96); }
+    }
+
+    @keyframes panel-rise {
+      from { opacity: 0; transform: translateY(25px); }
+    }
+
+    @keyframes character-idle {
+      0%, 100% { transform: translateY(0) rotate(.25deg); }
+      50% { transform: translateY(-6px) rotate(-.25deg); }
+    }
+
+    @keyframes selected-glow {
+      from { filter: brightness(.96); }
+      to { filter: brightness(1.12); }
+    }
+
     @media (max-aspect-ratio: 4/5) {
       .content {
         width: 100%;
@@ -514,6 +996,75 @@
       .menu {
         width: min(88vw, 430px);
         margin-bottom: clamp(5vh, 10vh, 13vh);
+      }
+
+      .selection-shell {
+        gap: 6px;
+        padding-inline: 8px;
+      }
+
+      .selection-header {
+        min-width: min(82vw, 480px);
+        padding: 10px 16px 9px;
+      }
+
+      .selection-header p {
+        display: none;
+      }
+
+      .back-button {
+        width: 41px;
+        height: 41px;
+        top: max(14px, env(safe-area-inset-top));
+        left: max(10px, env(safe-area-inset-left));
+        font-size: 1.25rem;
+      }
+
+      .character-grid {
+        gap: 0;
+        padding-inline: 0;
+      }
+
+      .character-card {
+        min-height: 230px;
+        padding-inline: 0;
+      }
+
+      .character-art {
+        max-width: 106%;
+        height: min(49vh, 460px);
+      }
+
+      .character-card::before {
+        bottom: 13px;
+        width: 98%;
+        height: 72%;
+      }
+
+      .character-label {
+        min-width: 88%;
+        padding: 9px 6px 10px;
+        font-size: clamp(.67rem, 3.5vw, .85rem);
+      }
+
+      .selection-mark {
+        top: 19%;
+        right: 4%;
+        width: 31px;
+        height: 31px;
+        font-size: .95rem;
+      }
+
+      .identity-panel {
+        width: calc(100% - 10px);
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 13px 14px 16px;
+      }
+
+      .journey-button {
+        width: 100%;
+        min-height: 50px;
       }
     }
 
@@ -541,6 +1092,51 @@
       .pixel-button {
         min-height: 58px;
       }
+
+      .selection-shell {
+        gap: 5px;
+        padding-block: 8px 10px;
+      }
+
+      .selection-header {
+        padding-block: 8px;
+      }
+
+      .selection-header p {
+        display: none;
+      }
+
+      .back-button {
+        top: 9px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+      }
+
+      .character-grid {
+        padding-inline: 10vw;
+      }
+
+      .character-art {
+        height: min(52vh, 390px);
+      }
+
+      .character-label {
+        padding-block: 8px 9px;
+      }
+
+      .identity-panel {
+        width: min(84%, 720px);
+        padding-block: 11px 14px;
+      }
+
+      .player-name {
+        height: 46px;
+      }
+
+      .journey-button {
+        min-height: 50px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -559,6 +1155,7 @@
   <main class="title-screen" id="titleScreen" aria-label="Tela inicial do Naturion">
     <img
       class="scene"
+      data-essential-asset
       src="assets/start/naturion-voxel-valley.webp"
       alt=""
       width="1920"
@@ -576,6 +1173,7 @@
       <header class="brand">
         <img
           class="logo"
+          data-essential-asset
           src="assets/start/naturion-logo.png"
           alt="Naturion"
           width="1029"
@@ -590,7 +1188,76 @@
       </nav>
     </div>
 
-    <p class="version">ALPHA v0.2.0</p>
+    <p class="version">ALPHA v0.3.0</p>
+  </main>
+
+  <main class="selection-screen" id="selectionScreen" aria-label="Seleção de personagem" hidden>
+    <img
+      class="selection-background"
+      data-essential-asset
+      src="assets/selection/forest-gate.webp"
+      alt=""
+      width="1920"
+      height="1080"
+    >
+
+    <button class="back-button" id="backToTitle" type="button" aria-label="Voltar ao menu principal">‹</button>
+
+    <div class="selection-shell">
+      <header class="selection-header">
+        <h1>Escolha seu personagem</h1>
+        <p>Quem vai viver esta jornada?</p>
+      </header>
+
+      <div class="character-grid" role="group" aria-label="Personagens disponíveis">
+        <button class="character-card" type="button" data-character="male" aria-pressed="false">
+          <img
+            class="character-art"
+            data-essential-asset
+            src="assets/selection/hero-male.webp"
+            alt="Personagem masculino, jovem aventureiro da natureza"
+            width="465"
+            height="1100"
+          >
+          <span class="selection-mark" aria-hidden="true"><span>✓</span></span>
+          <span class="character-label">Masculino</span>
+        </button>
+
+        <button class="character-card" type="button" data-character="female" aria-pressed="false">
+          <img
+            class="character-art"
+            data-essential-asset
+            src="assets/selection/hero-female.webp"
+            alt="Personagem feminino, jovem aventureira da natureza"
+            width="412"
+            height="1100"
+          >
+          <span class="selection-mark" aria-hidden="true"><span>✓</span></span>
+          <span class="character-label">Feminino</span>
+        </button>
+      </div>
+
+      <form class="identity-panel" id="identityForm" novalidate>
+        <div class="name-field">
+          <label for="playerName">Como devemos chamar você?</label>
+          <div class="input-shell">
+            <input
+              class="player-name"
+              id="playerName"
+              name="playerName"
+              type="text"
+              minlength="2"
+              maxlength="16"
+              autocomplete="nickname"
+              placeholder="Digite seu nome"
+              aria-describedby="nameHint"
+            >
+            <span class="name-count" id="nameHint">0/16</span>
+          </div>
+        </div>
+        <button class="journey-button" id="confirmCharacter" type="submit" disabled>Começar Jornada</button>
+      </form>
+    </div>
   </main>
 
   <aside class="asset-error" id="assetError" role="alert" hidden>
@@ -636,14 +1303,20 @@
   <script>
     (() => {
       const STORAGE_KEY = "naturion-settings-v2";
-      const screen = document.getElementById("titleScreen");
-      const sceneImage = document.querySelector(".scene");
-      const logoImage = document.querySelector(".logo");
+      const PLAYER_KEY = "naturion-player-v1";
+      const titleScreen = document.getElementById("titleScreen");
+      const selectionScreen = document.getElementById("selectionScreen");
       const assetError = document.getElementById("assetError");
       const modal = document.getElementById("optionsModal");
       const optionsButton = document.getElementById("optionsButton");
       const closeButton = document.getElementById("closeOptions");
       const newJourneyButton = document.getElementById("newJourney");
+      const backButton = document.getElementById("backToTitle");
+      const characterCards = [...document.querySelectorAll(".character-card")];
+      const identityForm = document.getElementById("identityForm");
+      const playerName = document.getElementById("playerName");
+      const nameHint = document.getElementById("nameHint");
+      const confirmCharacter = document.getElementById("confirmCharacter");
       const toastBox = document.getElementById("toast");
       const musicVolume = document.getElementById("musicVolume");
       const effectsVolume = document.getElementById("effectsVolume");
@@ -651,16 +1324,18 @@
       const effectsValue = document.getElementById("effectsValue");
       const fullscreen = document.getElementById("fullscreen");
       const motion = document.getElementById("motion");
+      let selectedCharacter = "";
       let toastTimer;
       let audioContext;
 
       const showAssetError = () => {
         assetError.hidden = false;
-        newJourneyButton.disabled = true;
-        optionsButton.disabled = true;
+        document.querySelectorAll("button").forEach((button) => {
+          button.disabled = true;
+        });
       };
 
-      [sceneImage, logoImage].forEach((image) => {
+      document.querySelectorAll("[data-essential-asset]").forEach((image) => {
         image.addEventListener("error", showAssetError, { once: true });
         if (image.complete && image.naturalWidth === 0) showAssetError();
       });
@@ -696,24 +1371,32 @@
       if (typeof settings.motion === "boolean") motion.checked = settings.motion;
       saveSettings();
 
-      const playClick = (pitch = 310) => {
+      const playTone = (pitch = 310, delay = 0, duration = .08, type = "square") => {
         if (Number(effectsVolume.value) === 0) return;
         try {
           audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
           const oscillator = audioContext.createOscillator();
           const gain = audioContext.createGain();
-          const now = audioContext.currentTime;
-          oscillator.type = "square";
-          oscillator.frequency.setValueAtTime(pitch, now);
-          oscillator.frequency.exponentialRampToValueAtTime(pitch * 1.24, now + .065);
-          gain.gain.setValueAtTime(Math.min(.055, Number(effectsVolume.value) / 1800), now);
-          gain.gain.exponentialRampToValueAtTime(.0001, now + .08);
+          const start = audioContext.currentTime + delay;
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(pitch, start);
+          oscillator.frequency.exponentialRampToValueAtTime(pitch * 1.14, start + duration);
+          gain.gain.setValueAtTime(Math.min(.05, Number(effectsVolume.value) / 1900), start);
+          gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
           oscillator.connect(gain).connect(audioContext.destination);
-          oscillator.start(now);
-          oscillator.stop(now + .085);
+          oscillator.start(start);
+          oscillator.stop(start + duration + .01);
         } catch {
           // Som é opcional; a interface continua funcional sem Web Audio.
         }
+      };
+
+      const playClick = (pitch = 310) => playTone(pitch);
+
+      const playSequence = (pitches, spacing = .07) => {
+        pitches.forEach((pitch, index) => {
+          playTone(pitch, index * spacing, .11, index === pitches.length - 1 ? "triangle" : "square");
+        });
       };
 
       const showToast = (message) => {
@@ -736,12 +1419,109 @@
         optionsButton.focus();
       };
 
+      const prefersLessMotion = () => (
+        !motion.checked || matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+
+      const transitionScreens = (from, to, focusTarget) => {
+        const duration = prefersLessMotion() ? 0 : 430;
+        to.hidden = false;
+
+        if (!duration) {
+          from.hidden = true;
+          from.classList.remove("screen-leaving");
+          to.classList.remove("screen-entering");
+          focusTarget?.focus();
+          return;
+        }
+
+        to.classList.add("screen-entering");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            from.classList.add("screen-leaving");
+            to.classList.remove("screen-entering");
+          });
+        });
+
+        window.setTimeout(() => {
+          from.hidden = true;
+          from.classList.remove("screen-leaving");
+          focusTarget?.focus();
+        }, duration);
+      };
+
+      const updateFormState = () => {
+        const normalizedName = playerName.value.trim().replace(/\s+/g, " ");
+        nameHint.textContent = `${playerName.value.length}/16`;
+        confirmCharacter.disabled = !selectedCharacter || normalizedName.length < 2;
+        if (confirmCharacter.textContent !== "Começar Jornada") {
+          confirmCharacter.textContent = "Começar Jornada";
+        }
+      };
+
+      const selectCharacter = (card) => {
+        selectedCharacter = card.dataset.character;
+        characterCards.forEach((item) => {
+          const isSelected = item === card;
+          item.classList.toggle("selected", isSelected);
+          item.setAttribute("aria-pressed", String(isSelected));
+        });
+        playSequence(selectedCharacter === "male" ? [260, 330] : [300, 390]);
+        updateFormState();
+        window.setTimeout(() => playerName.focus(), prefersLessMotion() ? 0 : 180);
+      };
+
       newJourneyButton.addEventListener("click", () => {
-        playClick(390);
+        playSequence([300, 390, 520], .06);
         newJourneyButton.classList.add("is-pressed");
         window.setTimeout(() => newJourneyButton.classList.remove("is-pressed"), 170);
         window.dispatchEvent(new CustomEvent("naturion:new-journey"));
-        showToast("Nova Jornada selecionada!");
+        transitionScreens(titleScreen, selectionScreen, characterCards[0]);
+      });
+
+      backButton.addEventListener("click", () => {
+        playSequence([360, 270], .06);
+        transitionScreens(selectionScreen, titleScreen, newJourneyButton);
+      });
+
+      characterCards.forEach((card) => {
+        card.addEventListener("click", () => selectCharacter(card));
+
+        card.addEventListener("pointermove", (event) => {
+          if (prefersLessMotion()) return;
+          const bounds = card.getBoundingClientRect();
+          const tilt = ((event.clientX - bounds.left) / bounds.width - .5) * 5;
+          card.style.setProperty("--tilt", `${tilt}deg`);
+        }, { passive: true });
+
+        card.addEventListener("pointerleave", () => {
+          card.style.setProperty("--tilt", "0deg");
+        });
+      });
+
+      playerName.addEventListener("input", updateFormState);
+
+      identityForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const normalizedName = playerName.value.trim().replace(/\s+/g, " ");
+        if (!selectedCharacter || normalizedName.length < 2) {
+          showToast("Escolha um personagem e informe seu nome.");
+          return;
+        }
+
+        const player = {
+          name: normalizedName,
+          character: selectedCharacter,
+          createdAt: new Date().toISOString()
+        };
+
+        localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+        playerName.value = normalizedName;
+        updateFormState();
+        confirmCharacter.textContent = "Jornada pronta!";
+        playSequence([330, 440, 554, 659], .09);
+        showToast(`${normalizedName}, sua jornada está pronta!`);
+        window.dispatchEvent(new CustomEvent("naturion:player-created", { detail: player }));
       });
 
       optionsButton.addEventListener("click", openOptions);
@@ -752,7 +1532,12 @@
       });
 
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && !modal.hidden) closeOptions();
+        if (event.key !== "Escape") return;
+        if (!modal.hidden) {
+          closeOptions();
+        } else if (!selectionScreen.hidden) {
+          backButton.click();
+        }
       });
 
       [musicVolume, effectsVolume].forEach((input) => {
@@ -783,18 +1568,20 @@
         fullscreen.checked = Boolean(document.fullscreenElement);
       });
 
-      screen.addEventListener("pointermove", (event) => {
-        if (!motion.checked || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      titleScreen.addEventListener("pointermove", (event) => {
+        if (prefersLessMotion()) return;
         const x = (event.clientX / innerWidth - .5) * -10;
         const y = (event.clientY / innerHeight - .5) * -7;
-        screen.style.setProperty("--scene-x", `${x}px`);
-        screen.style.setProperty("--scene-y", `${y}px`);
+        titleScreen.style.setProperty("--scene-x", `${x}px`);
+        titleScreen.style.setProperty("--scene-y", `${y}px`);
       }, { passive: true });
 
-      screen.addEventListener("pointerleave", () => {
-        screen.style.setProperty("--scene-x", "0px");
-        screen.style.setProperty("--scene-y", "0px");
+      titleScreen.addEventListener("pointerleave", () => {
+        titleScreen.style.setProperty("--scene-x", "0px");
+        titleScreen.style.setProperty("--scene-y", "0px");
       });
+
+      updateFormState();
     })();
   </script>
 </body>
