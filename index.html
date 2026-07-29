@@ -3805,211 +3805,298 @@
     .seal-puzzle {
       --puzzle-accent: #52d9ff;
       --puzzle-glow: #1b8fff;
-      background:
-        radial-gradient(circle at 50% 43%, rgba(117, 229, 166, .08), transparent 34%),
-        linear-gradient(180deg, rgba(2, 14, 8, .12), rgba(1, 11, 7, .32));
+      isolation: isolate;
+      background: #06190f;
     }
 
-    .puzzle-sequence {
+    .puzzle-scene {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: opacity 1.45s ease, filter 1.45s ease, transform 1.45s ease;
+      pointer-events: none;
+    }
+
+    .puzzle-scene.open {
+      opacity: 0;
+      filter: brightness(1.4) blur(2px);
+      transform: scale(1.025);
+    }
+
+    .seal-puzzle.door-open .puzzle-scene.closed {
+      opacity: 0;
+      filter: brightness(1.3);
+      transform: scale(1.02);
+    }
+
+    .seal-puzzle.door-open .puzzle-scene.open {
+      opacity: 1;
+      filter: none;
+      transform: none;
+    }
+
+    .puzzle-vignette {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(1, 10, 7, .36), transparent 27%, transparent 68%, rgba(1, 10, 7, .38)),
+        radial-gradient(circle at 50% 44%, transparent 26%, rgba(0, 9, 5, .2) 100%);
+      pointer-events: none;
+    }
+
+    .puzzle-status {
       position: absolute;
       z-index: 13;
-      top: 82px;
+      top: 78px;
       left: 50%;
       display: grid;
-      justify-items: center;
-      min-width: min(92vw, 360px);
-      gap: 5px;
+      grid-template-columns: auto auto;
+      align-items: center;
+      min-width: min(92vw, 430px);
+      gap: 4px 20px;
       padding: 9px 18px;
       border: 1px solid rgba(238, 207, 101, .72);
       border-radius: 8px;
       color: #fff8be;
-      background: rgba(3, 24, 14, .92);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, .38);
+      background:
+        linear-gradient(180deg, rgba(9, 45, 26, .96), rgba(3, 23, 14, .97));
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 236, 140, .08),
+        0 8px 24px rgba(0, 0, 0, .42);
       transform: translateX(-50%);
     }
 
-    .puzzle-sequence small {
-      color: #b9d7b9;
-      font-size: .6rem;
+    .puzzle-status-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .puzzle-status small {
+      color: #aedad0;
+      font-size: .55rem;
       font-weight: 900;
       letter-spacing: .12em;
       text-transform: uppercase;
     }
 
-    .puzzle-runes {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #fff0a0;
-      font-family: Georgia, serif;
-      font-size: 1.25rem;
-      font-weight: 900;
-      text-shadow: 0 0 12px var(--puzzle-glow);
-    }
-
-    .puzzle-gate {
-      position: absolute;
-      z-index: 2;
-      top: 16%;
-      left: 50%;
-      width: clamp(210px, 25vw, 340px);
-      height: clamp(110px, 17vw, 205px);
-      border: 8px solid rgba(125, 99, 45, .84);
-      border-bottom: 0;
-      border-radius: 48% 48% 8px 8px;
-      background:
-        radial-gradient(ellipse at 50% 100%, rgba(107, 217, 164, .16), transparent 46%),
-        linear-gradient(180deg, rgba(3, 17, 11, .88), rgba(2, 10, 7, .94));
-      box-shadow:
-        inset 0 0 0 5px rgba(222, 187, 80, .18),
-        0 15px 32px rgba(0, 0, 0, .46);
-      transform: translateX(-50%);
-    }
-
-    .puzzle-gate::before {
-      position: absolute;
-      top: -19px;
-      left: 50%;
-      width: 32px;
-      height: 32px;
-      border: 4px solid #b58931;
-      content: "";
-      background: #65ddf6;
-      box-shadow: 0 0 18px #65ddf6;
-      transform: translateX(-50%) rotate(45deg);
-    }
-
-    .puzzle-root {
-      position: absolute;
-      z-index: 2;
-      top: -8%;
-      width: 42%;
-      height: 120%;
-      border: clamp(11px, 1.4vw, 20px) solid #41652b;
-      border-block-color: #6d8b35;
-      border-radius: 48% 12% 54% 20%;
-      background: repeating-linear-gradient(90deg, #355525 0 8px, #56772f 8px 14px);
-      box-shadow:
-        inset 0 0 0 4px rgba(30, 58, 24, .48),
-        0 0 12px rgba(93, 202, 84, .34);
-      transition: transform 1.35s cubic-bezier(.2, .78, .2, 1), opacity 1.2s ease;
-    }
-
-    .puzzle-root.left {
-      left: 8%;
-      transform: rotate(17deg);
-    }
-
-    .puzzle-root.right {
-      right: 8%;
-      transform: rotate(-17deg);
-    }
-
-    .puzzle-gate.open .puzzle-root.left {
-      opacity: .25;
-      transform: translateX(-120%) rotate(-18deg);
-    }
-
-    .puzzle-gate.open .puzzle-root.right {
-      opacity: .25;
-      transform: translateX(120%) rotate(18deg);
-    }
-
-    .puzzle-gate.open {
-      box-shadow:
-        inset 0 0 35px 8px rgba(99, 235, 214, .3),
-        0 0 38px rgba(103, 224, 255, .32);
-    }
-
-    .puzzle-seal {
-      position: absolute;
-      z-index: 5;
-      display: grid;
-      width: clamp(68px, 7vw, 94px);
-      aspect-ratio: 1;
-      place-items: center;
-      border: 3px solid #806126;
-      border-radius: 50%;
-      color: #e8dda1;
-      background:
-        radial-gradient(circle, #31573c 0 28%, #172e21 29% 52%, #0a1a11 53% 100%);
-      box-shadow:
-        inset 0 0 0 5px rgba(225, 190, 79, .17),
-        0 10px 18px rgba(0, 0, 0, .4);
-      transform: translate(-50%, -50%);
-      transition: filter .25s ease, box-shadow .25s ease, transform .25s ease;
-    }
-
-    .puzzle-seal::before {
-      position: absolute;
-      inset: 10%;
-      border: 2px dashed rgba(222, 202, 116, .45);
-      border-radius: 50%;
-      content: "";
-      animation: seal-ring 8s linear infinite;
-    }
-
-    .puzzle-seal[data-seal="estrela"] {
-      top: 53%;
-      left: 25%;
-    }
-
-    .puzzle-seal[data-seal="lua"] {
-      top: 33%;
-      left: 50%;
-    }
-
-    .puzzle-seal[data-seal="folha"] {
-      top: 53%;
-      left: 76%;
-    }
-
-    .puzzle-seal-symbol {
-      position: relative;
-      z-index: 2;
-      font-size: clamp(1.35rem, 3vw, 2rem);
-      text-shadow: 0 0 10px rgba(239, 216, 112, .45);
-    }
-
-    .puzzle-seal small {
-      position: absolute;
-      top: calc(100% + 6px);
-      color: #fff6b5;
-      font-size: .58rem;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-shadow: 0 2px 4px #000;
+    .puzzle-status strong {
+      color: #fff5ad;
+      font-size: .82rem;
+      letter-spacing: .04em;
       text-transform: uppercase;
     }
 
-    .puzzle-seal.is-near:not(.is-lit) {
-      border-color: #fff0a1;
-      filter: brightness(1.18);
-      box-shadow:
-        inset 0 0 0 5px rgba(255, 233, 132, .24),
-        0 0 23px rgba(255, 229, 113, .54);
-      animation: seal-near .75s ease-in-out infinite alternate;
+    .puzzle-gate-charge {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
     }
 
-    .puzzle-seal.is-lit {
-      border-color: var(--puzzle-accent);
-      color: #fff;
-      background:
-        radial-gradient(circle, color-mix(in srgb, var(--puzzle-accent) 68%, #fff) 0 24%, color-mix(in srgb, var(--puzzle-accent) 44%, #173024) 25% 58%, #07180f 60%);
-      box-shadow:
-        inset 0 0 0 5px color-mix(in srgb, var(--puzzle-accent) 24%, transparent),
-        0 0 13px var(--puzzle-accent),
-        0 0 32px var(--puzzle-glow);
-      animation: seal-awaken 1.2s ease-in-out infinite alternate;
+    .puzzle-gate-charge i {
+      width: 19px;
+      height: 27px;
+      border: 2px solid #92752f;
+      background: linear-gradient(145deg, #26392c, #0b1910);
+      box-shadow: inset 0 0 0 2px rgba(230, 199, 95, .12);
+      clip-path: polygon(50% 0, 100% 34%, 78% 100%, 22% 100%, 0 34%);
+      transition: filter .3s ease, background .3s ease, box-shadow .3s ease, transform .3s ease;
     }
 
-    .puzzle-party {
+    .puzzle-gate-charge i.is-charged {
+      background: linear-gradient(145deg, #f8ffff 0 12%, var(--puzzle-accent) 40%, var(--puzzle-glow));
+      box-shadow:
+        0 0 7px #fff,
+        0 0 19px var(--puzzle-accent),
+        0 0 34px var(--puzzle-glow);
+      transform: translateY(-2px);
+    }
+
+    .puzzle-crystal {
+      --crystal-main: #4bc8ff;
+      --crystal-bright: #eaffff;
+      --crystal-dark: #164d76;
+      position: absolute;
+      z-index: 6;
+      top: 80.5%;
       left: 50%;
-      top: 78%;
+      display: grid;
+      justify-items: center;
+      width: clamp(78px, 8.2vw, 122px);
+      height: clamp(124px, 13vw, 184px);
+      padding: 0;
+      border: 0;
+      color: #f7f1bd;
+      background: transparent;
+      cursor: pointer;
+      transform: translate(-50%, -100%);
+      transition: filter .25s ease, transform .25s ease;
     }
 
-    .puzzle-starter.channeling {
+    .puzzle-crystal[data-seal="lua"] {
+      left: 25.5%;
+      --crystal-main: #54cfff;
+      --crystal-bright: #f1ffff;
+      --crystal-dark: #174b78;
+    }
+
+    .puzzle-crystal[data-seal="estrela"] {
+      left: 50%;
+      --crystal-main: #ffd85f;
+      --crystal-bright: #fffbe0;
+      --crystal-dark: #7b4718;
+    }
+
+    .puzzle-crystal[data-seal="folha"] {
+      left: 74.7%;
+      --crystal-main: #7ce379;
+      --crystal-bright: #efffd1;
+      --crystal-dark: #235a35;
+    }
+
+    .puzzle-crystal:disabled {
+      cursor: default;
+    }
+
+    .crystal-gem {
+      position: relative;
+      display: block;
+      width: 68%;
+      height: 78%;
+      opacity: .74;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.55) 0 9%, transparent 10%),
+        linear-gradient(68deg, var(--crystal-dark) 0 31%, var(--crystal-main) 32% 54%, color-mix(in srgb, var(--crystal-main) 45%, #06150e) 55% 73%, var(--crystal-dark) 74%);
+      box-shadow:
+        inset 6px 0 rgba(255,255,255,.14),
+        inset -7px -7px rgba(0,0,0,.24),
+        0 10px 12px rgba(0,0,0,.55);
+      clip-path: polygon(50% 0, 91% 24%, 76% 82%, 50% 100%, 23% 82%, 8% 24%);
+      filter: saturate(.56) brightness(.5);
+      transform-origin: 50% 90%;
+      transition: filter .22s ease, box-shadow .22s ease, transform .22s ease;
+    }
+
+    .crystal-gem::before,
+    .crystal-gem::after {
+      position: absolute;
+      content: "";
+      pointer-events: none;
+    }
+
+    .crystal-gem::before {
+      inset: 8% 18% 17%;
+      background:
+        linear-gradient(120deg, rgba(255,255,255,.78), transparent 31%),
+        linear-gradient(25deg, transparent 40%, rgba(255,255,255,.32) 41% 52%, transparent 53%);
+      clip-path: polygon(50% 0, 100% 29%, 72% 100%, 24% 82%, 0 29%);
+    }
+
+    .crystal-gem::after {
+      right: 18%;
+      bottom: 18%;
+      width: 24%;
+      height: 52%;
+      background: rgba(255,255,255,.25);
+      clip-path: polygon(100% 0, 100% 100%, 0 76%);
+    }
+
+    .puzzle-crystal small {
+      position: absolute;
+      top: 81%;
+      padding: 4px 8px;
+      border: 1px solid rgba(239, 210, 106, .34);
+      border-radius: 999px;
+      color: #e7e1b9;
+      background: rgba(2, 18, 11, .84);
+      font-size: .56rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      opacity: .72;
+      text-shadow: 0 2px 4px #000;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: color .22s ease, opacity .22s ease;
+    }
+
+    .puzzle-crystal:not(:disabled):hover,
+    .puzzle-crystal:not(:disabled):focus-visible {
+      filter: brightness(1.16);
+      outline: none;
+      transform: translate(-50%, -100%) scale(1.04);
+    }
+
+    .puzzle-crystal:not(:disabled):focus-visible .crystal-gem {
+      outline: 3px solid #fff3a6;
+      outline-offset: 5px;
+    }
+
+    .puzzle-crystal.is-preview .crystal-gem,
+    .puzzle-crystal.is-input .crystal-gem,
+    .puzzle-crystal.is-awake .crystal-gem {
+      opacity: 1;
+      filter: saturate(1.25) brightness(1.42);
+      box-shadow:
+        inset 7px 0 rgba(255,255,255,.28),
+        inset -8px -8px rgba(0,0,0,.12),
+        0 0 10px var(--crystal-bright),
+        0 0 27px var(--crystal-main),
+        0 0 52px color-mix(in srgb, var(--crystal-main) 70%, transparent);
+      transform: translateY(-7px) scale(1.07);
+    }
+
+    .puzzle-crystal.is-preview small,
+    .puzzle-crystal.is-input small,
+    .puzzle-crystal.is-awake small {
+      color: #fffbd1;
+      opacity: 1;
+    }
+
+    .puzzle-crystal.is-preview .crystal-gem {
+      animation: crystal-preview .52s ease-in-out both;
+    }
+
+    .puzzle-crystal.is-wrong .crystal-gem {
+      filter: saturate(1.4) brightness(.9) hue-rotate(145deg);
+      animation: crystal-wrong .42s ease both;
+    }
+
+    .puzzle-companion {
+      position: absolute;
+      z-index: 5;
+      right: 4%;
+      bottom: 4%;
+      display: grid;
+      justify-items: center;
+      width: clamp(82px, 10vw, 138px);
+      pointer-events: none;
+    }
+
+    .puzzle-companion img {
+      width: 100%;
+      max-height: clamp(86px, 12vw, 155px);
+      object-fit: contain;
+      filter: drop-shadow(0 9px 7px rgba(0,0,0,.7));
+    }
+
+    .puzzle-companion img.channeling {
       animation: starter-channel .72s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .puzzle-companion small {
+      margin-top: -4px;
+      padding: 3px 7px;
+      border: 1px solid rgba(239, 207, 101, .48);
+      border-radius: 999px;
+      color: #fff5b4;
+      background: rgba(2, 18, 11, .86);
+      font-size: .54rem;
+      font-weight: 900;
+      text-transform: uppercase;
     }
 
     .puzzle-guide,
@@ -4063,22 +4150,153 @@
       line-height: 1.32;
     }
 
-    .puzzle-interact {
+    .puzzle-guide {
+      bottom: max(18px, env(safe-area-inset-bottom));
+      left: 20px;
+      max-width: min(440px, calc(100% - 190px));
+    }
+
+    .puzzle-replay {
       position: absolute;
       z-index: 14;
       right: max(20px, env(safe-area-inset-right));
-      bottom: max(25px, env(safe-area-inset-bottom));
-      min-width: min(280px, calc(100% - 40px));
-      min-height: 54px;
+      top: 86px;
+      min-width: 160px;
+      min-height: 42px;
+      padding: 7px 12px;
+      font-size: .62rem;
     }
 
-    .puzzle-interact:disabled {
+    .puzzle-replay:disabled {
       border-color: #617064;
       color: #aab6aa;
       background: linear-gradient(180deg, #405347, #263a2e);
       box-shadow: 0 4px 0 #142219;
       cursor: not-allowed;
       filter: saturate(.35);
+    }
+
+    .puzzle-dialogue {
+      position: absolute;
+      z-index: 22;
+      inset: 0;
+      display: grid;
+      place-items: end center;
+      padding: 0 20px max(26px, env(safe-area-inset-bottom));
+      background:
+        linear-gradient(180deg, rgba(1, 10, 7, .08), rgba(1, 10, 7, .2) 52%, rgba(1, 10, 7, .62));
+    }
+
+    .puzzle-dialogue-card {
+      display: grid;
+      grid-template-columns: clamp(92px, 12vw, 150px) 1fr;
+      align-items: end;
+      width: min(940px, 94vw);
+      min-height: 160px;
+      border: 2px solid #caa849;
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, rgba(7, 40, 23, .97), rgba(3, 24, 14, .98));
+      box-shadow:
+        inset 0 0 0 3px rgba(244, 221, 123, .09),
+        0 18px 46px rgba(0, 0, 0, .55);
+      overflow: hidden;
+    }
+
+    .puzzle-dialogue-card > img {
+      align-self: stretch;
+      width: 100%;
+      height: 100%;
+      max-height: 205px;
+      object-fit: contain;
+      object-position: bottom;
+      background: radial-gradient(circle at 50% 70%, rgba(75, 177, 117, .22), transparent 68%);
+    }
+
+    .puzzle-dialogue-copy {
+      display: grid;
+      align-content: center;
+      min-height: 160px;
+      gap: 8px;
+      padding: 16px 20px;
+    }
+
+    .puzzle-dialogue-copy .forest-speaker {
+      color: #f3d86f;
+    }
+
+    .puzzle-dialogue-copy p {
+      min-height: 2.9em;
+      margin: 0;
+      color: #f4f7e8;
+      font-size: clamp(.78rem, 1.4vw, .98rem);
+      line-height: 1.48;
+      text-shadow: 0 2px 3px #000;
+    }
+
+    .puzzle-dialogue-copy .forest-action {
+      justify-self: end;
+      min-width: 185px;
+    }
+
+    .puzzle-complete {
+      position: absolute;
+      z-index: 24;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: radial-gradient(circle at 50% 42%, transparent 0 20%, rgba(1, 12, 7, .62) 84%);
+    }
+
+    .puzzle-complete-card {
+      display: grid;
+      justify-items: center;
+      width: min(560px, 92vw);
+      gap: 8px;
+      padding: 24px 28px;
+      border: 2px solid #e5c45c;
+      border-radius: 12px;
+      color: #f9f8e9;
+      background:
+        radial-gradient(circle at 50% 0, rgba(91, 226, 214, .16), transparent 56%),
+        rgba(3, 27, 17, .95);
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 237, 150, .08),
+        0 18px 50px rgba(0,0,0,.62),
+        0 0 34px rgba(92, 231, 211, .2);
+      text-align: center;
+      animation: puzzle-complete-reveal .8s cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    .puzzle-complete-card span {
+      color: #9ee9cb;
+      font-size: .63rem;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .puzzle-complete-card h2 {
+      margin: 0;
+      color: #fff1a1;
+      font-family: Georgia, serif;
+      font-size: clamp(1.4rem, 4vw, 2.25rem);
+      text-shadow: 0 3px 4px #000, 0 0 20px rgba(241, 213, 107, .45);
+    }
+
+    .puzzle-complete-card p {
+      margin: 0;
+      max-width: 45ch;
+      font-size: clamp(.72rem, 1.5vw, .9rem);
+      line-height: 1.5;
+    }
+
+    .puzzle-dialogue[hidden],
+    .puzzle-guide[hidden],
+    .puzzle-replay[hidden],
+    .puzzle-complete[hidden] {
+      display: none;
     }
 
     .puzzle-effects {
@@ -4114,30 +4332,25 @@
       border-radius: 80% 10% 80% 10%;
     }
 
-    .puzzle-pad,
     .open-map-pad {
       z-index: 15;
     }
 
-    .puzzle-pad [data-puzzle-move="up"],
     .open-map-pad [data-open-move="up"] {
       grid-column: 2;
       grid-row: 1;
     }
 
-    .puzzle-pad [data-puzzle-move="left"],
     .open-map-pad [data-open-move="left"] {
       grid-column: 1;
       grid-row: 2;
     }
 
-    .puzzle-pad [data-puzzle-move="down"],
     .open-map-pad [data-open-move="down"] {
       grid-column: 2;
       grid-row: 2;
     }
 
-    .puzzle-pad [data-puzzle-move="right"],
     .open-map-pad [data-open-move="right"] {
       grid-column: 3;
       grid-row: 2;
@@ -4251,18 +4464,21 @@
       font-weight: 900;
     }
 
-    @keyframes seal-ring {
-      to { transform: rotate(360deg); }
+    @keyframes crystal-preview {
+      0% { filter: saturate(.7) brightness(.58); transform: translateY(0) scale(.94); }
+      45% { filter: saturate(1.35) brightness(1.65); transform: translateY(-9px) scale(1.1); }
+      100% { filter: saturate(1.2) brightness(1.35); transform: translateY(-7px) scale(1.07); }
     }
 
-    @keyframes seal-near {
-      from { transform: translate(-50%, -50%) scale(1); }
-      to { transform: translate(-50%, -50%) scale(1.08); }
+    @keyframes crystal-wrong {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px) rotate(-3deg); }
+      70% { transform: translateX(8px) rotate(3deg); }
     }
 
-    @keyframes seal-awaken {
-      from { filter: brightness(1); transform: translate(-50%, -50%) scale(1); }
-      to { filter: brightness(1.23); transform: translate(-50%, -50%) scale(1.06); }
+    @keyframes puzzle-complete-reveal {
+      from { opacity: 0; filter: blur(5px); transform: translateY(18px) scale(.9); }
+      to { opacity: 1; filter: none; transform: none; }
     }
 
     @keyframes starter-channel {
@@ -4294,38 +4510,42 @@
     }
 
     @media (max-width: 760px) {
-      .puzzle-sequence {
-        top: 105px;
+      .puzzle-status {
+        top: 104px;
         min-width: calc(100% - 16px);
-        padding: 6px 12px;
+        padding: 7px 11px;
+        gap: 3px 10px;
       }
 
-      .puzzle-runes {
-        font-size: 1rem;
+      .puzzle-status strong {
+        font-size: .68rem;
       }
 
-      .puzzle-gate {
-        top: 22%;
-        width: min(50vw, 215px);
-        height: min(30vw, 130px);
+      .puzzle-gate-charge {
+        gap: 6px;
       }
 
-      .puzzle-seal {
-        width: clamp(57px, 17vw, 70px);
+      .puzzle-gate-charge i {
+        width: 15px;
+        height: 22px;
       }
 
-      .puzzle-seal[data-seal="estrela"] {
-        top: 52%;
-        left: 21%;
+      .puzzle-scene {
+        object-position: center;
       }
 
-      .puzzle-seal[data-seal="lua"] {
-        top: 37%;
+      .puzzle-crystal {
+        top: 76%;
+        width: clamp(60px, 20vw, 82px);
+        height: clamp(100px, 31vw, 132px);
       }
 
-      .puzzle-seal[data-seal="folha"] {
-        top: 52%;
-        left: 79%;
+      .puzzle-crystal[data-seal="lua"] {
+        left: 19%;
+      }
+
+      .puzzle-crystal[data-seal="folha"] {
+        left: 81%;
       }
 
       .puzzle-guide,
@@ -4342,7 +4562,10 @@
 
       .puzzle-guide {
         top: auto;
-        bottom: 151px;
+        bottom: 8px;
+        left: 8px;
+        width: calc(100% - 106px);
+        max-width: none;
       }
 
       .puzzle-guide img,
@@ -4361,23 +4584,58 @@
         font-size: .67rem;
       }
 
-      .puzzle-interact {
-        right: auto;
-        bottom: 91px;
-        left: 8px;
-        min-width: min(58vw, 220px);
-        min-height: 48px;
-        padding: 7px 9px;
-        font-size: .66rem;
+      .puzzle-replay {
+        top: 161px;
+        right: 8px;
+        min-width: 132px;
+        min-height: 38px;
+        padding: 6px 8px;
+        font-size: .55rem;
       }
 
-      .puzzle-pad,
       .open-map-pad {
         right: 8px;
         bottom: max(8px, env(safe-area-inset-bottom));
         display: grid;
         grid-template-columns: repeat(3, 40px);
         grid-template-rows: repeat(3, 40px);
+      }
+
+      .puzzle-companion {
+        right: 2%;
+        bottom: 2%;
+        width: clamp(65px, 20vw, 88px);
+      }
+
+      .puzzle-companion small {
+        display: none;
+      }
+
+      .puzzle-dialogue {
+        padding: 0 8px max(12px, env(safe-area-inset-bottom));
+      }
+
+      .puzzle-dialogue-card {
+        grid-template-columns: 76px 1fr;
+        width: 100%;
+        min-height: 142px;
+      }
+
+      .puzzle-dialogue-copy {
+        min-height: 142px;
+        gap: 5px;
+        padding: 10px 11px;
+      }
+
+      .puzzle-dialogue-copy p {
+        font-size: .7rem;
+      }
+
+      .puzzle-dialogue-copy .forest-action {
+        min-width: 148px;
+        min-height: 39px;
+        padding: 7px 10px;
+        font-size: .6rem;
       }
 
       .open-map-party {
@@ -4926,68 +5184,92 @@
     <section
       class="seal-puzzle"
       id="sealPuzzle"
-      aria-label="Tutorial dos Três Selos. Use as setas ou WASD para caminhar e chame seu Naturion perto de cada selo."
+      aria-label="Puzzle dos três cristais do Bosque Luminal"
       tabindex="0"
       hidden
     >
-      <div class="puzzle-sequence" aria-label="Ordem gravada nas ruínas: lua, estrela e folha">
-        <small>Ordem gravada nas ruínas</small>
-        <span class="puzzle-runes" aria-hidden="true">◐ <b>→</b> ✦ <b>→</b> ❧</span>
-      </div>
+      <img
+        class="puzzle-scene closed"
+        src="assets/puzzle/crystal-sanctuary-closed.webp"
+        alt="Santuário do bosque com uma porta antiga fechada por raízes e três pedestais de pedra"
+        width="1672"
+        height="941"
+      >
+      <img
+        class="puzzle-scene open"
+        src="assets/puzzle/crystal-sanctuary-open.webp"
+        alt="A mesma passagem antiga agora aberta e iluminada"
+        width="1672"
+        height="941"
+      >
+      <div class="puzzle-vignette" aria-hidden="true"></div>
 
-      <div class="puzzle-gate" id="puzzleGate" aria-label="Passagem Antiga bloqueada por raízes">
-        <span class="puzzle-root left" aria-hidden="true"></span>
-        <span class="puzzle-root right" aria-hidden="true"></span>
-      </div>
+      <header class="puzzle-status" aria-live="polite">
+        <span class="puzzle-status-copy">
+          <small>Puzzle de sintonia</small>
+          <strong id="puzzleRoundText">Preparando os cristais</strong>
+        </span>
+        <span class="puzzle-gate-charge" aria-label="Energia da porta: zero de três">
+          <i aria-hidden="true"></i>
+          <i aria-hidden="true"></i>
+          <i aria-hidden="true"></i>
+        </span>
+      </header>
 
-      <button class="puzzle-seal" type="button" data-seal="estrela" aria-label="Selo da Estrela">
-        <span class="puzzle-seal-symbol" aria-hidden="true">✦</span>
-        <small>Estrela</small>
+      <button class="puzzle-crystal" type="button" data-seal="lua" aria-label="Cristal azul, tecla 1" disabled>
+        <span class="crystal-gem" aria-hidden="true"></span>
+        <small>1 · Azul</small>
       </button>
-      <button class="puzzle-seal" type="button" data-seal="lua" aria-label="Selo da Lua">
-        <span class="puzzle-seal-symbol" aria-hidden="true">◐</span>
-        <small>Lua</small>
+      <button class="puzzle-crystal" type="button" data-seal="estrela" aria-label="Cristal dourado, tecla 2" disabled>
+        <span class="crystal-gem" aria-hidden="true"></span>
+        <small>2 · Dourado</small>
       </button>
-      <button class="puzzle-seal" type="button" data-seal="folha" aria-label="Selo da Folha">
-        <span class="puzzle-seal-symbol" aria-hidden="true">❧</span>
-        <small>Folha</small>
+      <button class="puzzle-crystal" type="button" data-seal="folha" aria-label="Cristal verde, tecla 3" disabled>
+        <span class="crystal-gem" aria-hidden="true"></span>
+        <small>3 · Verde</small>
       </button>
 
-      <div class="explorer-party puzzle-party" id="puzzleParty" aria-label="Seu grupo">
+      <div class="puzzle-companion" aria-label="Seu Naturion inicial acompanha o puzzle">
         <img
-          class="explorer-hero"
-          id="puzzleHero"
-          src="assets/selection/hero-male.webp"
-          alt="Seu personagem"
-        >
-        <img
-          class="explorer-starter puzzle-starter"
           id="puzzleStarter"
           src="assets/story/axolume.webp"
           alt="Axolume"
         >
+        <small id="puzzleStarterName">Axolume</small>
       </div>
 
       <div class="puzzle-effects" id="puzzleEffects" aria-hidden="true"></div>
 
-      <aside class="puzzle-guide" aria-live="polite">
+      <aside class="puzzle-guide" id="puzzleGuide" aria-live="polite" hidden>
         <img src="assets/story/dr-iris.webp" alt="">
         <span>
-          <strong>Dra. Íris · Habilidade de campo</strong>
-          <em id="puzzleGuideText">Observe a ordem das runas e aproxime-se do primeiro selo.</em>
+          <strong>Dra. Íris · Puzzle de sintonia</strong>
+          <em id="puzzleGuideText">Observe com atenção a sequência dos cristais.</em>
         </span>
       </aside>
 
-      <button class="forest-action puzzle-interact" id="puzzleInteract" type="button" disabled>
-        Aproxime-se de um selo
+      <button class="forest-action puzzle-replay" id="puzzleReplay" type="button" hidden disabled>
+        Repetir sequência
       </button>
 
-      <nav class="mobile-pad puzzle-pad" aria-label="Controle do puzzle">
-        <button type="button" data-puzzle-move="up" aria-label="Mover para cima">▲</button>
-        <button type="button" data-puzzle-move="left" aria-label="Mover para a esquerda">◀</button>
-        <button type="button" data-puzzle-move="down" aria-label="Mover para baixo">▼</button>
-        <button type="button" data-puzzle-move="right" aria-label="Mover para a direita">▶</button>
-      </nav>
+      <section class="puzzle-dialogue" id="puzzleIntro" aria-label="Explicação da Dra. Íris">
+        <article class="puzzle-dialogue-card">
+          <img src="assets/story/dr-iris.webp" alt="Dra. Íris">
+          <div class="puzzle-dialogue-copy">
+            <span class="forest-speaker">Dra. Íris · Ruínas do Bosque</span>
+            <p id="puzzleIntroText" aria-live="polite"></p>
+            <button class="forest-action" id="puzzleIntroAction" type="button">Continuar</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="puzzle-complete" id="puzzleComplete" aria-live="assertive" hidden>
+        <article class="puzzle-complete-card">
+          <span>Três cristais em sintonia</span>
+          <h2>Passagem liberada!</h2>
+          <p id="puzzleCompleteText">A porta antiga respondeu à energia dos cristais e abriu o caminho.</p>
+        </article>
+      </section>
     </section>
 
     <section
@@ -5211,15 +5493,20 @@
       const sealBriefingText = document.getElementById("sealBriefingText");
       const sealBriefingAction = document.getElementById("sealBriefingAction");
       const sealPuzzle = document.getElementById("sealPuzzle");
-      const puzzleGate = document.getElementById("puzzleGate");
       const puzzleSeals = [...document.querySelectorAll("[data-seal]")];
-      const puzzleParty = document.getElementById("puzzleParty");
-      const puzzleHero = document.getElementById("puzzleHero");
       const puzzleStarter = document.getElementById("puzzleStarter");
+      const puzzleStarterName = document.getElementById("puzzleStarterName");
       const puzzleEffects = document.getElementById("puzzleEffects");
+      const puzzleRoundText = document.getElementById("puzzleRoundText");
+      const puzzleGateCharge = [...document.querySelectorAll(".puzzle-gate-charge i")];
+      const puzzleIntro = document.getElementById("puzzleIntro");
+      const puzzleIntroText = document.getElementById("puzzleIntroText");
+      const puzzleIntroAction = document.getElementById("puzzleIntroAction");
+      const puzzleGuide = document.getElementById("puzzleGuide");
       const puzzleGuideText = document.getElementById("puzzleGuideText");
-      const puzzleInteract = document.getElementById("puzzleInteract");
-      const puzzleMovementButtons = [...document.querySelectorAll("[data-puzzle-move]")];
+      const puzzleReplay = document.getElementById("puzzleReplay");
+      const puzzleComplete = document.getElementById("puzzleComplete");
+      const puzzleCompleteText = document.getElementById("puzzleCompleteText");
       const openForestMap = document.getElementById("openForestMap");
       const openMapParty = document.getElementById("openMapParty");
       const openMapHero = document.getElementById("openMapHero");
@@ -5256,11 +5543,13 @@
       let wildBattleHp = 26;
       let absorptionDialogueIndex = 0;
       let sealBriefingIndex = 0;
+      let puzzleIntroIndex = 0;
       let puzzleActive = false;
       let puzzleLocked = false;
-      let puzzleProgress = 0;
-      let nearbySealId = "";
-      let puzzlePosition = { x: 50, y: 78 };
+      let puzzleRound = 0;
+      let puzzleInputIndex = 0;
+      let puzzleAcceptingInput = false;
+      let puzzleCompleted = false;
       let openMapExploring = false;
       let openMapPosition = { x: 50, y: 76 };
 
@@ -5341,11 +5630,15 @@
         }
       };
 
-      const SEAL_SEQUENCE = ["lua", "estrela", "folha"];
+      const CRYSTAL_ROUNDS = [
+        ["lua", "estrela"],
+        ["folha", "lua", "estrela"],
+        ["estrela", "folha", "lua", "estrela"]
+      ];
       const SEAL_POSITIONS = {
-        estrela: { x: 25, y: 53, label: "Estrela" },
-        lua: { x: 50, y: 33, label: "Lua" },
-        folha: { x: 76, y: 53, label: "Folha" }
+        lua: { x: 25.5, y: 68, label: "Azul", tone: 523 },
+        estrela: { x: 50, y: 68, label: "Dourado", tone: 659 },
+        folha: { x: 74.7, y: 68, label: "Verde", tone: 784 }
       };
       const FIELD_SKILLS = {
         axolume: {
@@ -6300,54 +6593,9 @@
         playSequence([330, 440, 554], .08);
       };
 
-      const positionPuzzleParty = () => {
-        puzzleParty.style.left = `${puzzlePosition.x}%`;
-        puzzleParty.style.top = `${puzzlePosition.y}%`;
-      };
-
       const positionOpenMapParty = () => {
         openMapParty.style.left = `${openMapPosition.x}%`;
         openMapParty.style.top = `${openMapPosition.y}%`;
-      };
-
-      const updatePuzzleProximity = () => {
-        puzzleSeals.forEach((seal) => seal.classList.remove("is-near"));
-        nearbySealId = "";
-        puzzleInteract.disabled = true;
-        puzzleInteract.textContent = "Aproxime-se de um selo";
-        if (!puzzleActive || puzzleLocked) return;
-
-        let closest = null;
-        puzzleSeals.forEach((seal) => {
-          if (seal.classList.contains("is-lit")) return;
-          const position = SEAL_POSITIONS[seal.dataset.seal];
-          const distance = Math.hypot(
-            puzzlePosition.x - position.x,
-            puzzlePosition.y - position.y
-          );
-          if (!closest || distance < closest.distance) {
-            closest = { seal, distance };
-          }
-        });
-
-        if (!closest || closest.distance > 13) return;
-        const starter = STARTERS[selectedStarter];
-        nearbySealId = closest.seal.dataset.seal;
-        closest.seal.classList.add("is-near");
-        puzzleInteract.disabled = false;
-        puzzleInteract.textContent = `Chamar ${starter.name} · Selo da ${SEAL_POSITIONS[nearbySealId].label}`;
-      };
-
-      const movePuzzlePlayer = (deltaX, deltaY) => {
-        if (!puzzleActive || puzzleLocked) return;
-        puzzlePosition.x = Math.max(11, Math.min(89, puzzlePosition.x + deltaX));
-        puzzlePosition.y = Math.max(25, Math.min(83, puzzlePosition.y + deltaY));
-        positionPuzzleParty();
-        puzzleParty.classList.remove("is-moving");
-        void puzzleParty.offsetWidth;
-        puzzleParty.classList.add("is-moving");
-        updatePuzzleProximity();
-        playTone(165, 0, .03, "triangle");
       };
 
       const createFieldSkillEffect = (sealId) => {
@@ -6372,34 +6620,110 @@
         }
       };
 
-      const showForestCompletion = () => {
+      const setPuzzleCrystalsEnabled = (enabled) => {
+        puzzleSeals.forEach((crystal) => {
+          crystal.disabled = !enabled;
+        });
+        puzzleReplay.disabled = !enabled;
+      };
+
+      const writePuzzleIntroDialogue = (message, buttonLabel) => {
+        clearInterval(typingTimer);
+        puzzleIntroText.textContent = "";
+        puzzleIntroAction.textContent = buttonLabel;
+        puzzleIntroAction.disabled = true;
+
+        if (prefersLessMotion()) {
+          puzzleIntroText.textContent = message;
+          puzzleIntroAction.disabled = false;
+          puzzleIntroAction.focus();
+          return;
+        }
+
+        let cursor = 0;
+        typingTimer = window.setInterval(() => {
+          puzzleIntroText.textContent += message[cursor];
+          if (cursor % 7 === 0 && message[cursor] !== " ") playTone(690, 0, .022, "sine");
+          cursor += 1;
+          if (cursor >= message.length) {
+            clearInterval(typingTimer);
+            puzzleIntroAction.disabled = false;
+          }
+        }, 18);
+      };
+
+      const renderPuzzleIntro = () => {
         const starter = STARTERS[selectedStarter];
-        sealPuzzle.hidden = true;
-        forestComplete.hidden = false;
-        forestCompleteEyebrow.textContent = "Tutorial dos Três Selos concluído";
-        forestCompleteTitle.textContent = "Passagem liberada!";
-        forestCompleteText.textContent = `Os Três Selos responderam a ${starter.name}. A passagem para a área aberta do Bosque Luminal está livre.`;
-        saveForestProgress.disabled = false;
-        saveForestProgress.textContent = "Começar missão";
-        forestObjective.textContent = "Passagem Antiga liberada";
-        playSequence([392, 494, 587, 784, 988], .085);
-        saveForestProgress.focus();
+        const lines = [
+          {
+            text: "Existem muitos puzzles espalhados por este mundo. Alguns protegem caminhos, outros guardam segredos antigos. Este é apenas um exemplo.",
+            action: "Observar"
+          },
+          {
+            text: "Estes três cristais acendem e apagam em uma sequência. Repita a mesma ordem para conduzir energia até a porta antiga.",
+            action: "Entender"
+          },
+          {
+            text: `A cada sequência correta, ${starter.name} usará sua habilidade de campo para alimentar a porta. Complete as três rodadas e a passagem será aberta.`,
+            action: "Começar puzzle"
+          }
+        ];
+
+        writePuzzleIntroDialogue(
+          lines[puzzleIntroIndex].text,
+          lines[puzzleIntroIndex].action
+        );
+      };
+
+      const previewCrystalSequence = async () => {
+        if (!puzzleActive || puzzleCompleted) return;
+        const sequence = CRYSTAL_ROUNDS[puzzleRound];
+        puzzleLocked = true;
+        puzzleAcceptingInput = false;
+        puzzleInputIndex = 0;
+        setPuzzleCrystalsEnabled(false);
+        puzzleRoundText.textContent = `Rodada ${puzzleRound + 1} de ${CRYSTAL_ROUNDS.length} · Observe`;
+        puzzleGuideText.textContent = "Observe: os cristais mostrarão a sequência uma vez.";
+        puzzleSeals.forEach((crystal) => crystal.classList.remove("is-input", "is-wrong"));
+        await forestPause(360);
+
+        for (const sealId of sequence) {
+          if (!puzzleActive || puzzleCompleted) return;
+          const crystal = puzzleSeals.find((item) => item.dataset.seal === sealId);
+          crystal.classList.add("is-preview");
+          playTone(SEAL_POSITIONS[sealId].tone, 0, .2, "sine");
+          await forestPause(460);
+          crystal.classList.remove("is-preview");
+          await forestPause(180);
+        }
+
+        puzzleLocked = false;
+        puzzleAcceptingInput = true;
+        setPuzzleCrystalsEnabled(true);
+        puzzleRoundText.textContent = `Rodada ${puzzleRound + 1} de ${CRYSTAL_ROUNDS.length} · Sua vez`;
+        puzzleGuideText.textContent = "Agora repita a ordem. Clique nos cristais ou use as teclas 1, 2 e 3.";
+        puzzleSeals[0].focus();
       };
 
       const solveSealPuzzle = async () => {
         const starter = STARTERS[selectedStarter];
         puzzleActive = false;
         puzzleLocked = true;
-        nearbySealId = "";
-        puzzleInteract.disabled = true;
-        puzzleInteract.textContent = "Passagem liberada!";
-        puzzleGate.classList.add("open");
-        puzzleGuideText.textContent = `Excelente! Os três selos reconheceram a energia de ${starter.name}. A passagem está se abrindo.`;
-        forestObjective.textContent = "Os Três Selos foram despertos";
+        puzzleAcceptingInput = false;
+        puzzleCompleted = true;
+        setPuzzleCrystalsEnabled(false);
+        puzzleReplay.hidden = true;
+        puzzleRoundText.textContent = "Três rodadas concluídas";
+        puzzleSeals.forEach((crystal) => crystal.classList.add("is-awake"));
+        sealPuzzle.classList.add("door-open");
+        puzzleGuideText.textContent = `Perfeito! ${starter.name} estabilizou a energia. A porta reconheceu a sintonia e está se abrindo.`;
+        forestObjective.textContent = "Passagem Antiga liberada";
         playSequence([392, 523, 659, 784, 988, 1175], .085);
 
         currentPlayer = {
           ...currentPlayer,
+          lastCheckpoint: "bosque-luminal-puzzle-concluido",
+          savedAt: new Date().toISOString(),
           tutorials: {
             ...(currentPlayer.tutorials || {}),
             fieldAbility: true,
@@ -6418,85 +6742,127 @@
         window.dispatchEvent(new CustomEvent("naturion:three-seals-completed", {
           detail: currentPlayer
         }));
-        await forestPause(1700);
-        showForestCompletion();
+        await forestPause(1350);
+        puzzleGuide.hidden = true;
+        puzzleCompleteText.textContent = `${starter.name} ajudou a estabilizar os três cristais. A porta antiga abriu o caminho para a continuação da jornada.`;
+        puzzleComplete.hidden = false;
       };
 
-      const activatePuzzleSeal = async (sealId) => {
-        if (!puzzleActive || puzzleLocked) return;
-        const seal = puzzleSeals.find((item) => item.dataset.seal === sealId);
-        if (!seal || sealId !== nearbySealId) {
-          puzzleGuideText.textContent = "Aproxime-se do selo antes de chamar seu Naturion.";
-          return;
-        }
-
+      const completePuzzleRound = async (sealId) => {
         const starter = STARTERS[selectedStarter];
         const fieldSkill = FIELD_SKILLS[selectedStarter];
-        const expectedSeal = SEAL_SEQUENCE[puzzleProgress];
         puzzleLocked = true;
-        puzzleInteract.disabled = true;
-        seal.classList.remove("is-near");
+        puzzleAcceptingInput = false;
+        setPuzzleCrystalsEnabled(false);
+        puzzleGateCharge[puzzleRound].classList.add("is-charged");
+        puzzleGateCharge[puzzleRound].parentElement.setAttribute(
+          "aria-label",
+          `Energia da porta: ${puzzleRound + 1} de três`
+        );
         puzzleStarter.classList.add("channeling");
         createFieldSkillEffect(sealId);
         playSequence(starter.sound, .06);
-
-        if (sealId !== expectedSeal) {
-          puzzleGuideText.textContent = "A sequência se desfez. Observe novamente: Lua, Estrela e Folha.";
-          await forestPause(620);
-          puzzleSeals.forEach((item) => item.classList.remove("is-lit"));
-          puzzleStarter.classList.remove("channeling");
-          puzzleProgress = 0;
-          puzzleLocked = false;
-          updatePuzzleProximity();
-          return;
-        }
-
-        seal.classList.add("is-lit");
-        puzzleGuideText.textContent = `${starter.name} usa ${fieldSkill.name} e ${fieldSkill.description}.`;
-        await forestPause(680);
+        puzzleGuideText.textContent = `Correto! ${starter.name} usa ${fieldSkill.name} e ${fieldSkill.description}.`;
+        puzzleRoundText.textContent = `Rodada ${puzzleRound + 1} concluída`;
+        await forestPause(760);
         puzzleStarter.classList.remove("channeling");
-        puzzleProgress += 1;
+        puzzleRound += 1;
 
-        if (puzzleProgress >= SEAL_SEQUENCE.length) {
+        if (puzzleRound >= CRYSTAL_ROUNDS.length) {
           await solveSealPuzzle();
           return;
         }
 
-        const nextSeal = SEAL_POSITIONS[SEAL_SEQUENCE[puzzleProgress]].label;
-        puzzleGuideText.textContent = `Selo da ${SEAL_POSITIONS[sealId].label} desperto! Agora procure o Selo da ${nextSeal}.`;
+        puzzleGuideText.textContent = `Muito bem. A próxima sequência terá ${CRYSTAL_ROUNDS[puzzleRound].length} sinais.`;
+        await forestPause(420);
+        void previewCrystalSequence();
+      };
+
+      const activatePuzzleSeal = async (sealId) => {
+        if (!puzzleActive || puzzleLocked || !puzzleAcceptingInput || puzzleCompleted) return;
+        const crystal = puzzleSeals.find((item) => item.dataset.seal === sealId);
+        if (!crystal) return;
+        const sequence = CRYSTAL_ROUNDS[puzzleRound];
+        const expectedSeal = sequence[puzzleInputIndex];
+
+        crystal.classList.remove("is-input", "is-wrong");
+        void crystal.offsetWidth;
+        crystal.classList.add("is-input");
+        playTone(SEAL_POSITIONS[sealId].tone, 0, .14, "triangle");
+        window.setTimeout(() => crystal.classList.remove("is-input"), 240);
+
+        if (sealId !== expectedSeal) {
+          puzzleLocked = true;
+          puzzleAcceptingInput = false;
+          setPuzzleCrystalsEnabled(false);
+          crystal.classList.add("is-wrong");
+          puzzleRoundText.textContent = `Rodada ${puzzleRound + 1} · Tente novamente`;
+          puzzleGuideText.textContent = "Quase! A energia se desfez. Vou mostrar a mesma sequência outra vez.";
+          playSequence([330, 247, 196], .09);
+          await forestPause(580);
+          crystal.classList.remove("is-wrong");
+          void previewCrystalSequence();
+          return;
+        }
+
+        puzzleInputIndex += 1;
+        puzzleGuideText.textContent = puzzleInputIndex < sequence.length
+          ? `Certo. Faltam ${sequence.length - puzzleInputIndex} sinais nesta rodada.`
+          : "Sequência completa! Seu Naturion está conduzindo a energia.";
+
+        if (puzzleInputIndex >= sequence.length) {
+          await completePuzzleRound(sealId);
+        }
+      };
+
+      const beginCrystalPuzzle = () => {
+        const starter = STARTERS[selectedStarter];
+        puzzleIntro.hidden = true;
+        puzzleGuide.hidden = false;
+        puzzleReplay.hidden = false;
+        puzzleActive = true;
         puzzleLocked = false;
-        nearbySealId = "";
-        updatePuzzleProximity();
+        puzzleAcceptingInput = false;
+        forestObjective.textContent = "Repita as sequências dos três cristais";
+        puzzleGuideText.textContent = `${starter.name} está pronto. Primeiro, observe os cristais acenderem e apagarem.`;
+        playSequence([330, 440, 554, 659], .07);
+        void previewCrystalSequence();
       };
 
       const startSealPuzzle = () => {
         const starter = STARTERS[selectedStarter];
-        const fieldSkill = FIELD_SKILLS[selectedStarter];
         sealBriefing.hidden = true;
         sealPuzzle.hidden = false;
         sealPuzzle.dataset.starter = selectedStarter;
         sealPuzzle.style.setProperty("--puzzle-accent", starter.color);
         sealPuzzle.style.setProperty("--puzzle-glow", starter.glow);
-        puzzleHero.src = currentPlayer.character === "female"
-          ? "assets/selection/hero-female.webp"
-          : "assets/selection/hero-male.webp";
-        puzzleHero.alt = currentPlayer.name;
         puzzleStarter.src = starter.image;
         puzzleStarter.alt = starter.name;
-        puzzlePosition = { x: 50, y: 78 };
-        puzzleProgress = 0;
-        nearbySealId = "";
-        puzzleActive = true;
+        puzzleStarterName.textContent = starter.name;
+        puzzleIntroIndex = 0;
+        puzzleRound = 0;
+        puzzleInputIndex = 0;
+        puzzleActive = false;
         puzzleLocked = false;
-        puzzleGate.classList.remove("open");
+        puzzleAcceptingInput = false;
+        puzzleCompleted = false;
+        sealPuzzle.classList.remove("door-open");
         puzzleEffects.replaceChildren();
-        puzzleSeals.forEach((seal) => seal.classList.remove("is-lit", "is-near"));
-        positionPuzzleParty();
-        updatePuzzleProximity();
-        forestObjective.textContent = "Ative os selos: Lua → Estrela → Folha";
-        puzzleGuideText.textContent = `${starter.name} aprendeu ${fieldSkill.name}. Observe a ordem gravada e aproxime-se do Selo da Lua.`;
+        puzzleSeals.forEach((crystal) => {
+          crystal.classList.remove("is-preview", "is-input", "is-awake", "is-wrong");
+          crystal.disabled = true;
+        });
+        puzzleGateCharge.forEach((charge) => charge.classList.remove("is-charged"));
+        puzzleGateCharge[0].parentElement.setAttribute("aria-label", "Energia da porta: zero de três");
+        puzzleRoundText.textContent = "Preparando os cristais";
+        puzzleGuide.hidden = true;
+        puzzleReplay.hidden = true;
+        puzzleReplay.disabled = true;
+        puzzleComplete.hidden = true;
+        puzzleIntro.hidden = false;
+        forestObjective.textContent = "Aprenda como os puzzles do mundo funcionam";
+        renderPuzzleIntro();
         playSequence([330, 440, 554, 659], .07);
-        sealPuzzle.focus();
       };
 
       const moveOpenMapPlayer = (deltaX, deltaY) => {
@@ -6776,31 +7142,27 @@
         }
       });
 
-      puzzleInteract.addEventListener("click", () => {
-        void activatePuzzleSeal(nearbySealId);
+      puzzleIntroAction.addEventListener("click", () => {
+        if (puzzleIntroAction.disabled) return;
+        playClick(330);
+        if (puzzleIntroIndex < 2) {
+          puzzleIntroIndex += 1;
+          renderPuzzleIntro();
+        } else {
+          beginCrystalPuzzle();
+        }
       });
 
       puzzleSeals.forEach((seal) => {
         seal.addEventListener("click", () => {
-          if (seal.dataset.seal !== nearbySealId) {
-            puzzleGuideText.textContent = "Caminhe até o selo antes de chamar seu Naturion.";
-            return;
-          }
           void activatePuzzleSeal(seal.dataset.seal);
         });
       });
 
-      puzzleMovementButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const movements = {
-            up: [0, -4],
-            left: [-4, 0],
-            down: [0, 4],
-            right: [4, 0]
-          };
-          const movement = movements[button.dataset.puzzleMove];
-          if (movement) movePuzzlePlayer(...movement);
-        });
+      puzzleReplay.addEventListener("click", () => {
+        if (puzzleReplay.disabled) return;
+        playClick(440);
+        void previewCrystalSequence();
       });
 
       openMapMovementButtons.forEach((button) => {
@@ -6851,31 +7213,15 @@
 
       document.addEventListener("keydown", (event) => {
         if (forestScreen.hidden || sealPuzzle.hidden || !puzzleActive) return;
-        const movementKeys = {
-          ArrowUp: [0, -4],
-          w: [0, -4],
-          W: [0, -4],
-          ArrowLeft: [-4, 0],
-          a: [-4, 0],
-          A: [-4, 0],
-          ArrowDown: [0, 4],
-          s: [0, 4],
-          S: [0, 4],
-          ArrowRight: [4, 0],
-          d: [4, 0],
-          D: [4, 0]
+        const crystalKeys = {
+          "1": "lua",
+          "2": "estrela",
+          "3": "folha"
         };
-        if (event.key === "e" || event.key === "E" || event.key === "Enter") {
-          if (!puzzleInteract.disabled) {
-            event.preventDefault();
-            puzzleInteract.click();
-          }
-          return;
-        }
-        const movement = movementKeys[event.key];
-        if (!movement) return;
+        const sealId = crystalKeys[event.key];
+        if (!sealId) return;
         event.preventDefault();
-        movePuzzlePlayer(...movement);
+        void activatePuzzleSeal(sealId);
       });
 
       document.addEventListener("keydown", (event) => {
