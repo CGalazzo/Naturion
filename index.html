@@ -5494,6 +5494,1117 @@
       border-radius: 50%;
     }
 
+    /* Clareira dos Ecos: capítulo de exploração independente das telas aprovadas. */
+    .echo-entry-confirm[hidden],
+    .echo-clearing[hidden],
+    .echo-dialogue[hidden],
+    .echo-puzzle[hidden],
+    .echo-battle[hidden],
+    .echo-absorption[hidden],
+    .echo-evolution[hidden] {
+      display: none !important;
+    }
+
+    .echo-entry-confirm {
+      position: absolute;
+      z-index: 64;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(99, 255, 207, .15), transparent 34%),
+        rgba(1, 12, 9, .78);
+      backdrop-filter: blur(4px);
+    }
+
+    .echo-entry-card,
+    .echo-panel {
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #e8c752;
+      border-radius: 4px;
+      color: #fff7c6;
+      background:
+        linear-gradient(135deg, rgba(43, 112, 79, .2) 0 16%, transparent 16% 84%, rgba(21, 77, 59, .22) 84%),
+        linear-gradient(180deg, #0d3828, #061d15);
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 249, 173, .1),
+        inset 0 -6px 0 rgba(0, 0, 0, .24),
+        0 7px 0 #3d2909,
+        0 18px 38px rgba(0, 0, 0, .62);
+      image-rendering: pixelated;
+    }
+
+    .echo-entry-card {
+      display: grid;
+      width: min(570px, 94vw);
+      justify-items: center;
+      gap: 10px;
+      padding: 26px clamp(18px, 4vw, 42px) 28px;
+      text-align: center;
+      animation: echo-panel-in .34s steps(5, end) both;
+    }
+
+    .echo-entry-card::before,
+    .echo-panel::before {
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(142, 239, 197, .34);
+      content: "";
+      pointer-events: none;
+    }
+
+    .echo-entry-card small,
+    .echo-panel small {
+      color: #8fe6c0;
+      font-size: .68rem;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .echo-entry-card h2,
+    .echo-panel h2 {
+      margin: 0;
+      color: #fff4ad;
+      font-size: clamp(1.1rem, 3vw, 1.55rem);
+      letter-spacing: .04em;
+      text-shadow: 2px 2px 0 #4d3007;
+    }
+
+    .echo-entry-card p,
+    .echo-panel p {
+      margin: 0;
+      color: #f2f5d9;
+      font-size: clamp(.72rem, 1.8vw, .9rem);
+      line-height: 1.6;
+    }
+
+    .echo-entry-art {
+      width: min(230px, 48vw);
+      height: 112px;
+      object-fit: cover;
+      border: 2px solid #9ccf9c;
+      border-radius: 2px;
+      box-shadow: 0 4px 0 #173723;
+      image-rendering: pixelated;
+    }
+
+    .echo-entry-actions,
+    .echo-panel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 7px;
+    }
+
+    .echo-button {
+      min-height: 42px;
+      padding: 9px 17px;
+      border: 2px solid #f2d261;
+      border-radius: 3px;
+      color: #112014;
+      background: linear-gradient(180deg, #fff3a1, #d7a72a);
+      box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, .65),
+        0 4px 0 #64420c;
+      font-size: .7rem;
+      font-weight: 1000;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .echo-button:hover,
+    .echo-button:focus-visible {
+      filter: brightness(1.08);
+      outline: 2px solid #b4fff0;
+      outline-offset: 3px;
+      transform: translateY(-1px);
+    }
+
+    .echo-button:active {
+      box-shadow: 0 1px 0 #64420c;
+      transform: translateY(3px);
+    }
+
+    .echo-button.secondary {
+      border-color: #84baa3;
+      color: #eafcf1;
+      background: linear-gradient(180deg, #315f4b, #17372a);
+      box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, .12),
+        0 4px 0 #071711;
+    }
+
+    .echo-clearing {
+      position: absolute;
+      z-index: 58;
+      inset: 0;
+      overflow: hidden;
+      background: #071b14;
+      outline: none;
+      image-rendering: pixelated;
+    }
+
+    .echo-viewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #091b14;
+    }
+
+    .echo-world {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: max(2172px, 300vw);
+      height: 100%;
+      transform: translate3d(var(--echo-camera, 0px), 0, 0);
+      transform-origin: left center;
+      will-change: transform;
+    }
+
+    .echo-world-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      filter: saturate(1.04) contrast(1.02);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .echo-world::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background:
+        linear-gradient(180deg, rgba(0, 18, 13, .12), transparent 22% 72%, rgba(0, 13, 9, .2)),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 4px);
+      pointer-events: none;
+    }
+
+    .echo-player {
+      position: absolute;
+      z-index: 18;
+      left: 120px;
+      top: 82%;
+      width: clamp(68px, 7vw, 96px);
+      height: clamp(116px, 13vw, 164px);
+      transform: translate(-50%, -100%);
+      transform-origin: 50% 100%;
+      will-change: left, top, transform;
+      pointer-events: none;
+    }
+
+    .echo-player::after,
+    .echo-wild::after,
+    .echo-npc::after {
+      position: absolute;
+      z-index: -1;
+      bottom: 0;
+      left: 50%;
+      width: 70%;
+      height: 8%;
+      border-radius: 50%;
+      content: "";
+      background: rgba(0, 0, 0, .34);
+      filter: blur(2px);
+      transform: translateX(-50%);
+    }
+
+    .echo-player img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .55));
+      transform-origin: center bottom;
+      image-rendering: pixelated;
+    }
+
+    .echo-player.facing-left img {
+      transform: scaleX(-1);
+    }
+
+    .echo-player.walking img {
+      animation: echo-hero-walk .32s steps(4, end) infinite;
+    }
+
+    .echo-player.facing-left.walking img {
+      animation-name: echo-hero-walk-left;
+    }
+
+    .echo-player.jumping img {
+      filter: drop-shadow(0 7px 3px rgba(0, 0, 0, .42));
+    }
+
+    .echo-starter-follower {
+      position: absolute;
+      z-index: 17;
+      left: 56px;
+      top: 82%;
+      width: clamp(58px, 6.8vw, 92px);
+      height: clamp(58px, 7.5vw, 104px);
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .48));
+      transform: translate(-50%, -100%);
+      transform-origin: center bottom;
+      transition: left .16s linear, top .16s ease-out;
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .echo-starter-follower.walking {
+      animation: echo-naturion-step .42s steps(4, end) infinite;
+    }
+
+    .echo-wild-layer,
+    .echo-npc-layer,
+    .echo-puzzle-layer {
+      position: absolute;
+      z-index: 12;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .echo-wild {
+      position: absolute;
+      width: var(--wild-size, 88px);
+      height: var(--wild-size, 88px);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      transform: translate(-50%, -100%);
+      transform-origin: 50% 100%;
+      pointer-events: none;
+      will-change: left, top, transform;
+    }
+
+    .echo-wild img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .5));
+      transform-origin: center bottom;
+      image-rendering: pixelated;
+    }
+
+    .echo-wild.facing-left img {
+      transform: scaleX(-1);
+    }
+
+    .echo-wild.moving img {
+      animation: echo-naturion-step .48s steps(4, end) infinite;
+    }
+
+    .echo-wild.flying img {
+      animation: echo-fly 1.25s ease-in-out infinite;
+    }
+
+    .echo-npc {
+      position: absolute;
+      width: 88px;
+      height: 146px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      transform: translate(-50%, -100%);
+      pointer-events: none;
+    }
+
+    .echo-npc img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .52));
+      image-rendering: pixelated;
+    }
+
+    .echo-npc-name {
+      position: absolute;
+      top: calc(100% + 3px);
+      left: 50%;
+      padding: 4px 6px;
+      border: 1px solid #d7ba4c;
+      border-radius: 2px;
+      color: #fff4b4;
+      background: rgba(5, 27, 19, .94);
+      box-shadow: 0 2px 0 #2d2108;
+      font-size: .52rem;
+      white-space: nowrap;
+      transform: translateX(-50%);
+    }
+
+    .echo-gate {
+      position: absolute;
+      z-index: 9;
+      width: 118px;
+      height: 184px;
+      border: 8px solid #725527;
+      border-bottom: 0;
+      border-radius: 58px 58px 0 0;
+      background:
+        linear-gradient(90deg, #1b241b 0 12%, #07100c 12% 88%, #1b241b 88%);
+      box-shadow:
+        inset 0 0 0 4px #b6974f,
+        0 7px 0 rgba(0, 0, 0, .25);
+      transform: translate(-50%, -100%);
+      image-rendering: pixelated;
+    }
+
+    .echo-gate.open {
+      border-color: #74cda0;
+      background:
+        radial-gradient(circle at 50% 58%, rgba(201, 255, 230, .7), transparent 10%),
+        linear-gradient(90deg, #1b4935 0 12%, rgba(12, 53, 38, .56) 12% 88%, #1b4935 88%);
+      box-shadow:
+        inset 0 0 0 4px #d7d66e,
+        0 0 22px rgba(96, 255, 192, .45);
+    }
+
+    .echo-interact {
+      position: absolute;
+      z-index: 29;
+      left: 50%;
+      bottom: max(108px, calc(env(safe-area-inset-bottom) + 88px));
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 2px solid #ebd168;
+      border-radius: 3px;
+      color: #fff7be;
+      background: rgba(5, 31, 22, .95);
+      box-shadow: 0 4px 0 #3c2b09;
+      font-size: .65rem;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .echo-interact kbd {
+      display: grid;
+      width: 26px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid #fff1a3;
+      border-radius: 2px;
+      color: #182218;
+      background: #ebc752;
+      box-shadow: 0 2px 0 #704b0b;
+      font-weight: 1000;
+    }
+
+    .echo-hud {
+      position: absolute;
+      z-index: 32;
+      top: max(10px, env(safe-area-inset-top));
+      left: 50%;
+      display: grid;
+      grid-template-columns: auto minmax(190px, 1fr) auto;
+      width: min(980px, calc(100% - 24px));
+      min-height: 64px;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border: 2px solid #d9bc50;
+      border-radius: 3px;
+      color: #fff5b8;
+      background:
+        linear-gradient(90deg, rgba(31, 82, 59, .2), transparent 42%),
+        rgba(4, 27, 19, .94);
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 244, 160, .08),
+        0 5px 0 rgba(26, 18, 4, .84);
+      transform: translateX(-50%);
+    }
+
+    .echo-hud strong {
+      display: block;
+      font-size: .76rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .echo-hud small,
+    .echo-hud em {
+      display: block;
+      margin-top: 3px;
+      color: #a9e6c5;
+      font-size: .55rem;
+    }
+
+    .echo-hud-objective {
+      overflow: hidden;
+      color: #f2f6de;
+      font-size: .65rem;
+      line-height: 1.35;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .echo-hud-party {
+      display: grid;
+      grid-template-columns: 38px auto;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .echo-hud-party img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .echo-hud-party span {
+      color: #fff7c3;
+      font-size: .6rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .echo-hud-party i {
+      display: block;
+      width: 72px;
+      height: 6px;
+      margin-top: 4px;
+      overflow: hidden;
+      border: 1px solid #9a8136;
+      border-radius: 1px;
+      background: #15251d;
+    }
+
+    .echo-hud-party i::after {
+      display: block;
+      width: var(--echo-hp, 100%);
+      height: 100%;
+      content: "";
+      background: #69d873;
+    }
+
+    .echo-back-map {
+      position: absolute;
+      z-index: 33;
+      top: max(84px, calc(env(safe-area-inset-top) + 76px));
+      left: 14px;
+      min-height: 34px;
+      padding: 6px 9px;
+      border: 2px solid #b8a050;
+      border-radius: 2px;
+      color: #ecf9df;
+      background: rgba(9, 39, 27, .92);
+      box-shadow: 0 3px 0 #2e2109;
+      font-size: .56rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .echo-controls {
+      position: absolute;
+      z-index: 34;
+      right: 14px;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(3, 48px);
+      gap: 6px;
+    }
+
+    .echo-control {
+      display: grid;
+      min-height: 44px;
+      place-items: center;
+      border: 2px solid #e3c85f;
+      border-radius: 3px;
+      color: #fff7c3;
+      background: rgba(7, 39, 27, .91);
+      box-shadow: 0 4px 0 #302307;
+      font-size: .72rem;
+      font-weight: 1000;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .echo-control.jump {
+      color: #172317;
+      background: #e9c950;
+    }
+
+    .echo-area-transition {
+      position: absolute;
+      z-index: 80;
+      inset: 0;
+      opacity: 0;
+      background:
+        radial-gradient(circle at var(--echo-transition-x, 50%) 58%, #fff 0 4%, #c8ffea 15%, rgba(96, 229, 184, .5) 32%, transparent 62%),
+        #071a13;
+      pointer-events: none;
+    }
+
+    .echo-area-transition.active {
+      animation: echo-area-flash .8s steps(8, end) both;
+    }
+
+    .echo-dialogue,
+    .echo-puzzle,
+    .echo-battle,
+    .echo-absorption,
+    .echo-evolution {
+      position: absolute;
+      z-index: 65;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(1, 13, 9, .68);
+      backdrop-filter: blur(3px);
+    }
+
+    .echo-dialogue {
+      align-items: end;
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+
+    .echo-dialogue .echo-panel {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      width: min(780px, 96vw);
+      min-height: 150px;
+      align-items: stretch;
+    }
+
+    .echo-dialogue img {
+      width: 96px;
+      height: 150px;
+      object-fit: contain;
+      object-position: center bottom;
+      image-rendering: pixelated;
+    }
+
+    .echo-dialogue-copy {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+      padding: 14px 18px;
+    }
+
+    .echo-dialogue-copy strong {
+      color: #f4d768;
+      font-size: .67rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .echo-dialogue-copy p {
+      min-height: 42px;
+      font-size: .75rem;
+      line-height: 1.5;
+    }
+
+    .echo-dialogue-copy .echo-button {
+      align-self: end;
+    }
+
+    .echo-puzzle .echo-panel {
+      width: min(640px, 96vw);
+      padding: 22px;
+      text-align: center;
+    }
+
+    .echo-runes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 20px 0 10px;
+    }
+
+    .echo-rune {
+      position: relative;
+      display: grid;
+      min-height: 132px;
+      place-items: center;
+      border: 3px solid #77612b;
+      border-radius: 4px;
+      color: #c4bf91;
+      background:
+        linear-gradient(135deg, #334638 0 12%, #172a20 12% 88%, #0d1c15 88%);
+      box-shadow:
+        inset 0 0 0 3px #0b1912,
+        inset 0 -8px 0 rgba(0, 0, 0, .25),
+        0 5px 0 #2b2008;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      cursor: pointer;
+    }
+
+    .echo-rune::after {
+      position: absolute;
+      inset: 18%;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      content: "";
+      opacity: .28;
+      box-shadow: inset 0 0 14px currentColor;
+    }
+
+    .echo-rune.preview,
+    .echo-rune.correct {
+      border-color: #fff2a4;
+      color: var(--rune-color, #b9ffe5);
+      background: #285947;
+      filter: brightness(1.25);
+      box-shadow:
+        inset 0 0 0 3px #0b281c,
+        inset 0 0 24px var(--rune-color, #b9ffe5),
+        0 5px 0 #5d430c;
+    }
+
+    .echo-rune.wrong {
+      border-color: #ff765d;
+      color: #ff8068;
+      background: #58251f;
+    }
+
+    .echo-puzzle-status {
+      min-height: 30px;
+      color: #b9efd4;
+      font-size: .65rem;
+      line-height: 1.4;
+    }
+
+    .echo-battle {
+      z-index: 68;
+      padding: 0;
+      background: #07140e;
+    }
+
+    .echo-battle-scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(.52) saturate(.92);
+      image-rendering: pixelated;
+    }
+
+    .echo-battle-field {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      width: min(1120px, 100%);
+      min-height: 100%;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 9vw;
+      padding: 82px 5vw 125px;
+    }
+
+    .echo-fighter {
+      position: relative;
+      display: grid;
+      min-height: 310px;
+      align-content: end;
+      justify-items: center;
+    }
+
+    .echo-fighter::after {
+      position: absolute;
+      z-index: -1;
+      bottom: 63px;
+      width: min(360px, 82%);
+      height: 62px;
+      border: 2px solid rgba(225, 197, 81, .68);
+      border-radius: 50%;
+      content: "";
+      background: radial-gradient(ellipse, rgba(78, 128, 67, .7), rgba(13, 37, 24, .1) 70%);
+      box-shadow: inset 0 0 24px rgba(102, 217, 141, .23);
+    }
+
+    .echo-fighter img {
+      position: relative;
+      z-index: 2;
+      width: var(--fighter-size, clamp(170px, 22vw, 270px));
+      height: var(--fighter-size, clamp(170px, 22vw, 270px));
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55));
+      image-rendering: pixelated;
+    }
+
+    .echo-fighter.player img {
+      transform: scaleX(-1);
+    }
+
+    .echo-fighter.strike img {
+      animation: echo-strike .38s steps(4, end);
+    }
+
+    .echo-fighter.hit img {
+      animation: echo-hit .34s steps(3, end);
+    }
+
+    .echo-battle-status {
+      position: relative;
+      z-index: 3;
+      width: min(330px, 92%);
+      margin-top: -8px;
+      padding: 9px 11px;
+      border: 2px solid #dcc158;
+      border-radius: 3px;
+      color: #f9f3d3;
+      background: rgba(4, 28, 19, .96);
+      box-shadow: 0 4px 0 #382807;
+    }
+
+    .echo-battle-status header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: .68rem;
+      font-weight: 1000;
+    }
+
+    .echo-battle-status header em {
+      color: #b2e2c8;
+      font-size: .55rem;
+    }
+
+    .echo-hp-track {
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid #837035;
+      border-radius: 2px;
+      background: #10251a;
+    }
+
+    .echo-hp-track i {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #45b65f, #8ce66f);
+      transition: width .35s steps(8, end);
+    }
+
+    .echo-battle-message {
+      position: absolute;
+      z-index: 5;
+      top: max(12px, env(safe-area-inset-top));
+      left: 50%;
+      width: min(680px, calc(100% - 24px));
+      min-height: 55px;
+      padding: 11px 16px;
+      border: 2px solid #ddc257;
+      border-radius: 3px;
+      color: #f8f3d8;
+      background: rgba(4, 28, 19, .96);
+      box-shadow: 0 4px 0 #382807;
+      font-size: .69rem;
+      line-height: 1.45;
+      text-align: center;
+      transform: translateX(-50%);
+    }
+
+    .echo-battle-actions {
+      position: absolute;
+      z-index: 5;
+      right: 18px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(3, minmax(132px, 1fr));
+      gap: 8px;
+      width: min(660px, calc(100% - 36px));
+    }
+
+    .echo-battle-actions .echo-button {
+      min-height: 58px;
+    }
+
+    .echo-battle-actions .echo-button small {
+      display: block;
+      margin-top: 3px;
+      color: inherit;
+      font-size: .5rem;
+      opacity: .76;
+    }
+
+    .echo-absorption {
+      z-index: 72;
+      background:
+        radial-gradient(circle at 50% 47%, color-mix(in srgb, var(--essence-color, #a8efff) 30%, transparent), transparent 36%),
+        rgba(2, 13, 10, .94);
+    }
+
+    .echo-absorb-stage {
+      position: relative;
+      width: min(820px, 96vw);
+      height: min(580px, 80vh);
+    }
+
+    .echo-absorb-creature {
+      position: absolute;
+      top: 50%;
+      left: 25%;
+      width: clamp(130px, 24vw, 260px);
+      height: clamp(130px, 24vw, 260px);
+      object-fit: contain;
+      filter: drop-shadow(0 0 14px var(--essence-color, #a8efff));
+      transform: translate(-50%, -50%);
+      image-rendering: pixelated;
+    }
+
+    .echo-absorb-watch {
+      position: absolute;
+      top: 50%;
+      left: 75%;
+      width: clamp(150px, 26vw, 290px);
+      height: clamp(150px, 26vw, 290px);
+      object-fit: contain;
+      filter: drop-shadow(0 0 18px var(--essence-color, #a8efff));
+      transform: translate(-50%, -50%);
+      image-rendering: pixelated;
+    }
+
+    .echo-absorb-beam {
+      position: absolute;
+      top: 50%;
+      left: 47%;
+      width: 43%;
+      height: 12px;
+      border: 2px solid #fff6c1;
+      background: linear-gradient(90deg, var(--essence-color, #a8efff), #fff, var(--essence-color, #a8efff));
+      box-shadow: 0 0 16px var(--essence-color, #a8efff);
+      transform: translate(-50%, -50%);
+      transform-origin: right center;
+    }
+
+    .echo-absorption.active .echo-absorb-creature {
+      animation: echo-absorb-creature 2.6s steps(18, end) both;
+    }
+
+    .echo-absorption.active .echo-absorb-watch {
+      animation: echo-watch-pulse .58s steps(5, end) infinite;
+    }
+
+    .echo-absorption.active .echo-absorb-beam {
+      animation: echo-beam 1.1s steps(8, end) infinite;
+    }
+
+    .echo-absorb-particles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .echo-absorb-particles i {
+      position: absolute;
+      top: 50%;
+      left: 25%;
+      width: var(--particle-size);
+      aspect-ratio: 1;
+      border-radius: var(--particle-radius);
+      background: var(--particle-color);
+      box-shadow: 0 0 9px var(--particle-color);
+      animation: echo-particle-stream var(--particle-duration) steps(15, end) var(--particle-delay) both;
+    }
+
+    .echo-absorb-message {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 10px;
+      color: #fff6b7;
+      font-size: .78rem;
+      font-weight: 1000;
+      text-align: center;
+      text-shadow: 2px 2px 0 #392407;
+    }
+
+    .echo-evolution {
+      z-index: 75;
+      background:
+        radial-gradient(circle, rgba(255, 244, 161, .28), transparent 42%),
+        rgba(2, 15, 10, .95);
+    }
+
+    .echo-evolution .echo-panel {
+      display: grid;
+      width: min(720px, 95vw);
+      justify-items: center;
+      gap: 10px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .echo-evolution-pair {
+      display: grid;
+      width: min(540px, 90%);
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .echo-evolution-pair img {
+      width: min(180px, 30vw);
+      height: min(180px, 30vw);
+      object-fit: contain;
+      filter: drop-shadow(0 0 13px #fff0a2);
+      image-rendering: pixelated;
+    }
+
+    .echo-evolution-pair span {
+      color: #fff1a1;
+      font-size: 2rem;
+      animation: echo-arrow .7s steps(3, end) infinite alternate;
+    }
+
+    @keyframes echo-panel-in {
+      from { opacity: 0; transform: translateY(18px) scale(.94); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes echo-hero-walk {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-5px) rotate(2deg) scaleY(.98); }
+    }
+
+    @keyframes echo-hero-walk-left {
+      0%, 100% { transform: scaleX(-1) translateY(0) rotate(-1deg); }
+      50% { transform: scaleX(-1) translateY(-5px) rotate(2deg) scaleY(.98); }
+    }
+
+    @keyframes echo-naturion-step {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-5px) rotate(2deg) scaleY(.97); }
+    }
+
+    @keyframes echo-fly {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    @keyframes echo-area-flash {
+      0%, 100% { opacity: 0; }
+      35%, 68% { opacity: 1; }
+    }
+
+    @keyframes echo-strike {
+      0%, 100% { transform: translateX(0); }
+      45% { transform: translateX(34px) scale(1.05); }
+    }
+
+    @keyframes echo-hit {
+      0%, 100% { filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55)); }
+      40% { filter: brightness(2) drop-shadow(0 0 13px #fff); transform: translateX(-12px); }
+    }
+
+    @keyframes echo-absorb-creature {
+      0%, 18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      72% { opacity: .72; transform: translate(46%, -50%) scale(.45) rotate(90deg); }
+      100% { opacity: 0; transform: translate(155%, -50%) scale(.08) rotate(240deg); }
+    }
+
+    @keyframes echo-watch-pulse {
+      from { filter: brightness(1) drop-shadow(0 0 11px var(--essence-color)); transform: translate(-50%, -50%) scale(.98); }
+      to { filter: brightness(1.5) drop-shadow(0 0 26px var(--essence-color)); transform: translate(-50%, -50%) scale(1.04); }
+    }
+
+    @keyframes echo-beam {
+      0%, 100% { opacity: .55; transform: translate(-50%, -50%) scaleX(.92); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scaleX(1.08); }
+    }
+
+    @keyframes echo-particle-stream {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(0); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translate(calc(410px + var(--particle-y)), calc(-50% + var(--particle-y))) scale(.08) rotate(540deg); }
+    }
+
+    @keyframes echo-arrow {
+      from { transform: translateX(-5px); }
+      to { transform: translateX(5px); }
+    }
+
+    @media (max-width: 760px) {
+      .echo-hud {
+        grid-template-columns: 1fr auto;
+        gap: 5px;
+      }
+
+      .echo-hud-objective {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        font-size: .55rem;
+      }
+
+      .echo-hud-party span {
+        display: none;
+      }
+
+      .echo-back-map {
+        top: 108px;
+      }
+
+      .echo-controls {
+        grid-template-columns: repeat(3, 42px);
+      }
+
+      .echo-dialogue .echo-panel {
+        grid-template-columns: 72px 1fr;
+      }
+
+      .echo-dialogue img {
+        width: 72px;
+        height: 128px;
+      }
+
+      .echo-dialogue-copy {
+        padding: 10px;
+      }
+
+      .echo-battle-field {
+        gap: 0;
+        padding: 78px 8px 160px;
+      }
+
+      .echo-fighter {
+        min-height: 260px;
+      }
+
+      .echo-fighter img {
+        --fighter-size: clamp(132px, 38vw, 190px);
+      }
+
+      .echo-battle-actions {
+        right: 8px;
+        grid-template-columns: 1fr;
+        width: min(280px, calc(100% - 16px));
+      }
+
+      .echo-battle-actions .echo-button {
+        min-height: 41px;
+        padding: 6px 8px;
+      }
+
+      .echo-rune {
+        min-height: 95px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -6236,6 +7347,190 @@
         <strong>Destino alcançado!</strong>
         <span>Clareira dos Ecos</span>
       </div>
+
+      <section
+        class="echo-entry-confirm"
+        id="echoEntryConfirm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="echoEntryTitle"
+        hidden
+      >
+        <article class="echo-entry-card">
+          <small>Região de exploração · Níveis 3–18</small>
+          <img
+            class="echo-entry-art"
+            src="assets/echo-scenes/clareira-1.webp"
+            alt="Ruínas verdes e luminosas da Clareira dos Ecos"
+          >
+          <h2 id="echoEntryTitle">Entrar na Clareira dos Ecos?</h2>
+          <p>Esta região possui cinco áreas conectadas, Naturions selvagens, pesquisadores e puzzles antigos. Você poderá retornar ao mapa pela entrada.</p>
+          <div class="echo-entry-actions">
+            <button class="echo-button" id="confirmEchoEntry" type="button">Entrar na clareira</button>
+            <button class="echo-button secondary" id="cancelEchoEntry" type="button">Permanecer no mapa</button>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <section
+      class="echo-clearing"
+      id="echoClearing"
+      aria-label="Exploração da Clareira dos Ecos"
+      tabindex="0"
+      hidden
+    >
+      <div class="echo-viewport" id="echoViewport">
+        <div class="echo-world" id="echoWorld">
+          <img
+            class="echo-world-art"
+            id="echoWorldArt"
+            src="assets/echo-scenes/clareira-1.webp"
+            alt=""
+            width="2172"
+            height="724"
+          >
+          <div class="echo-puzzle-layer" id="echoPuzzleLayer" aria-hidden="true"></div>
+          <div class="echo-npc-layer" id="echoNpcLayer"></div>
+          <div class="echo-wild-layer" id="echoWildLayer"></div>
+
+          <div class="echo-player" id="echoPlayer" aria-label="Seu personagem">
+            <img id="echoPlayerImage" src="assets/selection/hero-male.webp" alt="">
+          </div>
+          <img
+            class="echo-starter-follower"
+            id="echoStarterFollower"
+            src="assets/story/axolume.webp"
+            alt="Axolume"
+          >
+        </div>
+      </div>
+
+      <header class="echo-hud">
+        <span>
+          <strong id="echoAreaName">Entrada Luminal</strong>
+          <small id="echoAreaLevel">Área 1 de 5 · Níveis 3–5</small>
+        </span>
+        <em class="echo-hud-objective" id="echoObjective">Converse com a Dra. Íris e explore a clareira.</em>
+        <span class="echo-hud-party">
+          <img id="echoHudStarter" src="assets/story/axolume.webp" alt="">
+          <span>
+            <b id="echoHudStarterName">Axolume · Nv. 5</b>
+            <i id="echoHudHpTrack" aria-label="Pontos de vida"></i>
+          </span>
+        </span>
+      </header>
+
+      <button class="echo-back-map" id="echoBackMap" type="button">Voltar ao mapa</button>
+
+      <div class="echo-interact" id="echoInteract" hidden>
+        <kbd>E</kbd>
+        <span id="echoInteractText">Interagir</span>
+      </div>
+
+      <nav class="echo-controls" aria-label="Controles da Clareira dos Ecos">
+        <button class="echo-control" type="button" data-echo-move="left" aria-label="Mover para a esquerda">A</button>
+        <button class="echo-control jump" id="echoJumpButton" type="button" aria-label="Pular">W</button>
+        <button class="echo-control" type="button" data-echo-move="right" aria-label="Mover para a direita">D</button>
+      </nav>
+
+      <section class="echo-dialogue" id="echoDialogue" aria-live="polite" hidden>
+        <article class="echo-panel">
+          <img id="echoDialoguePortrait" src="assets/story/dr-iris.webp" alt="">
+          <div class="echo-dialogue-copy">
+            <strong id="echoDialogueSpeaker">Dra. Íris</strong>
+            <p id="echoDialogueText"></p>
+            <button class="echo-button" id="echoDialogueNext" type="button">Continuar</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="echo-puzzle" id="echoPuzzle" aria-labelledby="echoPuzzleTitle" hidden>
+        <article class="echo-panel">
+          <small id="echoPuzzleEyebrow">Puzzle de ecos</small>
+          <h2 id="echoPuzzleTitle">Sintonize as runas antigas</h2>
+          <p id="echoPuzzleDescription">Observe a sequência e repita a ordem para abrir a passagem.</p>
+          <div class="echo-runes">
+            <button class="echo-rune" type="button" data-echo-rune="0" style="--rune-color:#72dcff" aria-label="Runa da água">◆</button>
+            <button class="echo-rune" type="button" data-echo-rune="1" style="--rune-color:#ffe36b" aria-label="Runa da luz">✦</button>
+            <button class="echo-rune" type="button" data-echo-rune="2" style="--rune-color:#76e28d" aria-label="Runa da folha">♠</button>
+          </div>
+          <div class="echo-puzzle-status" id="echoPuzzleStatus">Prepare-se para observar.</div>
+          <div class="echo-panel-actions">
+            <button class="echo-button secondary" id="echoPuzzleReplay" type="button">Repetir sequência</button>
+            <button class="echo-button secondary" id="echoPuzzleClose" type="button">Voltar</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="echo-battle" id="echoBattle" aria-label="Batalha contra Naturion selvagem" hidden>
+        <img class="echo-battle-scene" id="echoBattleScene" src="assets/echo-scenes/clareira-1.webp" alt="">
+        <p class="echo-battle-message" id="echoBattleMessage">Um Naturion selvagem apareceu!</p>
+        <div class="echo-battle-field">
+          <article class="echo-fighter player" id="echoPlayerFighter">
+            <img id="echoBattlePlayerImage" src="assets/story/axolume.webp" alt="">
+            <div class="echo-battle-status">
+              <header>
+                <span id="echoBattlePlayerName">Axolume</span>
+                <em id="echoBattlePlayerLevel">Nv. 5</em>
+              </header>
+              <div class="echo-hp-track"><i id="echoBattlePlayerHp"></i></div>
+            </div>
+          </article>
+          <article class="echo-fighter wild" id="echoWildFighter">
+            <img id="echoBattleWildImage" src="assets/echo-creatures/escaruli.webp" alt="">
+            <div class="echo-battle-status">
+              <header>
+                <span id="echoBattleWildName">Escaruli</span>
+                <em id="echoBattleWildLevel">Nv. 3</em>
+              </header>
+              <div class="echo-hp-track"><i id="echoBattleWildHp"></i></div>
+            </div>
+          </article>
+        </div>
+        <nav class="echo-battle-actions" id="echoBattleActions" aria-label="Ações de batalha">
+          <button class="echo-button" type="button" data-echo-battle="basic">Ataque básico<small>Golpe seguro</small></button>
+          <button class="echo-button" type="button" data-echo-battle="elemental">Ataque elemental<small id="echoElementalHint">Poder 12</small></button>
+          <button class="echo-button secondary" type="button" data-echo-battle="defend">Defender<small>Reduz o próximo dano</small></button>
+        </nav>
+        <section class="echo-entry-confirm" id="echoBattleChoice" aria-labelledby="echoBattleChoiceTitle" hidden>
+          <article class="echo-entry-card">
+            <small>Batalha concluída</small>
+            <h2 id="echoBattleChoiceTitle">A essência está livre</h2>
+            <p id="echoBattleChoiceText">Deseja tentar absorver a essência deste Naturion com seu Relógio Cristalíneo?</p>
+            <div class="echo-entry-actions">
+              <button class="echo-button" id="echoTryAbsorb" type="button">Tentar absorver</button>
+              <button class="echo-button secondary" id="echoReleaseWild" type="button">Deixar partir</button>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <section class="echo-absorption" id="echoAbsorption" aria-live="assertive" hidden>
+        <div class="echo-absorb-stage">
+          <img class="echo-absorb-creature" id="echoAbsorbCreature" src="assets/echo-creatures/escaruli.webp" alt="">
+          <span class="echo-absorb-beam" aria-hidden="true"></span>
+          <img class="echo-absorb-watch" src="assets/story/crystal-watch-round.webp?v=2" alt="Relógio Cristalíneo">
+          <div class="echo-absorb-particles" id="echoAbsorbParticles" aria-hidden="true"></div>
+          <p class="echo-absorb-message" id="echoAbsorbMessage">A essência responde ao relógio...</p>
+        </div>
+      </section>
+
+      <section class="echo-evolution" id="echoEvolution" aria-live="assertive" hidden>
+        <article class="echo-panel">
+          <small>Evolução alcançada</small>
+          <h2 id="echoEvolutionTitle">Seu Naturion evoluiu!</h2>
+          <div class="echo-evolution-pair">
+            <img id="echoEvolutionFrom" src="assets/story/axolume.webp" alt="">
+            <span aria-hidden="true">➜</span>
+            <img id="echoEvolutionTo" src="assets/echo-creatures/hydrolume.webp" alt="">
+          </div>
+          <p id="echoEvolutionText">Axolume evoluiu para Hydrolume.</p>
+          <button class="echo-button" id="echoEvolutionContinue" type="button">Continuar jornada</button>
+        </article>
+      </section>
+
+      <div class="echo-area-transition" id="echoAreaTransition" aria-hidden="true"></div>
     </section>
 
     <div class="world-door-transition" id="worldDoorTransition" aria-hidden="true" hidden></div>
@@ -6442,6 +7737,74 @@
       const worldMapObjective = document.getElementById("worldMapObjective");
       const worldMapGuideText = document.getElementById("worldMapGuideText");
       const journeyUnlocked = document.getElementById("journeyUnlocked");
+      const echoEntryConfirm = document.getElementById("echoEntryConfirm");
+      const confirmEchoEntry = document.getElementById("confirmEchoEntry");
+      const cancelEchoEntry = document.getElementById("cancelEchoEntry");
+      const echoClearing = document.getElementById("echoClearing");
+      const echoViewport = document.getElementById("echoViewport");
+      const echoWorld = document.getElementById("echoWorld");
+      const echoWorldArt = document.getElementById("echoWorldArt");
+      const echoPuzzleLayer = document.getElementById("echoPuzzleLayer");
+      const echoNpcLayer = document.getElementById("echoNpcLayer");
+      const echoWildLayer = document.getElementById("echoWildLayer");
+      const echoPlayer = document.getElementById("echoPlayer");
+      const echoPlayerImage = document.getElementById("echoPlayerImage");
+      const echoStarterFollower = document.getElementById("echoStarterFollower");
+      const echoAreaName = document.getElementById("echoAreaName");
+      const echoAreaLevel = document.getElementById("echoAreaLevel");
+      const echoObjective = document.getElementById("echoObjective");
+      const echoHudStarter = document.getElementById("echoHudStarter");
+      const echoHudStarterName = document.getElementById("echoHudStarterName");
+      const echoHudHpTrack = document.getElementById("echoHudHpTrack");
+      const echoBackMap = document.getElementById("echoBackMap");
+      const echoInteract = document.getElementById("echoInteract");
+      const echoInteractText = document.getElementById("echoInteractText");
+      const echoMoveButtons = [...document.querySelectorAll("[data-echo-move]")];
+      const echoJumpButton = document.getElementById("echoJumpButton");
+      const echoDialogue = document.getElementById("echoDialogue");
+      const echoDialoguePortrait = document.getElementById("echoDialoguePortrait");
+      const echoDialogueSpeaker = document.getElementById("echoDialogueSpeaker");
+      const echoDialogueText = document.getElementById("echoDialogueText");
+      const echoDialogueNext = document.getElementById("echoDialogueNext");
+      const echoPuzzle = document.getElementById("echoPuzzle");
+      const echoPuzzleEyebrow = document.getElementById("echoPuzzleEyebrow");
+      const echoPuzzleTitle = document.getElementById("echoPuzzleTitle");
+      const echoPuzzleDescription = document.getElementById("echoPuzzleDescription");
+      const echoRunes = [...document.querySelectorAll("[data-echo-rune]")];
+      const echoPuzzleStatus = document.getElementById("echoPuzzleStatus");
+      const echoPuzzleReplay = document.getElementById("echoPuzzleReplay");
+      const echoPuzzleClose = document.getElementById("echoPuzzleClose");
+      const echoBattle = document.getElementById("echoBattle");
+      const echoBattleScene = document.getElementById("echoBattleScene");
+      const echoBattleMessage = document.getElementById("echoBattleMessage");
+      const echoPlayerFighter = document.getElementById("echoPlayerFighter");
+      const echoWildFighter = document.getElementById("echoWildFighter");
+      const echoBattlePlayerImage = document.getElementById("echoBattlePlayerImage");
+      const echoBattleWildImage = document.getElementById("echoBattleWildImage");
+      const echoBattlePlayerName = document.getElementById("echoBattlePlayerName");
+      const echoBattlePlayerLevel = document.getElementById("echoBattlePlayerLevel");
+      const echoBattleWildName = document.getElementById("echoBattleWildName");
+      const echoBattleWildLevel = document.getElementById("echoBattleWildLevel");
+      const echoBattlePlayerHp = document.getElementById("echoBattlePlayerHp");
+      const echoBattleWildHp = document.getElementById("echoBattleWildHp");
+      const echoBattleActions = document.getElementById("echoBattleActions");
+      const echoBattleButtons = [...document.querySelectorAll("[data-echo-battle]")];
+      const echoElementalHint = document.getElementById("echoElementalHint");
+      const echoBattleChoice = document.getElementById("echoBattleChoice");
+      const echoBattleChoiceText = document.getElementById("echoBattleChoiceText");
+      const echoTryAbsorb = document.getElementById("echoTryAbsorb");
+      const echoReleaseWild = document.getElementById("echoReleaseWild");
+      const echoAbsorption = document.getElementById("echoAbsorption");
+      const echoAbsorbCreature = document.getElementById("echoAbsorbCreature");
+      const echoAbsorbParticles = document.getElementById("echoAbsorbParticles");
+      const echoAbsorbMessage = document.getElementById("echoAbsorbMessage");
+      const echoEvolution = document.getElementById("echoEvolution");
+      const echoEvolutionTitle = document.getElementById("echoEvolutionTitle");
+      const echoEvolutionFrom = document.getElementById("echoEvolutionFrom");
+      const echoEvolutionTo = document.getElementById("echoEvolutionTo");
+      const echoEvolutionText = document.getElementById("echoEvolutionText");
+      const echoEvolutionContinue = document.getElementById("echoEvolutionContinue");
+      const echoAreaTransition = document.getElementById("echoAreaTransition");
       const forestComplete = document.getElementById("forestComplete");
       const forestCompleteEyebrow = document.getElementById("forestCompleteEyebrow");
       const forestCompleteTitle = document.getElementById("forestCompleteTitle");
@@ -6498,6 +7861,35 @@
       let openMapPosition = { x: 50, y: 76 };
       let worldMapTravelling = false;
       let firstWorldDestinationReached = false;
+      let echoActive = false;
+      let echoAreaIndex = 0;
+      let echoFrame = 0;
+      let echoLastFrame = 0;
+      let echoPlayerX = 130;
+      let echoPlayerY = 580;
+      let echoVelocityX = 0;
+      let echoVelocityY = 0;
+      let echoGrounded = true;
+      let echoCameraX = 0;
+      let echoWorldWidth = 2172;
+      let echoWorldHeight = 724;
+      let echoWilds = [];
+      let echoEncounter = null;
+      let echoBattleLocked = false;
+      let echoPlayerHpValue = 40;
+      let echoWildHpValue = 30;
+      let echoPlayerMaxHp = 40;
+      let echoWildMaxHp = 30;
+      let echoNearInteraction = null;
+      let echoDialogueLines = [];
+      let echoDialogueIndex = 0;
+      let echoDialogueCallback = null;
+      let echoPuzzleSequence = [];
+      let echoPuzzleInput = 0;
+      let echoPuzzleAccepting = false;
+      let echoPuzzleArea = 0;
+      let echoEvolutionQueue = [];
+      const echoInput = { left: false, right: false };
 
       const STARTERS = {
         axolume: {
@@ -6558,6 +7950,173 @@
           xpStart: 18
         }
       };
+
+      const NATURION_FORMS = {
+        axolume: { id: "axolume", name: "Axolume", type: "Água", stage: 1, minLevel: 1, image: "assets/story/axolume.webp" },
+        hydrolume: { id: "hydrolume", name: "Hydrolume", type: "Água", stage: 2, minLevel: 14, image: "assets/echo-creatures/hydrolume.webp" },
+        abissolume: { id: "abissolume", name: "Abissolume", type: "Água", stage: 3, minLevel: 36, image: "assets/echo-creatures/abissolume.webp" },
+        brasguax: { id: "brasguax", name: "Brasguax", type: "Fogo", stage: 1, minLevel: 1, image: "assets/story/brasguax.webp" },
+        brasquati: { id: "brasquati", name: "Brasquati", type: "Fogo", stage: 2, minLevel: 14, image: "assets/echo-creatures/brasquati.webp" },
+        vulcaguax: { id: "vulcaguax", name: "Vulcaguax", type: "Fogo", stage: 3, minLevel: 36, image: "assets/echo-creatures/vulcaguax.webp" },
+        musgurso: { id: "musgurso", name: "Musgurso", type: "Planta", stage: 1, minLevel: 1, image: "assets/story/musgurso.webp" },
+        florurso: { id: "florurso", name: "Florurso", type: "Planta", stage: 2, minLevel: 14, image: "assets/echo-creatures/florurso.webp" },
+        silvurso: { id: "silvurso", name: "Silvurso", type: "Planta", stage: 3, minLevel: 36, image: "assets/echo-creatures/silvurso.webp" },
+        escaruli: { id: "escaruli", name: "Escaruli", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/escaruli.webp" },
+        carabruto: { id: "carabruto", name: "Carabruto", type: "Inseto", stage: 2, minLevel: 12, image: "assets/echo-creatures/carabruto.webp" },
+        titanoleo: { id: "titanoleo", name: "Titanóleo", type: "Inseto/Terra", stage: 3, minLevel: 25, image: "assets/echo-creatures/titanoleo.webp" },
+        lumpirim: { id: "lumpirim", name: "Lumpirim", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/lumpirim.webp", flying: true },
+        vagalux: { id: "vagalux", name: "Vagalux", type: "Inseto", stage: 2, minLevel: 9, image: "assets/echo-creatures/vagalux.webp", flying: true },
+        auralume: { id: "auralume", name: "Auralume", type: "Inseto/Luz", stage: 3, minLevel: 16, image: "assets/echo-creatures/auralume.webp", flying: true },
+        failino: { id: "failino", name: "Fáilino", type: "Elétrico", stage: 1, minLevel: 1, image: "assets/echo-creatures/failino.webp" },
+        trovagato: { id: "trovagato", name: "Trovagato", type: "Elétrico", stage: 2, minLevel: 17, image: "assets/echo-creatures/trovagato.webp" },
+        hambrio: { id: "hambrio", name: "Hambrio", type: "Sombrio", stage: 1, minLevel: 1, image: "assets/echo-creatures/hambrio.webp" },
+        umbrester: { id: "umbrester", name: "Umbrester", type: "Sombrio", stage: 2, minLevel: 14, image: "assets/echo-creatures/umbrester.webp" },
+        canumi: { id: "canumi", name: "Canumi", type: "Normal", stage: 1, minLevel: 1, image: "assets/echo-creatures/canumi.webp" },
+        fidelark: { id: "fidelark", name: "Fidelark", type: "Normal", stage: 2, minLevel: 9, image: "assets/echo-creatures/fidelark.webp" },
+        zumbel: { id: "zumbel", name: "Zumbel", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/zumbel.webp", flying: true },
+        melsting: { id: "melsting", name: "Melsting", type: "Inseto", stage: 2, minLevel: 8, image: "assets/echo-creatures/melsting.webp", flying: true },
+        rainhaxa: { id: "rainhaxa", name: "Rainhaxa", type: "Inseto/Veneno", stage: 3, minLevel: 15, image: "assets/echo-creatures/rainhaxa.webp", flying: true }
+      };
+
+      const EVOLUTION_CHAINS = [
+        ["axolume", "hydrolume", "abissolume"],
+        ["brasguax", "brasquati", "vulcaguax"],
+        ["musgurso", "florurso", "silvurso"],
+        ["escaruli", "carabruto", "titanoleo"],
+        ["lumpirim", "vagalux", "auralume"],
+        ["failino", "trovagato"],
+        ["hambrio", "umbrester"],
+        ["canumi", "fidelark"],
+        ["zumbel", "melsting", "rainhaxa"]
+      ];
+
+      const ECHO_WILD_CHAINS = EVOLUTION_CHAINS.slice(3);
+      const ESSENCE_TYPE_STYLES = {
+        Água: { color: "#59dcff", glow: "#1d8cff", palette: ["#59dcff", "#d8fbff", "#318cff"] },
+        Fogo: { color: "#ff5c35", glow: "#ffaf2e", palette: ["#ff3d2e", "#ff9a2f", "#ffe07a"] },
+        Planta: { color: "#72df72", glow: "#b5d34f", palette: ["#72df72", "#d8ef6d", "#3ba65d"] },
+        Inseto: { color: "#b5df58", glow: "#70b842", palette: ["#d9ed67", "#75c854", "#fff0a0"] },
+        Elétrico: { color: "#ffe14e", glow: "#ff9f21", palette: ["#fff56b", "#ffb72b", "#ffffff"] },
+        Sombrio: { color: "#9b65dc", glow: "#562d9d", palette: ["#b17bea", "#5e2a98", "#e5c8ff"] },
+        Normal: { color: "#e1c08c", glow: "#9c7443", palette: ["#f0d4a1", "#b88b55", "#fff4d6"] },
+        Luz: { color: "#fff3a1", glow: "#66e9ff", palette: ["#fff7bd", "#7eeaff", "#ffffff"] },
+        Terra: { color: "#b9844f", glow: "#6e4729", palette: ["#d6a267", "#8b5a35", "#e7c394"] },
+        Veneno: { color: "#c34fd8", glow: "#712b9a", palette: ["#e066e9", "#8735ba", "#8be66c"] }
+      };
+
+      const ECHO_AREAS = [
+        {
+          id: "entrada-luminal",
+          name: "Entrada Luminal",
+          levels: [3, 5],
+          maxStage: 1,
+          scene: "assets/echo-scenes/clareira-1.webp",
+          count: 6,
+          objective: "Converse com a Dra. Íris e siga pela trilha dos ecos.",
+          platforms: [[0, 1, .82], [.22, .34, .69], [.51, .63, .66], [.77, .9, .71]],
+          npc: {
+            id: "iris",
+            name: "Dra. Íris",
+            image: "assets/story/dr-iris.webp",
+            x: .14,
+            y: .82,
+            lines: [
+              "Esta é a Clareira dos Ecos. Os Naturions daqui reagem ao som das ruínas e cada espécie se comporta de uma maneira.",
+              "Alguns se aproximam, outros fogem e alguns apenas observam. Ao encostar em um deles, a batalha começa.",
+              "Explore com calma. Você pode voltar às áreas anteriores quando quiser; os Naturions selvagens surgirão novamente em novos lugares."
+            ]
+          }
+        },
+        {
+          id: "bosque-das-raizes",
+          name: "Bosque das Raízes",
+          levels: [5, 7],
+          maxStage: 1,
+          scene: "assets/echo-scenes/clareira-2.webp",
+          count: 7,
+          objective: "Atravesse as raízes antigas e observe o comportamento dos Naturions.",
+          platforms: [[0, 1, .83], [.17, .31, .67], [.42, .55, .72], [.68, .82, .62]],
+          npc: {
+            id: "cael",
+            name: "Explorador Cael",
+            image: "assets/selection/hero-male.webp",
+            x: .47,
+            y: .83,
+            lines: [
+              "A Clareira muda sempre que alguém atravessa uma passagem. Por isso os encontros nunca aparecem exatamente no mesmo lugar.",
+              "Naturions que correm em sua direção costumam ser territoriais. Os que recuam só querem manter distância."
+            ]
+          }
+        },
+        {
+          id: "ruinas-do-rio",
+          name: "Ruínas do Rio",
+          levels: [7, 10],
+          maxStage: 2,
+          scene: "assets/echo-scenes/clareira-3.webp",
+          count: 8,
+          objective: "Sintonize os três ecos para abrir a passagem das ruínas.",
+          platforms: [[0, 1, .82], [.12, .27, .7], [.38, .51, .63], [.64, .76, .69]],
+          puzzle: {
+            id: "ecos-do-rio",
+            x: .82,
+            y: .82,
+            sequence: [0, 2, 1, 0],
+            title: "Ecos do Rio",
+            description: "A água repete apenas sons na ordem correta. Observe as runas e devolva a sequência."
+          }
+        },
+        {
+          id: "trilha-crepuscular",
+          name: "Trilha Crepuscular",
+          levels: [10, 14],
+          maxStage: 2,
+          scene: "assets/echo-scenes/clareira-4.webp",
+          count: 9,
+          objective: "Use a sintonia do seu inicial para libertar o Portão das Raízes.",
+          platforms: [[0, 1, .83], [.15, .3, .66], [.42, .58, .7], [.68, .81, .61]],
+          npc: {
+            id: "lira",
+            name: "Pesquisadora Lira",
+            image: "assets/selection/hero-female.webp",
+            x: .43,
+            y: .83,
+            lines: [
+              "O Portão das Raízes reconhece vínculos verdadeiros. Seu inicial deve conduzir as três energias sem quebrar a sequência.",
+              "Se errar, as runas se apagam e recomeçam. Não há punição: puzzles existem para serem compreendidos."
+            ]
+          },
+          puzzle: {
+            id: "portao-das-raizes",
+            x: .84,
+            y: .83,
+            sequence: [2, 0, 1, 2, 1],
+            title: "Portão das Raízes",
+            description: "Seu inicial sente a ordem escondida nas raízes. Repita-a para libertar a passagem."
+          }
+        },
+        {
+          id: "santuario-dos-ecos",
+          name: "Santuário dos Ecos",
+          levels: [14, 18],
+          maxStage: 3,
+          scene: "assets/echo-scenes/clareira-5.webp",
+          count: 10,
+          objective: "Explore o santuário e encontre a origem do chamado cristalino.",
+          platforms: [[0, 1, .83], [.18, .32, .68], [.43, .57, .59], [.69, .84, .67]],
+          npc: {
+            id: "orun",
+            name: "Guardião Orun",
+            image: "assets/selection/hero-male.webp",
+            x: .62,
+            y: .83,
+            lines: [
+              "Você chegou ao coração desta região. Os ecos reconhecem quem atravessou as ruínas sem ferir seu equilíbrio.",
+              "A origem do chamado está além do santuário. Este será o próximo capítulo da missão."
+            ]
+          }
+        }
+      ];
 
       /*
        * Toda absorção usa a mesma coreografia da sintonia inicial.
@@ -8057,13 +9616,13 @@
         openMapParty.classList.remove("is-moving");
         worldMapTravelling = false;
         openMapExploring = false;
-        worldFirstDestination.disabled = firstWorldDestinationReached;
+        worldFirstDestination.disabled = false;
         worldFirstDestination.classList.toggle("visited", firstWorldDestinationReached);
         worldMapObjective.textContent = firstWorldDestinationReached
           ? "Destino alcançado: Clareira dos Ecos"
           : "Escolha seu primeiro destino";
         worldMapGuideText.textContent = firstWorldDestinationReached
-          ? "A Clareira dos Ecos foi alcançada. A continuação desta missão será aberta na próxima etapa."
+          ? "A Clareira dos Ecos foi alcançada. Clique no ponto da clareira quando quiser entrar."
           : "Os caminhos serão revelados durante sua jornada. Por enquanto, siga até a Clareira dos Ecos.";
         forestObjective.textContent = firstWorldDestinationReached
           ? "Clareira dos Ecos alcançada"
@@ -8183,6 +9742,938 @@
           journeyUnlocked.hidden = true;
         }, prefersLessMotion() ? 120 : 2300);
         showToast("Destino alcançado: Clareira dos Ecos!");
+        worldFirstDestination.disabled = false;
+        await forestPause(prefersLessMotion() ? 90 : 520);
+        openEchoEntryConfirmation();
+      };
+
+      const echoRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+      const getEvolutionChain = (formId) => (
+        EVOLUTION_CHAINS.find((chain) => chain.includes(formId)) || null
+      );
+
+      const getHighestForm = (chain, level, maxStage = 3, allowTitanoleo = true) => {
+        const legal = chain
+          .map((id) => NATURION_FORMS[id])
+          .filter((form) => (
+            form.minLevel <= level
+            && form.stage <= maxStage
+            && (allowTitanoleo || form.id !== "titanoleo")
+          ));
+        return legal[legal.length - 1] || NATURION_FORMS[chain[0]];
+      };
+
+      const ensureEchoPlayerData = () => {
+        const baseStarter = STARTERS[selectedStarter] || STARTERS[currentPlayer?.starter?.id] || STARTERS.axolume;
+        selectedStarter = baseStarter.id;
+        const existing = currentPlayer.starter || {};
+        const formId = NATURION_FORMS[existing.formId]
+          ? existing.formId
+          : baseStarter.id;
+        const form = NATURION_FORMS[formId];
+        currentPlayer = {
+          ...currentPlayer,
+          starter: {
+            ...existing,
+            id: baseStarter.id,
+            baseId: baseStarter.id,
+            formId: form.id,
+            name: form.name,
+            type: form.type,
+            image: form.image,
+            level: Number(existing.level) || 5,
+            experience: Number(existing.experience) || 24,
+            experiencePercent: Number(existing.experiencePercent) || 42,
+            currentHp: Number(existing.currentHp) || 0,
+            maxHp: Number(existing.maxHp) || 0
+          },
+          team: Array.isArray(currentPlayer.team) ? currentPlayer.team : [],
+          echoProgress: {
+            unlockedArea: 0,
+            currentArea: 0,
+            puzzles: {},
+            npcTalked: {},
+            ...(currentPlayer.echoProgress || {})
+          }
+        };
+        const starterMaxHp = 34 + currentPlayer.starter.level * 4 + form.stage * 6;
+        currentPlayer.starter.maxHp = Math.max(currentPlayer.starter.maxHp, starterMaxHp);
+        if (!currentPlayer.starter.currentHp) currentPlayer.starter.currentHp = currentPlayer.starter.maxHp;
+        saveCurrentPlayer();
+        return currentPlayer.starter;
+      };
+
+      const getMemberForm = (member) => {
+        const fallbackId = member.formId || member.id || member.baseId;
+        return NATURION_FORMS[fallbackId] || NATURION_FORMS.axolume;
+      };
+
+      const refreshEchoStarterUI = () => {
+        const member = ensureEchoPlayerData();
+        const form = getMemberForm(member);
+        echoStarterFollower.src = form.image;
+        echoStarterFollower.alt = form.name;
+        echoHudStarter.src = form.image;
+        echoHudStarter.alt = form.name;
+        echoHudStarterName.textContent = `${form.name} · Nv. ${member.level}`;
+        const hpPercent = Math.max(0, Math.min(100, member.currentHp / member.maxHp * 100));
+        echoHudHpTrack.style.setProperty("--echo-hp", `${hpPercent}%`);
+      };
+
+      const getEchoTypeStyle = (type) => {
+        const accentedSecondary = ["Veneno", "Luz", "Terra"].find((key) => type.includes(key));
+        const primary = accentedSecondary || Object.keys(ESSENCE_TYPE_STYLES).find((key) => type.includes(key));
+        return ESSENCE_TYPE_STYLES[primary] || ESSENCE_TYPE_STYLES.Normal;
+      };
+
+      const openEchoEntryConfirmation = () => {
+        if (!firstWorldDestinationReached || worldMapTravelling) return;
+        echoEntryConfirm.hidden = false;
+        openMapExploring = false;
+        playSequence([392, 523, 659], .07);
+        confirmEchoEntry.focus();
+      };
+
+      const closeEchoEntryConfirmation = () => {
+        echoEntryConfirm.hidden = true;
+        worldFirstDestination.focus();
+      };
+
+      const syncEchoMetrics = () => {
+        echoWorldWidth = echoWorld.offsetWidth || Math.max(2172, innerWidth * 3);
+        echoWorldHeight = echoWorld.offsetHeight || innerHeight || 724;
+      };
+
+      const getEchoArea = () => ECHO_AREAS[echoAreaIndex];
+
+      const getEchoGroundAt = (x, previousY, nextY) => {
+        const platforms = getEchoArea().platforms
+          .map(([from, to, y]) => ({ from: from * echoWorldWidth, to: to * echoWorldWidth, y: y * echoWorldHeight }))
+          .filter((platform) => x >= platform.from - 18 && x <= platform.to + 18)
+          .sort((a, b) => a.y - b.y);
+        if (typeof previousY === "number" && typeof nextY === "number") {
+          return platforms.find((platform) => (
+            previousY <= platform.y + 5
+            && nextY >= platform.y
+          )) || null;
+        }
+        return platforms.find((platform) => Math.abs(platform.y - echoPlayerY) <= 10) || null;
+      };
+
+      const getWildSize = (form) => {
+        if (form.stage === 1) return echoRandom(72, 88);
+        if (form.stage === 2) return echoRandom(102, 124);
+        return echoRandom(142, 168);
+      };
+
+      const chooseEchoWild = (index) => {
+        const area = getEchoArea();
+        const level = echoRandom(area.levels[0], area.levels[1]);
+        const chain = ECHO_WILD_CHAINS[echoRandom(0, ECHO_WILD_CHAINS.length - 1)];
+        const form = getHighestForm(chain, level, area.maxStage, false);
+        const platforms = area.platforms.slice(1);
+        const platform = Math.random() < .58 && platforms.length
+          ? platforms[echoRandom(0, platforms.length - 1)]
+          : area.platforms[0];
+        const margin = .04;
+        const xRatio = Math.max(
+          .15,
+          Math.min(.85, platform[0] + .04 + Math.random() * Math.max(.04, platform[1] - platform[0] - .08))
+        );
+        const behaviors = form.flying
+          ? ["wander", "flee", "idle"]
+          : ["wander", "flee", "chase", "idle"];
+        return {
+          instanceId: `${area.id}-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+          chain,
+          form,
+          level,
+          behavior: behaviors[echoRandom(0, behaviors.length - 1)],
+          x: xRatio * echoWorldWidth,
+          y: (platform[2] - (form.flying ? echoRandom(8, 17) / 100 : 0)) * echoWorldHeight,
+          minX: (platform[0] + .025) * echoWorldWidth,
+          maxX: (platform[1] - .025) * echoWorldWidth,
+          direction: Math.random() > .5 ? 1 : -1,
+          speed: form.flying ? echoRandom(30, 48) : echoRandom(20, 42),
+          size: getWildSize(form),
+          nextTurn: performance.now() + echoRandom(900, 2600),
+          element: null
+        };
+      };
+
+      const renderEchoWild = (wild) => {
+        const element = document.createElement("span");
+        element.className = `echo-wild${wild.form.flying ? " flying" : ""}`;
+        element.dataset.wildId = wild.instanceId;
+        element.style.setProperty("--wild-size", `${wild.size}px`);
+        const image = document.createElement("img");
+        image.src = wild.form.image;
+        image.alt = "";
+        image.draggable = false;
+        element.append(image);
+        echoWildLayer.append(element);
+        wild.element = element;
+      };
+
+      const spawnEchoWilds = () => {
+        echoWildLayer.replaceChildren();
+        echoWilds = Array.from({ length: getEchoArea().count }, (_, index) => chooseEchoWild(index));
+        echoWilds.forEach(renderEchoWild);
+      };
+
+      const isEchoPuzzleSolved = (areaIndex = echoAreaIndex) => {
+        const puzzle = ECHO_AREAS[areaIndex].puzzle;
+        return !puzzle || Boolean(currentPlayer.echoProgress?.puzzles?.[puzzle.id]);
+      };
+
+      const renderEchoStaticLayer = () => {
+        const area = getEchoArea();
+        echoNpcLayer.replaceChildren();
+        echoPuzzleLayer.replaceChildren();
+
+        if (area.npc) {
+          const npc = document.createElement("span");
+          npc.className = "echo-npc";
+          npc.dataset.echoNpc = area.npc.id;
+          npc.style.left = `${area.npc.x * echoWorldWidth}px`;
+          npc.style.top = `${area.npc.y * echoWorldHeight}px`;
+          const image = document.createElement("img");
+          image.src = area.npc.image;
+          image.alt = "";
+          const label = document.createElement("small");
+          label.className = "echo-npc-name";
+          label.textContent = area.npc.name;
+          npc.append(image, label);
+          echoNpcLayer.append(npc);
+        }
+
+        if (area.puzzle) {
+          const gate = document.createElement("span");
+          gate.className = `echo-gate${isEchoPuzzleSolved() ? " open" : ""}`;
+          gate.dataset.echoGate = area.puzzle.id;
+          gate.style.left = `${area.puzzle.x * echoWorldWidth}px`;
+          gate.style.top = `${area.puzzle.y * echoWorldHeight}px`;
+          echoPuzzleLayer.append(gate);
+        }
+      };
+
+      const updateEchoHud = () => {
+        const area = getEchoArea();
+        echoAreaName.textContent = area.name;
+        echoAreaLevel.textContent = `Área ${echoAreaIndex + 1} de ${ECHO_AREAS.length} · Níveis ${area.levels[0]}–${area.levels[1]}`;
+        echoObjective.textContent = isEchoPuzzleSolved()
+          ? (echoAreaIndex === ECHO_AREAS.length - 1 ? area.objective : "A passagem está livre. Continue explorando ou avance para a próxima área.")
+          : area.objective;
+        refreshEchoStarterUI();
+      };
+
+      const positionEchoWorld = () => {
+        const viewportWidth = echoViewport.clientWidth || innerWidth;
+        const maxCamera = Math.max(0, echoWorldWidth - viewportWidth);
+        const target = Math.max(0, Math.min(maxCamera, echoPlayerX - viewportWidth * .42));
+        echoCameraX += (target - echoCameraX) * .14;
+        echoWorld.style.setProperty("--echo-camera", `${-echoCameraX}px`);
+        echoPlayer.style.left = `${echoPlayerX}px`;
+        echoPlayer.style.top = `${echoPlayerY}px`;
+        const followerOffset = echoInput.left ? 62 : echoInput.right ? -62 : echoPlayer.classList.contains("facing-left") ? 62 : -62;
+        echoStarterFollower.style.left = `${echoPlayerX + followerOffset}px`;
+        echoStarterFollower.style.top = `${echoPlayerY + (echoGrounded ? 0 : 8)}px`;
+      };
+
+      const setEchoMovement = (direction, active) => {
+        if (!echoActive || !echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+        echoInput[direction] = active;
+        echoPlayer.classList.toggle("walking", echoInput.left || echoInput.right);
+        echoStarterFollower.classList.toggle("walking", echoInput.left || echoInput.right);
+        if (active) {
+          echoPlayer.classList.toggle("facing-left", direction === "left");
+        }
+      };
+
+      const jumpEchoPlayer = () => {
+        if (!echoActive || !echoGrounded || !echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+        echoVelocityY = -630;
+        echoGrounded = false;
+        echoPlayer.classList.add("jumping");
+        playTone(440, 0, .07, "square");
+      };
+
+      const updateEchoWilds = (dt, now) => {
+        echoWilds.forEach((wild) => {
+          if (!wild.element) return;
+          let velocity = 0;
+          const distance = echoPlayerX - wild.x;
+          if (wild.behavior === "chase" && Math.abs(distance) < 390) {
+            velocity = Math.sign(distance) * wild.speed * 1.25;
+          } else if (wild.behavior === "flee" && Math.abs(distance) < 310) {
+            velocity = -Math.sign(distance) * wild.speed * 1.35;
+          } else if (wild.behavior === "wander") {
+            if (now > wild.nextTurn) {
+              wild.direction *= Math.random() > .25 ? -1 : 1;
+              wild.nextTurn = now + echoRandom(900, 2600);
+            }
+            velocity = wild.direction * wild.speed;
+          }
+
+          wild.x += velocity * dt;
+          if (wild.x <= wild.minX || wild.x >= wild.maxX) {
+            wild.x = Math.max(wild.minX, Math.min(wild.maxX, wild.x));
+            wild.direction *= -1;
+          }
+          wild.element.style.left = `${wild.x}px`;
+          wild.element.style.top = `${wild.y}px`;
+          wild.element.classList.toggle("moving", Math.abs(velocity) > 1);
+          wild.element.classList.toggle("facing-left", velocity < 0);
+
+          if (
+            echoActive
+            && echoDialogue.hidden
+            && echoPuzzle.hidden
+            && echoBattle.hidden
+            && echoEvolution.hidden
+            && echoAbsorption.hidden
+            && Math.abs(echoPlayerX - wild.x) < Math.max(42, wild.size * .43)
+            && Math.abs(echoPlayerY - wild.y) < Math.max(72, wild.size * .55)
+          ) {
+            startEchoBattle(wild);
+          }
+        });
+      };
+
+      const updateEchoInteraction = () => {
+        const area = getEchoArea();
+        echoNearInteraction = null;
+        if (area.npc && Math.abs(echoPlayerX - area.npc.x * echoWorldWidth) < 105) {
+          echoNearInteraction = { type: "npc", value: area.npc };
+        } else if (area.puzzle && Math.abs(echoPlayerX - area.puzzle.x * echoWorldWidth) < 125) {
+          echoNearInteraction = { type: "puzzle", value: area.puzzle };
+        }
+        echoInteract.hidden = !echoNearInteraction;
+        if (echoNearInteraction) {
+          echoInteractText.textContent = echoNearInteraction.type === "npc"
+            ? `Conversar com ${echoNearInteraction.value.name}`
+            : isEchoPuzzleSolved() ? "Examinar passagem aberta" : "Investigar as runas";
+        }
+      };
+
+      const showEchoDialogue = (npc, callback = null) => {
+        echoDialogueLines = npc.lines || [];
+        echoDialogueIndex = 0;
+        echoDialogueCallback = callback;
+        echoDialoguePortrait.src = npc.image;
+        echoDialoguePortrait.alt = npc.name;
+        echoDialogueSpeaker.textContent = npc.name;
+        echoDialogueText.textContent = echoDialogueLines[0] || "";
+        echoDialogueNext.textContent = echoDialogueLines.length > 1 ? "Continuar" : "Concluir";
+        echoDialogue.hidden = false;
+        echoInput.left = false;
+        echoInput.right = false;
+        echoPlayer.classList.remove("walking");
+        playSequence([330, 392, 440], .06);
+        echoDialogueNext.focus();
+      };
+
+      const advanceEchoDialogue = () => {
+        if (echoDialogueIndex < echoDialogueLines.length - 1) {
+          echoDialogueIndex += 1;
+          echoDialogueText.textContent = echoDialogueLines[echoDialogueIndex];
+          echoDialogueNext.textContent = echoDialogueIndex === echoDialogueLines.length - 1 ? "Concluir" : "Continuar";
+          playClick(330);
+          return;
+        }
+        echoDialogue.hidden = true;
+        const area = getEchoArea();
+        if (area.npc) {
+          currentPlayer.echoProgress.npcTalked[area.npc.id] = true;
+          saveCurrentPlayer();
+        }
+        const callback = echoDialogueCallback;
+        echoDialogueCallback = null;
+        callback?.();
+        echoClearing.focus();
+      };
+
+      const previewEchoPuzzle = async () => {
+        if (echoPuzzle.hidden) return;
+        echoPuzzleAccepting = false;
+        echoPuzzleInput = 0;
+        echoRunes.forEach((rune) => rune.classList.remove("preview", "correct", "wrong"));
+        echoPuzzleStatus.textContent = "Observe a sequência das runas...";
+        await forestPause(380);
+        for (const runeIndex of echoPuzzleSequence) {
+          if (echoPuzzle.hidden) return;
+          const rune = echoRunes[runeIndex];
+          rune.classList.add("preview");
+          playTone([523, 659, 784][runeIndex], 0, .17, "sine");
+          await forestPause(430);
+          rune.classList.remove("preview");
+          await forestPause(160);
+        }
+        echoPuzzleAccepting = true;
+        echoPuzzleStatus.textContent = "Sua vez: repita a mesma ordem.";
+        echoRunes[0].focus();
+      };
+
+      const openEchoPuzzle = (puzzle) => {
+        if (isEchoPuzzleSolved()) {
+          showToast("A passagem já está sintonizada.");
+          return;
+        }
+        echoPuzzleArea = echoAreaIndex;
+        echoPuzzleSequence = puzzle.sequence.slice();
+        echoPuzzleInput = 0;
+        echoPuzzleAccepting = false;
+        echoPuzzleEyebrow.textContent = `Puzzle da área ${echoAreaIndex + 1}`;
+        echoPuzzleTitle.textContent = puzzle.title;
+        echoPuzzleDescription.textContent = puzzle.description;
+        echoPuzzleStatus.textContent = "Prepare-se para observar.";
+        echoRunes.forEach((rune) => rune.classList.remove("preview", "correct", "wrong"));
+        echoPuzzle.hidden = false;
+        void previewEchoPuzzle();
+      };
+
+      const activateEchoRune = async (runeIndex) => {
+        if (!echoPuzzleAccepting || echoPuzzle.hidden) return;
+        const rune = echoRunes[runeIndex];
+        const expected = echoPuzzleSequence[echoPuzzleInput];
+        if (runeIndex !== expected) {
+          echoPuzzleAccepting = false;
+          rune.classList.add("wrong");
+          echoPuzzleStatus.textContent = "A sintonia se desfez. Observe novamente.";
+          playSequence([330, 247, 196], .07);
+          await forestPause(620);
+          void previewEchoPuzzle();
+          return;
+        }
+
+        rune.classList.add("correct");
+        playTone([523, 659, 784][runeIndex], 0, .18, "triangle");
+        echoPuzzleInput += 1;
+        echoPuzzleStatus.textContent = echoPuzzleInput < echoPuzzleSequence.length
+          ? `Correto. Faltam ${echoPuzzleSequence.length - echoPuzzleInput} sinais.`
+          : "Sintonia completa! A passagem está se abrindo.";
+
+        if (echoPuzzleInput < echoPuzzleSequence.length) return;
+        echoPuzzleAccepting = false;
+        const puzzle = ECHO_AREAS[echoPuzzleArea].puzzle;
+        currentPlayer.echoProgress.puzzles[puzzle.id] = true;
+        currentPlayer.activeMission = {
+          ...currentPlayer.activeMission,
+          progress: `${puzzle.id}-concluido`
+        };
+        saveCurrentPlayer();
+        playSequence([392, 523, 659, 784, 988], .08);
+        await forestPause(900);
+        echoPuzzle.hidden = true;
+        renderEchoStaticLayer();
+        updateEchoHud();
+        showToast("Puzzle concluído: passagem liberada!");
+        echoClearing.focus();
+      };
+
+      const interactEchoWorld = () => {
+        if (!echoActive || !echoNearInteraction || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+        if (echoNearInteraction.type === "npc") {
+          showEchoDialogue(echoNearInteraction.value);
+        } else {
+          openEchoPuzzle(echoNearInteraction.value);
+        }
+      };
+
+      const stepEchoExploration = (now) => {
+        if (!echoActive) return;
+        const dt = Math.min(.034, Math.max(.001, (now - (echoLastFrame || now)) / 1000));
+        echoLastFrame = now;
+        const targetVelocity = (echoInput.right ? 1 : 0) * 245 - (echoInput.left ? 1 : 0) * 245;
+        echoVelocityX += (targetVelocity - echoVelocityX) * Math.min(1, dt * 12);
+        if (!echoInput.left && !echoInput.right) echoVelocityX *= Math.max(0, 1 - dt * 10);
+
+        if (echoGrounded && !getEchoGroundAt(echoPlayerX)) echoGrounded = false;
+        echoVelocityY += 1650 * dt;
+        const previousY = echoPlayerY;
+        const nextX = Math.max(34, Math.min(echoWorldWidth - 34, echoPlayerX + echoVelocityX * dt));
+        const nextY = echoPlayerY + echoVelocityY * dt;
+        const landing = echoVelocityY >= 0 ? getEchoGroundAt(nextX, previousY, nextY) : null;
+        echoPlayerX = nextX;
+        if (landing) {
+          echoPlayerY = landing.y;
+          echoVelocityY = 0;
+          echoGrounded = true;
+          echoPlayer.classList.remove("jumping");
+        } else {
+          echoPlayerY = Math.min(echoWorldHeight + 120, nextY);
+          echoGrounded = false;
+        }
+
+        if (echoPlayerY > echoWorldHeight + 80) {
+          echoPlayerX = echoAreaIndex ? 120 : 150;
+          echoPlayerY = getEchoArea().platforms[0][2] * echoWorldHeight;
+          echoVelocityY = 0;
+          echoGrounded = true;
+          showToast("Seu inicial ajudou você a voltar para a trilha.");
+        }
+
+        positionEchoWorld();
+        updateEchoWilds(dt, now);
+        updateEchoInteraction();
+
+        const blockedByPuzzle = getEchoArea().puzzle && !isEchoPuzzleSolved();
+        if (echoPlayerX > echoWorldWidth - 58) {
+          if (blockedByPuzzle) {
+            echoPlayerX = echoWorldWidth - 70;
+            showToast("As runas ainda bloqueiam esta passagem.");
+          } else if (echoAreaIndex < ECHO_AREAS.length - 1) {
+            void enterEchoArea(echoAreaIndex + 1, "left");
+            return;
+          } else {
+            echoPlayerX = echoWorldWidth - 70;
+            showToast("O caminho além do santuário será aberto no próximo capítulo.");
+          }
+        } else if (echoPlayerX < 44 && echoAreaIndex > 0) {
+          void enterEchoArea(echoAreaIndex - 1, "right");
+          return;
+        }
+
+        echoFrame = requestAnimationFrame(stepEchoExploration);
+      };
+
+      const startEchoLoop = () => {
+        cancelAnimationFrame(echoFrame);
+        echoLastFrame = 0;
+        echoActive = true;
+        echoFrame = requestAnimationFrame(stepEchoExploration);
+      };
+
+      const enterEchoArea = async (areaIndex, entrySide = "left", skipFlash = false) => {
+        echoActive = false;
+        cancelAnimationFrame(echoFrame);
+        echoInput.left = false;
+        echoInput.right = false;
+        echoPlayer.classList.remove("walking", "jumping");
+        echoStarterFollower.classList.remove("walking");
+
+        if (!skipFlash) {
+          echoAreaTransition.style.setProperty("--echo-transition-x", entrySide === "left" ? "12%" : "88%");
+          echoAreaTransition.classList.remove("active");
+          void echoAreaTransition.offsetWidth;
+          echoAreaTransition.classList.add("active");
+          playSequence([392, 523, 659], .06);
+          await forestPause(380);
+        }
+
+        echoAreaIndex = Math.max(0, Math.min(ECHO_AREAS.length - 1, areaIndex));
+        const area = getEchoArea();
+        echoWorldArt.src = area.scene;
+        echoBattleScene.src = area.scene;
+        syncEchoMetrics();
+        echoPlayerX = entrySide === "right" ? echoWorldWidth - 125 : 125;
+        echoPlayerY = area.platforms[0][2] * echoWorldHeight;
+        echoVelocityX = 0;
+        echoVelocityY = 0;
+        echoGrounded = true;
+        echoCameraX = entrySide === "right" ? Math.max(0, echoWorldWidth - echoViewport.clientWidth) : 0;
+        spawnEchoWilds();
+        renderEchoStaticLayer();
+        updateEchoHud();
+        positionEchoWorld();
+        currentPlayer.echoProgress.currentArea = echoAreaIndex;
+        currentPlayer.echoProgress.unlockedArea = Math.max(
+          Number(currentPlayer.echoProgress.unlockedArea) || 0,
+          echoAreaIndex
+        );
+        currentPlayer.lastCheckpoint = `clareira-dos-ecos-area-${echoAreaIndex + 1}`;
+        currentPlayer.activeMission = {
+          ...currentPlayer.activeMission,
+          location: "Clareira dos Ecos",
+          objective: area.objective,
+          progress: `area-${echoAreaIndex + 1}`
+        };
+        saveCurrentPlayer();
+        await forestPause(skipFlash ? 20 : 300);
+        echoAreaTransition.classList.remove("active");
+        startEchoLoop();
+        echoClearing.focus();
+      };
+
+      const beginEchoExploration = async () => {
+        ensureEchoPlayerData();
+        echoEntryConfirm.hidden = true;
+        openForestMap.hidden = true;
+        echoClearing.hidden = false;
+        echoPlayerImage.src = currentPlayer.character === "female"
+          ? "assets/selection/hero-female.webp"
+          : "assets/selection/hero-male.webp";
+        echoPlayerImage.alt = currentPlayer.name;
+        refreshEchoStarterUI();
+        forestScreen.classList.add("world-map-open");
+        worldDoorTransition.hidden = false;
+        worldDoorTransition.classList.remove("active");
+        void worldDoorTransition.offsetWidth;
+        worldDoorTransition.classList.add("active");
+        playSequence([392, 523, 659, 784, 1047], .075);
+        await forestPause(620);
+        await enterEchoArea(0, "left", true);
+        await forestPause(360);
+        worldDoorTransition.hidden = true;
+        worldDoorTransition.classList.remove("active");
+        const alreadyIntroduced = Boolean(currentPlayer.echoProgress.npcTalked.iris);
+        if (!alreadyIntroduced) {
+          showEchoDialogue(ECHO_AREAS[0].npc, () => {
+            echoObjective.textContent = "Explore a trilha e atravesse a passagem à direita.";
+          });
+        }
+        window.dispatchEvent(new CustomEvent("naturion:echo-clearing-entered", {
+          detail: { area: 1, player: currentPlayer }
+        }));
+      };
+
+      const returnEchoToMap = () => {
+        echoActive = false;
+        cancelAnimationFrame(echoFrame);
+        echoInput.left = false;
+        echoInput.right = false;
+        echoClearing.hidden = true;
+        echoDialogue.hidden = true;
+        echoPuzzle.hidden = true;
+        echoBattle.hidden = true;
+        echoAbsorption.hidden = true;
+        echoEvolution.hidden = true;
+        openForestMap.hidden = false;
+        openMapPosition = { x: 29.3, y: 60.4 };
+        positionOpenMapParty();
+        worldMapObjective.textContent = "Destino alcançado: Clareira dos Ecos";
+        worldMapGuideText.textContent = "Clique novamente na Clareira dos Ecos quando quiser continuar a exploração.";
+        currentPlayer.lastCheckpoint = "mundo-naturion-clareira-dos-ecos";
+        saveCurrentPlayer();
+        playSequence([659, 523, 392], .06);
+        worldFirstDestination.focus();
+      };
+
+      const setEchoBattleControls = (enabled) => {
+        echoBattleButtons.forEach((button) => {
+          button.disabled = !enabled;
+        });
+      };
+
+      const updateEchoBattleBars = () => {
+        echoBattlePlayerHp.style.width = `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`;
+        echoBattleWildHp.style.width = `${Math.max(0, echoWildHpValue / echoWildMaxHp * 100)}%`;
+        const member = currentPlayer.starter;
+        member.currentHp = Math.max(0, echoPlayerHpValue);
+        echoHudHpTrack.style.setProperty("--echo-hp", `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`);
+      };
+
+      const startEchoBattle = (wild) => {
+        if (!echoActive || !echoBattle.hidden) return;
+        echoActive = false;
+        cancelAnimationFrame(echoFrame);
+        echoEncounter = wild;
+        const member = ensureEchoPlayerData();
+        const playerForm = getMemberForm(member);
+        echoPlayerMaxHp = member.maxHp;
+        echoPlayerHpValue = Math.max(1, member.currentHp);
+        echoWildMaxHp = 20 + wild.level * 4 + wild.form.stage * 7;
+        echoWildHpValue = echoWildMaxHp;
+        echoBattlePlayerImage.src = playerForm.image;
+        echoBattlePlayerImage.alt = playerForm.name;
+        echoBattlePlayerImage.parentElement.style.setProperty("--fighter-size", `${170 + playerForm.stage * 35}px`);
+        echoBattleWildImage.src = wild.form.image;
+        echoBattleWildImage.alt = wild.form.name;
+        echoBattleWildImage.parentElement.style.setProperty("--fighter-size", `${165 + wild.form.stage * 38}px`);
+        echoBattlePlayerName.textContent = playerForm.name;
+        echoBattlePlayerLevel.textContent = `Nv. ${member.level}`;
+        echoBattleWildName.textContent = wild.form.name;
+        echoBattleWildLevel.textContent = `${wild.form.type} · Nv. ${wild.level}`;
+        echoElementalHint.textContent = `${playerForm.type} · Poder ${11 + Math.floor(member.level / 4)}`;
+        echoBattleMessage.textContent = `${wild.form.name} selvagem apareceu! Escolha sua ação.`;
+        echoBattleChoice.hidden = true;
+        echoBattleActions.hidden = false;
+        echoBattle.hidden = false;
+        echoBattleLocked = false;
+        setEchoBattleControls(true);
+        updateEchoBattleBars();
+        playSequence([220, 330, 440, 523], .065);
+        echoBattleButtons[0].focus();
+      };
+
+      const removeEchoEncounter = () => {
+        if (!echoEncounter) return;
+        echoEncounter.element?.remove();
+        echoWilds = echoWilds.filter((wild) => wild !== echoEncounter);
+      };
+
+      const xpToNextEchoLevel = (level) => 55 + level * 20;
+
+      const queueMemberEvolution = (member) => {
+        const currentForm = getMemberForm(member);
+        const chain = getEvolutionChain(currentForm.id);
+        if (!chain) return;
+        const nextForm = getHighestForm(chain, member.level, 3, true);
+        if (nextForm.id === currentForm.id) return;
+        echoEvolutionQueue.push({ member, from: currentForm, to: nextForm });
+        member.formId = nextForm.id;
+        member.name = nextForm.name;
+        member.type = nextForm.type;
+        member.image = nextForm.image;
+        if (member === currentPlayer.starter) {
+          member.maxHp += (nextForm.stage - currentForm.stage) * 12;
+          member.currentHp = member.maxHp;
+        }
+      };
+
+      const grantEchoExperience = (member, amount) => {
+        member.experience = Number(member.experience) || 0;
+        member.level = Number(member.level) || 1;
+        member.experience += amount;
+        while (member.experience >= xpToNextEchoLevel(member.level)) {
+          member.experience -= xpToNextEchoLevel(member.level);
+          member.level += 1;
+          queueMemberEvolution(member);
+        }
+        member.experiencePercent = Math.round(member.experience / xpToNextEchoLevel(member.level) * 100);
+      };
+
+      const resolveEchoVictory = async () => {
+        echoBattleLocked = true;
+        setEchoBattleControls(false);
+        echoWildFighter.classList.add("hit");
+        echoBattleMessage.textContent = `${echoEncounter.form.name} foi derrotado. Sua essência começa a se libertar...`;
+        playSequence([392, 523, 659, 784, 988], .08);
+        const gainedXp = 18 + echoEncounter.level * 5;
+        grantEchoExperience(currentPlayer.starter, gainedXp);
+        currentPlayer.team.forEach((member) => grantEchoExperience(member, Math.max(8, Math.floor(gainedXp * .55))));
+        removeEchoEncounter();
+        saveCurrentPlayer();
+        await forestPause(720);
+        echoBattleChoiceText.textContent = `${currentPlayer.starter.name} recebeu +${gainedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
+        echoBattleChoice.hidden = false;
+        echoTryAbsorb.focus();
+      };
+
+      const resolveEchoDefeat = async () => {
+        echoBattleLocked = true;
+        setEchoBattleControls(false);
+        echoBattleMessage.textContent = `${currentPlayer.starter.name} ficou sem energia. O Relógio Cristalíneo conduziu o grupo para um ponto seguro.`;
+        playSequence([330, 247, 196], .09);
+        await forestPause(1150);
+        currentPlayer.starter.currentHp = Math.max(1, Math.round(currentPlayer.starter.maxHp * .65));
+        echoBattle.hidden = true;
+        echoWildFighter.classList.remove("hit", "strike");
+        echoEncounter = null;
+        await enterEchoArea(echoAreaIndex, "left");
+      };
+
+      const runEchoBattleAction = async (action) => {
+        if (echoBattleLocked || !echoEncounter) return;
+        echoBattleLocked = true;
+        setEchoBattleControls(false);
+        const member = currentPlayer.starter;
+        const playerForm = getMemberForm(member);
+        const defended = action === "defend";
+        let damage = 0;
+
+        if (defended) {
+          echoBattleMessage.textContent = `${playerForm.name} se prepara para reduzir o próximo dano.`;
+          playTone(392, 0, .12, "triangle");
+        } else {
+          damage = action === "elemental"
+            ? echoRandom(10, 14) + Math.floor(member.level / 4)
+            : echoRandom(7, 10) + Math.floor(member.level / 6);
+          echoBattleMessage.textContent = action === "elemental"
+            ? `${playerForm.name} usa um ataque de ${playerForm.type}!`
+            : `${playerForm.name} usa Ataque Básico!`;
+          echoPlayerFighter.classList.add("strike");
+          playSequence(action === "elemental" ? STARTERS[selectedStarter].sound : [330, 440, 523], .055);
+          await forestPause(300);
+          echoWildFighter.classList.add("hit");
+          echoWildHpValue = Math.max(0, echoWildHpValue - damage);
+          updateEchoBattleBars();
+          await forestPause(280);
+          echoPlayerFighter.classList.remove("strike");
+          echoWildFighter.classList.remove("hit");
+          if (echoWildHpValue <= 0) {
+            await resolveEchoVictory();
+            return;
+          }
+        }
+
+        await forestPause(260);
+        const wildDamage = Math.max(2, echoRandom(5, 9) + Math.floor(echoEncounter.level / 4) - (defended ? 5 : 0));
+        echoBattleMessage.textContent = `${echoEncounter.form.name} contra-ataca${defended ? ", mas a defesa reduz o impacto" : ""}!`;
+        echoWildFighter.classList.add("strike");
+        playSequence([620, 510, 390], .05);
+        await forestPause(300);
+        echoPlayerFighter.classList.add("hit");
+        echoPlayerHpValue = Math.max(0, echoPlayerHpValue - wildDamage);
+        updateEchoBattleBars();
+        await forestPause(320);
+        echoWildFighter.classList.remove("strike");
+        echoPlayerFighter.classList.remove("hit");
+        if (echoPlayerHpValue <= 0) {
+          await resolveEchoDefeat();
+          return;
+        }
+
+        echoBattleMessage.textContent = `Sua vez. ${playerForm.name} tem ${echoPlayerHpValue} de ${echoPlayerMaxHp} PV.`;
+        echoBattleLocked = false;
+        setEchoBattleControls(true);
+        echoBattleButtons[0].focus();
+        saveCurrentPlayer();
+      };
+
+      const showNextEchoEvolution = () => {
+        refreshEchoStarterUI();
+        if (!echoEvolutionQueue.length) {
+          startEchoLoop();
+          echoClearing.focus();
+          return;
+        }
+        const evolution = echoEvolutionQueue.shift();
+        echoEvolutionTitle.textContent = `${evolution.to.name} despertou!`;
+        echoEvolutionFrom.src = evolution.from.image;
+        echoEvolutionFrom.alt = evolution.from.name;
+        echoEvolutionTo.src = evolution.to.image;
+        echoEvolutionTo.alt = evolution.to.name;
+        echoEvolutionText.textContent = `${evolution.from.name} evoluiu para ${evolution.to.name} no nível ${evolution.member.level}.`;
+        echoEvolution.hidden = false;
+        playSequence([392, 523, 659, 784, 1047, 1319], .085);
+        saveCurrentPlayer();
+        echoEvolutionContinue.focus();
+      };
+
+      const finishEchoEncounter = () => {
+        echoBattle.hidden = true;
+        echoBattleChoice.hidden = true;
+        echoWildFighter.classList.remove("hit", "strike");
+        echoPlayerFighter.classList.remove("hit", "strike");
+        echoEncounter = null;
+        updateEchoHud();
+        showNextEchoEvolution();
+      };
+
+      const releaseEchoWild = () => {
+        if (!echoEncounter) return;
+        echoBattleChoice.hidden = true;
+        echoBattleMessage.textContent = `${echoEncounter.form.name} voltou em segurança para a clareira.`;
+        playSequence([659, 523, 392], .06);
+        window.setTimeout(finishEchoEncounter, prefersLessMotion() ? 80 : 680);
+      };
+
+      const createEchoAbsorptionParticles = (style) => {
+        echoAbsorbParticles.replaceChildren();
+        const count = prefersLessMotion() ? 18 : 58;
+        for (let index = 0; index < count; index += 1) {
+          const particle = document.createElement("i");
+          particle.style.setProperty("--particle-size", `${3 + Math.random() * 8}px`);
+          particle.style.setProperty("--particle-radius", index % 3 ? "50%" : "2px");
+          particle.style.setProperty("--particle-color", style.palette[index % style.palette.length]);
+          particle.style.setProperty("--particle-y", `${-92 + Math.random() * 184}px`);
+          particle.style.setProperty("--particle-duration", `${1.15 + Math.random() * 1.15}s`);
+          particle.style.setProperty("--particle-delay", `${Math.random() * .85}s`);
+          echoAbsorbParticles.append(particle);
+        }
+      };
+
+      const addCapturedNaturion = (wild) => {
+        const form = wild.form;
+        const chain = wild.chain;
+        currentPlayer.team.push({
+          uid: `${form.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          id: chain[0],
+          baseId: chain[0],
+          formId: form.id,
+          name: form.name,
+          type: form.type,
+          image: form.image,
+          level: wild.level,
+          experience: 0,
+          experiencePercent: 0,
+          capturedAt: new Date().toISOString(),
+          capturedIn: getEchoArea().id
+        });
+      };
+
+      const tryEchoAbsorption = async () => {
+        if (!echoEncounter) return;
+        const wild = echoEncounter;
+        const style = getEchoTypeStyle(wild.form.type);
+        const chance = wild.form.stage === 1 ? .82 : wild.form.stage === 2 ? .6 : .38;
+        echoBattleChoice.hidden = true;
+        echoBattle.hidden = true;
+        echoAbsorption.style.setProperty("--essence-color", style.color);
+        echoAbsorbCreature.src = wild.form.image;
+        echoAbsorbCreature.alt = `${wild.form.name} se transformando em essência`;
+        echoAbsorbMessage.textContent = `O Relógio Cristalíneo reconhece a essência de ${wild.form.name}...`;
+        createEchoAbsorptionParticles(style);
+        echoAbsorption.hidden = false;
+        echoAbsorption.classList.remove("active");
+        void echoAbsorption.offsetWidth;
+        echoAbsorption.classList.add("active");
+        playSequence([392, 523, 659, 784, 988], .075);
+        await forestPause(2350);
+        const success = Math.random() < chance;
+        if (success) {
+          addCapturedNaturion(wild);
+          echoAbsorbMessage.textContent = `Essência absorvida! ${wild.form.name} agora faz parte do seu time.`;
+          playSequence([523, 659, 784, 988, 1175], .075);
+          currentPlayer.activeMission = {
+            ...currentPlayer.activeMission,
+            progress: `essencia-${wild.form.id}-absorvida`
+          };
+        } else {
+          echoAbsorbMessage.textContent = `A sintonia não se estabilizou. ${wild.form.name} permaneceu livre.`;
+          playSequence([440, 330, 262], .085);
+        }
+        saveCurrentPlayer();
+        await forestPause(1150);
+        echoAbsorption.classList.remove("active");
+        echoAbsorption.hidden = true;
+        echoAbsorbParticles.replaceChildren();
+        finishEchoEncounter();
+      };
+
+      window.__naturionEcho = {
+        areas: ECHO_AREAS,
+        forms: NATURION_FORMS,
+        chains: EVOLUTION_CHAINS,
+        enterArea: (areaIndex, entrySide = "left") => enterEchoArea(areaIndex, entrySide),
+        getState: () => ({
+          active: echoActive,
+          areaIndex: echoAreaIndex,
+          playerX: echoPlayerX,
+          wilds: echoWilds.map((wild) => ({
+            id: wild.form.id,
+            name: wild.form.name,
+            level: wild.level,
+            stage: wild.form.stage,
+            behavior: wild.behavior
+          })),
+          puzzles: { ...(currentPlayer?.echoProgress?.puzzles || {}) },
+          team: [...(currentPlayer?.team || [])]
+        }),
+        startBattle: (wildIndex = 0) => {
+          const wild = echoWilds[wildIndex];
+          if (!wild) return false;
+          startEchoBattle(wild);
+          return true;
+        },
+        solveCurrentPuzzle: () => {
+          const puzzle = getEchoArea().puzzle;
+          if (!puzzle) return false;
+          currentPlayer.echoProgress.puzzles[puzzle.id] = true;
+          saveCurrentPlayer();
+          renderEchoStaticLayer();
+          updateEchoHud();
+          return true;
+        },
+        setStarterLevel: (level) => {
+          const member = ensureEchoPlayerData();
+          member.level = Number(level);
+          queueMemberEvolution(member);
+          saveCurrentPlayer();
+          return getMemberForm(member);
+        }
       };
 
       const updateFormState = () => {
@@ -8441,8 +10932,74 @@
 
       worldFirstDestination.addEventListener("click", () => {
         playClick(523);
-        void travelToFirstWorldDestination();
+        if (firstWorldDestinationReached) {
+          openEchoEntryConfirmation();
+        } else {
+          void travelToFirstWorldDestination();
+        }
       });
+
+      confirmEchoEntry.addEventListener("click", () => {
+        void beginEchoExploration();
+      });
+
+      cancelEchoEntry.addEventListener("click", closeEchoEntryConfirmation);
+
+      echoEntryConfirm.addEventListener("click", (event) => {
+        if (event.target === echoEntryConfirm) closeEchoEntryConfirmation();
+      });
+
+      echoBackMap.addEventListener("click", returnEchoToMap);
+      echoDialogueNext.addEventListener("click", advanceEchoDialogue);
+      echoPuzzleReplay.addEventListener("click", () => void previewEchoPuzzle());
+      echoPuzzleClose.addEventListener("click", () => {
+        if (!echoPuzzleAccepting) return;
+        echoPuzzle.hidden = true;
+        echoPuzzleAccepting = false;
+        echoClearing.focus();
+      });
+
+      echoRunes.forEach((rune) => {
+        rune.addEventListener("click", () => {
+          void activateEchoRune(Number(rune.dataset.echoRune));
+        });
+      });
+
+      echoBattleButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          void runEchoBattleAction(button.dataset.echoBattle);
+        });
+      });
+
+      echoTryAbsorb.addEventListener("click", () => {
+        void tryEchoAbsorption();
+      });
+
+      echoReleaseWild.addEventListener("click", releaseEchoWild);
+
+      echoEvolutionContinue.addEventListener("click", () => {
+        echoEvolution.hidden = true;
+        showNextEchoEvolution();
+      });
+
+      echoMoveButtons.forEach((button) => {
+        const direction = button.dataset.echoMove;
+        button.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          button.setPointerCapture?.(event.pointerId);
+          setEchoMovement(direction, true);
+        });
+        ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
+          button.addEventListener(eventName, () => setEchoMovement(direction, false));
+        });
+        button.addEventListener("click", (event) => {
+          if (event.detail !== 0) return;
+          setEchoMovement(direction, true);
+          window.setTimeout(() => setEchoMovement(direction, false), 190);
+        });
+      });
+
+      echoJumpButton.addEventListener("click", jumpEchoPlayer);
 
       openMapMovementButtons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -8505,6 +11062,10 @@
       window.addEventListener("blur", () => {
         tutorialInput.left = false;
         tutorialInput.right = false;
+        echoInput.left = false;
+        echoInput.right = false;
+        echoPlayer.classList.remove("walking");
+        echoStarterFollower.classList.remove("walking");
       });
 
       document.addEventListener("keydown", (event) => {
@@ -8543,9 +11104,60 @@
       });
 
       document.addEventListener("keydown", (event) => {
+        if (forestScreen.hidden || echoClearing.hidden) return;
+        if (!echoPuzzle.hidden && ["1", "2", "3"].includes(event.key)) {
+          event.preventDefault();
+          void activateEchoRune(Number(event.key) - 1);
+          return;
+        }
+        if (!echoDialogue.hidden || !echoPuzzle.hidden || !echoBattle.hidden || !echoEvolution.hidden || !echoAbsorption.hidden) return;
+        const direction = {
+          ArrowLeft: "left",
+          a: "left",
+          A: "left",
+          ArrowRight: "right",
+          d: "right",
+          D: "right"
+        }[event.key];
+        if (direction) {
+          event.preventDefault();
+          setEchoMovement(direction, true);
+          return;
+        }
+        if (["w", "W", "ArrowUp", " "].includes(event.key)) {
+          event.preventDefault();
+          if (!event.repeat) jumpEchoPlayer();
+          return;
+        }
+        if (["e", "E", "Enter"].includes(event.key)) {
+          event.preventDefault();
+          if (!event.repeat) interactEchoWorld();
+        }
+      });
+
+      document.addEventListener("keyup", (event) => {
+        if (echoClearing.hidden) return;
+        const direction = {
+          ArrowLeft: "left",
+          a: "left",
+          A: "left",
+          ArrowRight: "right",
+          d: "right",
+          D: "right"
+        }[event.key];
+        if (direction) setEchoMovement(direction, false);
+      });
+
+      document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
         if (!modal.hidden) {
           closeOptions();
+        } else if (!echoEntryConfirm.hidden) {
+          closeEchoEntryConfirmation();
+        } else if (!echoPuzzle.hidden && echoPuzzleAccepting) {
+          echoPuzzleClose.click();
+        } else if (!echoClearing.hidden && echoDialogue.hidden && echoBattle.hidden && echoEvolution.hidden && echoAbsorption.hidden) {
+          returnEchoToMap();
         } else if (!starterConfirmation.hidden) {
           closeConfirmation();
         } else if (!selectionScreen.hidden) {
