@@ -2481,7 +2481,7 @@
       transform: translateX(-50%);
     }
 
-    .explorer-hero {
+    .explorer-party > .explorer-hero {
       position: absolute;
       z-index: 2;
       bottom: 0;
@@ -2494,7 +2494,7 @@
       transform: translateX(-50%);
     }
 
-    .explorer-starter {
+    .explorer-party > .explorer-starter {
       position: absolute;
       z-index: 3;
       right: -20%;
@@ -2506,22 +2506,139 @@
       animation: companion-hop 1.8s ease-in-out infinite;
     }
 
-    .explorer-party.is-moving .explorer-hero {
-      animation: tutorial-run .32s ease-in-out infinite alternate;
+    .tutorial-world .explorer-hero-rig {
+      position: absolute;
+      z-index: 2;
+      bottom: 0;
+      left: 50%;
+      width: 72%;
+      height: 100%;
+      filter: drop-shadow(4px 6px 6px rgba(0, 0, 0, .5));
+      transform: translateX(-50%);
+      transform-origin: 50% 92%;
     }
 
-    .explorer-party.is-jumping .explorer-hero {
-      animation: tutorial-jump-pose .4s ease-in-out infinite alternate;
+    .tutorial-world .explorer-hero {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom;
+      pointer-events: none;
     }
 
-    .explorer-party.facing-right .explorer-hero {
+    .tutorial-world .hero-torso {
+      z-index: 3;
+      clip-path: polygon(0 0, 100% 0, 100% 69%, 72% 69%, 72% 62%, 0 62%);
+    }
+
+    .tutorial-world .hero-leg {
+      z-index: 2;
+      transform-origin: var(--leg-origin-x) 57%;
+    }
+
+    .tutorial-world .hero-leg.left {
+      --leg-origin-x: 35%;
+      clip-path: polygon(5% 54%, 55% 54%, 59% 100%, 3% 100%);
+    }
+
+    .tutorial-world .hero-leg.right {
+      --leg-origin-x: 67%;
+      clip-path: polygon(43% 54%, 96% 54%, 97% 100%, 40% 100%);
+    }
+
+    .tutorial-world .explorer-starter-rig {
+      position: absolute;
+      z-index: 3;
+      right: -20%;
+      bottom: -3px;
+      width: 57%;
+      height: 55%;
+      transform-origin: 50% 88%;
+    }
+
+    .tutorial-world .explorer-starter-rig .explorer-starter {
+      position: static;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(3px 5px 5px rgba(0, 0, 0, .48));
+      animation: tutorial-companion-idle 1.7s ease-in-out infinite;
+    }
+
+    .tutorial-world .explorer-party.is-moving .hero-torso {
+      animation: tutorial-body-step .3s ease-in-out infinite;
+    }
+
+    .tutorial-world .explorer-party.is-moving .hero-leg.left {
+      animation: tutorial-leg-left .3s ease-in-out infinite alternate;
+    }
+
+    .tutorial-world .explorer-party.is-moving .hero-leg.right {
+      animation: tutorial-leg-right .3s ease-in-out infinite alternate;
+    }
+
+    .tutorial-world .explorer-party.is-jumping .hero-torso {
+      animation: tutorial-jump-pose .38s ease-in-out infinite alternate;
+    }
+
+    .tutorial-world .explorer-party.is-jumping .hero-leg.left {
+      transform: rotate(3deg) translateY(-2px);
+    }
+
+    .tutorial-world .explorer-party.is-jumping .hero-leg.right {
+      transform: rotate(-4deg) translateY(-4px);
+    }
+
+    .tutorial-world .explorer-party.facing-right .explorer-hero-rig {
       transform: translateX(-50%) scaleX(-1);
     }
 
-    .explorer-party.facing-right .explorer-starter {
+    .tutorial-world .explorer-party.facing-right .explorer-starter-rig {
       right: auto;
       left: -20%;
-      animation-name: companion-hop-left;
+      transform: scaleX(-1);
+    }
+
+    .tutorial-world .explorer-party.is-moving[data-starter="axolume"] .explorer-starter {
+      animation: tutorial-axolume-move .56s ease-in-out infinite;
+    }
+
+    .tutorial-world .explorer-party.is-moving[data-starter="brasguax"] .explorer-starter {
+      animation: tutorial-brasguax-move .34s ease-in-out infinite;
+    }
+
+    .tutorial-world .explorer-party.is-moving[data-starter="musgurso"] .explorer-starter {
+      animation: tutorial-musgurso-move .48s ease-in-out infinite;
+    }
+
+    .tutorial-world .explorer-party.is-jumping .explorer-starter {
+      animation: tutorial-companion-jump .45s ease-in-out infinite alternate;
+    }
+
+    .tutorial-world .explorer-party::before {
+      position: absolute;
+      z-index: 1;
+      bottom: -4px;
+      left: 50%;
+      width: 62%;
+      height: 16px;
+      border-radius: 50%;
+      content: "";
+      opacity: 0;
+      background:
+        radial-gradient(circle at 18% 60%, rgba(211, 196, 134, .7) 0 8%, transparent 10%),
+        radial-gradient(circle at 42% 36%, rgba(170, 159, 101, .62) 0 7%, transparent 9%),
+        radial-gradient(circle at 70% 58%, rgba(224, 207, 145, .65) 0 9%, transparent 11%);
+      pointer-events: none;
+      transform: translateX(-50%) scale(.55);
+    }
+
+    .tutorial-world .explorer-party.just-landed::before {
+      animation: tutorial-landing-dust .24s ease-out both;
     }
 
     .plumirel-world {
@@ -2574,6 +2691,15 @@
       bottom: 58%;
       left: 1900px;
       transform: translateX(-50%);
+    }
+
+    .tutorial-world .plumirel-world img {
+      animation: tutorial-plumirel-idle .9s ease-in-out infinite;
+    }
+
+    .tutorial-world .plumirel-world::after {
+      transform-origin: center;
+      animation: tutorial-plumirel-shadow .9s ease-in-out infinite;
     }
 
     .plumirel-world.alert {
@@ -3196,19 +3322,65 @@
       50% { transform: translateX(-50%) translateY(-6px); }
     }
 
-    @keyframes tutorial-run {
-      from { bottom: 0; filter: drop-shadow(4px 6px 6px rgba(0, 0, 0, .5)) brightness(.98); }
-      to { bottom: 5px; filter: drop-shadow(4px 7px 6px rgba(0, 0, 0, .5)) brightness(1.05); }
+    @keyframes tutorial-body-step {
+      0%, 100% { transform: translateY(0) rotate(-.6deg); }
+      50% { transform: translateY(-3px) rotate(.7deg); }
     }
 
     @keyframes tutorial-jump-pose {
-      from { bottom: 2px; }
-      to { bottom: 6px; }
+      from { transform: translateY(-1px) rotate(-1deg); }
+      to { transform: translateY(-4px) rotate(1deg); }
     }
 
-    @keyframes companion-hop-left {
-      0%, 100% { transform: translateY(0) rotate(1deg) scaleX(-1); }
-      50% { transform: translateY(-5px) rotate(-2deg) scaleX(-1); }
+    @keyframes tutorial-leg-left {
+      from { transform: rotate(-5deg) translateY(0); }
+      to { transform: rotate(5deg) translateY(-2px); }
+    }
+
+    @keyframes tutorial-leg-right {
+      from { transform: rotate(5deg) translateY(-2px); }
+      to { transform: rotate(-5deg) translateY(0); }
+    }
+
+    @keyframes tutorial-companion-idle {
+      0%, 100% { transform: translateY(0) rotate(-.8deg); }
+      50% { transform: translateY(-2px) rotate(.8deg); }
+    }
+
+    @keyframes tutorial-axolume-move {
+      0%, 100% { transform: translateY(0) rotate(-2deg) scaleY(1); }
+      50% { transform: translateY(-6px) rotate(2deg) scaleY(.97); }
+    }
+
+    @keyframes tutorial-brasguax-move {
+      0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+      50% { transform: translateY(-4px) rotate(1.5deg); }
+    }
+
+    @keyframes tutorial-musgurso-move {
+      0%, 100% { transform: translateY(0) rotate(-1deg) scaleY(1); }
+      50% { transform: translateY(-3px) rotate(1deg) scaleY(.985); }
+    }
+
+    @keyframes tutorial-companion-jump {
+      from { transform: translateY(-1px) rotate(-2deg); }
+      to { transform: translateY(-5px) rotate(2deg); }
+    }
+
+    @keyframes tutorial-plumirel-idle {
+      0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+      50% { transform: translateY(-5px) rotate(1.2deg); }
+    }
+
+    @keyframes tutorial-plumirel-shadow {
+      0%, 100% { opacity: .48; transform: scaleX(1); }
+      50% { opacity: .32; transform: scaleX(.82); }
+    }
+
+    @keyframes tutorial-landing-dust {
+      0% { opacity: 0; transform: translateX(-50%) scale(.45); }
+      35% { opacity: .9; }
+      100% { opacity: 0; transform: translateX(-50%) scale(1.45); }
     }
 
     @keyframes plumirel-flutter {
@@ -4003,7 +4175,7 @@
       --crystal-dark: #164d76;
       position: absolute;
       z-index: 6;
-      top: 80.5%;
+      top: 64%;
       left: 50%;
       display: grid;
       justify-items: center;
@@ -4026,6 +4198,7 @@
     }
 
     .puzzle-crystal[data-seal="estrela"] {
+      top: 61.5%;
       left: 50%;
       --crystal-main: #ffd85f;
       --crystal-bright: #fffbe0;
@@ -4043,20 +4216,40 @@
       cursor: default;
     }
 
-    .crystal-gem {
+    .crystal-visual {
       position: relative;
       display: block;
       width: 78%;
       height: 82%;
+      pointer-events: none;
+    }
+
+    .crystal-base,
+    .crystal-gem {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
       opacity: .74;
       object-fit: contain;
       object-position: bottom;
+    }
+
+    .crystal-base {
+      clip-path: inset(79% 0 0 0);
       filter:
         saturate(.56)
         brightness(.5)
         drop-shadow(0 10px 8px rgba(0,0,0,.58));
-      transform-origin: 50% 90%;
-      transition: filter .22s ease, transform .22s ease;
+    }
+
+    .crystal-gem {
+      clip-path: inset(0 0 20% 0);
+      filter:
+        saturate(.56)
+        brightness(.5);
+      transition: filter .18s ease, opacity .18s ease;
     }
 
     .puzzle-crystal small {
@@ -4081,7 +4274,7 @@
     .puzzle-crystal:not(:disabled):focus-visible {
       filter: brightness(1.16);
       outline: none;
-      transform: translate(-50%, -100%) scale(1.04);
+      transform: translate(-50%, -100%);
     }
 
     .puzzle-crystal:not(:disabled):focus-visible .crystal-gem {
@@ -4099,7 +4292,6 @@
         drop-shadow(0 0 5px var(--crystal-bright))
         drop-shadow(0 0 13px var(--crystal-main))
         drop-shadow(0 0 24px var(--crystal-main));
-      transform: translateY(-7px) scale(1.07);
     }
 
     .puzzle-crystal.is-preview small,
@@ -4110,12 +4302,12 @@
     }
 
     .puzzle-crystal.is-preview .crystal-gem {
-      animation: crystal-preview .52s ease-in-out both;
+      animation: none;
     }
 
     .puzzle-crystal.is-wrong .crystal-gem {
       filter: saturate(1.4) brightness(.9) hue-rotate(145deg);
-      animation: crystal-wrong .42s ease both;
+      animation: none;
     }
 
     .puzzle-companion {
@@ -4517,27 +4709,6 @@
       font-weight: 900;
     }
 
-    @keyframes crystal-preview {
-      0% {
-        filter: saturate(.7) brightness(.58) drop-shadow(0 8px 7px rgba(0,0,0,.56));
-        transform: translateY(0) scale(.94);
-      }
-      45% {
-        filter: saturate(1.35) brightness(1.65) drop-shadow(0 0 6px var(--crystal-bright)) drop-shadow(0 0 15px var(--crystal-main)) drop-shadow(0 0 26px var(--crystal-main));
-        transform: translateY(-9px) scale(1.1);
-      }
-      100% {
-        filter: saturate(1.2) brightness(1.35) drop-shadow(0 0 5px var(--crystal-bright)) drop-shadow(0 0 13px var(--crystal-main)) drop-shadow(0 0 24px var(--crystal-main));
-        transform: translateY(-7px) scale(1.07);
-      }
-    }
-
-    @keyframes crystal-wrong {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-8px) rotate(-3deg); }
-      70% { transform: translateX(8px) rotate(3deg); }
-    }
-
     @keyframes puzzle-complete-reveal {
       from { opacity: 0; filter: blur(5px); transform: translateY(18px) scale(.9); }
       to { opacity: 1; filter: none; transform: none; }
@@ -4597,9 +4768,13 @@
       }
 
       .puzzle-crystal {
-        top: 76%;
+        top: 64%;
         width: clamp(60px, 20vw, 82px);
         height: clamp(100px, 31vw, 132px);
+      }
+
+      .puzzle-crystal[data-seal="estrela"] {
+        top: 61.5%;
       }
 
       .puzzle-crystal[data-seal="lua"] {
@@ -5052,19 +5227,35 @@
       <div class="tutorial-world" id="tutorialWorld" aria-hidden="true">
         <div class="tutorial-scenery"></div>
 
-        <div class="explorer-party" id="explorerParty">
-          <img
-            class="explorer-hero"
-            id="explorerHero"
-            src="assets/selection/hero-male.webp"
-            alt=""
-          >
-          <img
-            class="explorer-starter"
-            id="explorerStarter"
-            src="assets/story/axolume.webp"
-            alt=""
-          >
+        <div class="explorer-party" id="explorerParty" data-starter="axolume">
+          <span class="explorer-hero-rig" aria-hidden="true">
+            <img
+              class="explorer-hero hero-torso"
+              id="explorerHero"
+              src="assets/selection/hero-male.webp"
+              alt=""
+            >
+            <img
+              class="explorer-hero hero-leg left"
+              id="explorerHeroLeftLeg"
+              src="assets/selection/hero-male.webp"
+              alt=""
+            >
+            <img
+              class="explorer-hero hero-leg right"
+              id="explorerHeroRightLeg"
+              src="assets/selection/hero-male.webp"
+              alt=""
+            >
+          </span>
+          <span class="explorer-starter-rig" aria-hidden="true">
+            <img
+              class="explorer-starter"
+              id="explorerStarter"
+              src="assets/story/axolume.webp"
+              alt=""
+            >
+          </span>
         </div>
 
         <div class="plumirel-world" id="plumirelWorld">
@@ -5283,15 +5474,24 @@
       </header>
 
       <button class="puzzle-crystal" type="button" data-seal="lua" aria-label="Cristal azul, tecla 1" disabled>
-        <img class="crystal-gem" src="assets/puzzle/crystal-blue-voxel.webp" alt="" aria-hidden="true">
+        <span class="crystal-visual" aria-hidden="true">
+          <img class="crystal-base" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
+          <img class="crystal-gem" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
+        </span>
         <small>1 · Azul</small>
       </button>
       <button class="puzzle-crystal" type="button" data-seal="estrela" aria-label="Cristal dourado, tecla 2" disabled>
-        <img class="crystal-gem" src="assets/puzzle/crystal-gold-voxel.webp" alt="" aria-hidden="true">
+        <span class="crystal-visual" aria-hidden="true">
+          <img class="crystal-base" src="assets/puzzle/crystal-gold-voxel.webp" alt="">
+          <img class="crystal-gem" src="assets/puzzle/crystal-gold-voxel.webp" alt="">
+        </span>
         <small>2 · Dourado</small>
       </button>
       <button class="puzzle-crystal" type="button" data-seal="folha" aria-label="Cristal verde, tecla 3" disabled>
-        <img class="crystal-gem" src="assets/puzzle/crystal-green-voxel.webp" alt="" aria-hidden="true">
+        <span class="crystal-visual" aria-hidden="true">
+          <img class="crystal-base" src="assets/puzzle/crystal-green-voxel.webp" alt="">
+          <img class="crystal-gem" src="assets/puzzle/crystal-green-voxel.webp" alt="">
+        </span>
         <small>3 · Verde</small>
       </button>
 
@@ -5520,6 +5720,8 @@
       const tutorialWorld = document.getElementById("tutorialWorld");
       const explorerParty = document.getElementById("explorerParty");
       const explorerHero = document.getElementById("explorerHero");
+      const explorerHeroLeftLeg = document.getElementById("explorerHeroLeftLeg");
+      const explorerHeroRightLeg = document.getElementById("explorerHeroRightLeg");
       const explorerStarter = document.getElementById("explorerStarter");
       const plumirelWorld = document.getElementById("plumirelWorld");
       const movementHint = document.getElementById("movementHint");
@@ -6191,10 +6393,19 @@
       const positionExplorerParty = () => {
         tutorialWorld.style.setProperty("--tutorial-world-width", `${tutorialWorldWidth}px`);
         tutorialWorld.style.setProperty("--tutorial-camera-x", `${tutorialCameraX}px`);
+        const viewportHeight = Math.max(520, forestExploration.clientHeight || window.innerHeight || 720);
+        const footInset = Math.max(5, Math.min(8, viewportHeight * .008));
         explorerParty.style.left = `${tutorialPlayerX}px`;
-        explorerParty.style.bottom = `${tutorialPlayerY}px`;
+        explorerParty.style.bottom = `${tutorialPlayerY - footInset}px`;
         plumirelWorld.style.left = `${tutorialPlumirelX}px`;
-        plumirelWorld.style.bottom = `${tutorialPlumirelY}px`;
+        plumirelWorld.style.bottom = `${tutorialPlumirelY - 5}px`;
+      };
+
+      const pulseTutorialLanding = () => {
+        explorerParty.classList.remove("just-landed");
+        void explorerParty.offsetWidth;
+        explorerParty.classList.add("just-landed");
+        window.setTimeout(() => explorerParty.classList.remove("just-landed"), 260);
       };
 
       const stopTutorialMovement = () => {
@@ -6243,7 +6454,7 @@
         tutorialLastFrame = 0;
         tutorialLastStepCell = -1;
         movementCount = 0;
-        explorerParty.classList.remove("is-moving", "is-jumping", "facing-right");
+        explorerParty.classList.remove("is-moving", "is-jumping", "facing-right", "just-landed");
         positionExplorerParty();
       };
 
@@ -6338,15 +6549,17 @@
               tutorialVelocityY = 0;
               tutorialGrounded = true;
               explorerParty.classList.remove("is-jumping");
+              pulseTutorialLanding();
               playTone(150, 0, .055, "triangle");
             }
           }
 
-          if (tutorialPlayerY <= tutorialGroundY) {
+          if (!tutorialGrounded && tutorialPlayerY <= tutorialGroundY) {
             tutorialPlayerY = tutorialGroundY;
             tutorialVelocityY = 0;
             tutorialGrounded = true;
             explorerParty.classList.remove("is-jumping");
+            pulseTutorialLanding();
             playTone(150, 0, .055, "triangle");
           }
         }
@@ -6407,10 +6620,14 @@
         forestCompanionImage.src = starter.image;
         forestCompanionImage.alt = starter.name;
         forestCompanionName.textContent = starter.name;
-        explorerHero.src = currentPlayer.character === "female"
+        const heroSource = currentPlayer.character === "female"
           ? "assets/selection/hero-female.webp"
           : "assets/selection/hero-male.webp";
+        explorerHero.src = heroSource;
+        explorerHeroLeftLeg.src = heroSource;
+        explorerHeroRightLeg.src = heroSource;
         explorerHero.alt = currentPlayer.name;
+        explorerParty.dataset.starter = selectedStarter;
         explorerStarter.src = starter.image;
         explorerStarter.alt = starter.name;
         battleStarterImage.src = starter.image;
