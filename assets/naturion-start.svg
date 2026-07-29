@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1024" role="img" aria-label="Tela inicial de Naturion em estilo voxel 3D">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0871c9"/><stop offset=".62" stop-color="#58c4ef"/><stop offset="1" stop-color="#b9edf0"/></linearGradient>
+    <linearGradient id="mountain" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a8b6b5"/><stop offset="1" stop-color="#5e6d70"/></linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a7efff"/><stop offset=".5" stop-color="#3eb9ef"/><stop offset="1" stop-color="#197dca"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffbd5"/><stop offset=".35" stop-color="#f6e76d"/><stop offset=".65" stop-color="#b9d93a"/><stop offset="1" stop-color="#35852e"/></linearGradient>
+    <linearGradient id="greenBtn" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#91da55"/><stop offset=".48" stop-color="#3d9636"/><stop offset="1" stop-color="#1d5d25"/></linearGradient>
+    <linearGradient id="blueBtn" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#5ec3ff"/><stop offset=".48" stop-color="#287fce"/><stop offset="1" stop-color="#174b91"/></linearGradient>
+    <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd8ff"/><stop offset=".35" stop-color="#d7dfff"/><stop offset=".7" stop-color="#8fd6ff"/><stop offset="1" stop-color="#5596ef"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#000" flood-opacity=".48"/></filter>
+    <filter id="smallShadow"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+  </defs>
+
+  <rect width="1600" height="1024" fill="url(#sky)"/>
+
+  <g fill="#f4fafc" opacity=".95">
+    <rect x="140" y="95" width="86" height="27"/><rect x="205" y="77" width="108" height="42"/><rect x="292" y="94" width="78" height="25"/>
+    <rect x="535" y="123" width="82" height="27"/><rect x="602" y="101" width="118" height="41"/><rect x="702" y="123" width="74" height="25"/>
+    <rect x="1012" y="78" width="90" height="29"/><rect x="1085" y="56" width="126" height="43"/><rect x="1190" y="78" width="84" height="28"/>
+    <rect x="1320" y="110" width="79" height="27"/><rect x="1385" y="89" width="105" height="38"/><rect x="1470" y="108" width="78" height="25"/>
+  </g>
+
+  <g opacity=".9">
+    <polygon points="100,390 232,329 355,380 226,438" fill="#819497"/>
+    <polygon points="226,438 355,380 355,520 226,578" fill="#596a70"/>
+    <polygon points="100,390 226,438 226,578 100,530" fill="#485d62"/>
+    <rect x="180" y="270" width="28" height="74" fill="#cfd8da"/><rect x="207" y="236" width="52" height="58" fill="#e5ebed"/>
+    <polygon points="207,236 233,204 259,236" fill="#a76c37"/>
+  </g>
+
+  <g>
+    <polygon points="938,221 1125,139 1322,202 1133,286" fill="url(#mountain)"/>
+    <polygon points="1133,286 1322,202 1322,598 1133,678" fill="#718084"/>
+    <polygon points="938,221 1133,286 1133,678 938,612" fill="#637276"/>
+    <polygon points="1125,139 1380,79 1535,163 1322,202" fill="#a7b4b5"/>
+    <polygon points="1322,202 1535,163 1535,590 1322,598" fill="#68777a"/>
+    <g fill="#4e873e"><rect x="1050" y="196" width="58" height="27"/><rect x="1178" y="160" width="66" height="29"/><rect x="1370" y="127" width="67" height="31"/><rect x="1440" y="205" width="62" height="29"/></g>
+    <polygon points="1260,292 1310,280 1310,710 1260,720" fill="#9deeff"/>
+    <polygon points="1310,280 1348,270 1348,700 1310,710" fill="#43b9ef"/>
+    <polygon points="1260,720 1348,700 1390,758 1291,781" fill="#228fd4"/>
+  </g>
+
+  <g>
+    <polygon points="0,650 228,568 430,650 210,738" fill="#57a045"/>
+    <polygon points="210,738 430,650 430,1024 210,1024" fill="#397137"/>
+    <polygon points="0,650 210,738 210,1024 0,1024" fill="#315f31"/>
+    <polygon points="250,606 514,509 745,606 478,710" fill="#62aa49"/>
+    <polygon points="478,710 745,606 745,1024 478,1024" fill="#447b3b"/>
+    <polygon points="250,606 478,710 478,1024 250,1024" fill="#376c35"/>
+    <polygon points="680,666 1065,559 1370,674 970,789" fill="#4d913d"/>
+    <polygon points="970,789 1370,674 1370,1024 970,1024" fill="#3e7335"/>
+    <polygon points="680,666 970,789 970,1024 680,1024" fill="#315f31"/>
+    <polygon points="1170,720 1600,636 1600,1024 1170,1024" fill="#407836"/>
+  </g>
+
+  <g opacity=".95">
+    <polygon points="760,637 820,651 1015,1024 917,1024" fill="#54c3ea"/>
+    <polygon points="800,646 852,659 1100,1024 1015,1024" fill="#218ecf"/>
+  </g>
+
+  <g fill="#2b592c"><rect x="57" y="60" width="41" height="319"/><rect x="96" y="91" width="32" height="257"/></g>
+  <g fill="#3d7d36"><rect x="0" y="22" width="180" height="61"/><rect x="47" y="60" width="210" height="61"/><rect x="102" y="26" width="196" height="67"/><rect x="190" y="72" width="134" height="49"/></g>
+  <g fill="#58a544"><rect x="0" y="0" width="141" height="38"/><rect x="83" y="7" width="184" height="48"/><rect x="250" y="25" width="88" height="32"/></g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="1380" y="746" width="104" height="137" fill="#71491f"/>
+    <polygon points="1348,768 1433,718 1518,768 1433,810" fill="#9c6c35"/>
+    <polygon points="1433,810 1518,768 1518,858 1433,898" fill="#82582b"/>
+    <polygon points="1348,768 1433,810 1433,898 1348,856" fill="#694522"/>
+    <rect x="1461" y="645" width="22" height="198" fill="#65421d"/>
+    <polygon points="1408,701 1472,661 1538,701 1472,735" fill="#dde0e3"/>
+    <polygon points="1472,735 1538,701 1538,812 1472,849" fill="#bfc5ca"/>
+    <polygon points="1408,701 1472,735 1472,849 1408,814" fill="#d9dde0"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="151" y="766" width="80" height="109" fill="#2d7138"/>
+    <rect x="169" y="873" width="20" height="76" fill="#68401f"/><rect x="202" y="873" width="20" height="76" fill="#68401f"/>
+    <rect x="146" y="729" width="91" height="47" fill="#3f8d50"/>
+    <rect x="170" y="676" width="45" height="61" fill="#f0bd98"/>
+    <rect x="136" y="783" width="22" height="66" fill="#f0bd98"/><rect x="228" y="783" width="22" height="66" fill="#f0bd98"/>
+    <rect x="162" y="633" width="65" height="54" fill="#714322"/><rect x="143" y="654" width="22" height="31" fill="#714322"/><rect x="226" y="654" width="22" height="31" fill="#714322"/>
+    <polygon points="111,712 174,682 254,712 191,743" fill="#7d5330"/>
+    <polygon points="191,743 254,712 254,840 191,871" fill="#604020"/>
+    <polygon points="111,712 191,743 191,871 111,840" fill="#704827"/>
+    <rect x="166" y="785" width="59" height="65" fill="none" stroke="#55361b" stroke-width="9"/>
+    <rect x="217" y="802" width="21" height="21" fill="#6e6c69"/>
+    <rect x="230" y="825" width="18" height="10" rx="2" fill="#6b5541"/>
+    <polygon points="246,817 261,808 271,818 260,835 246,832" fill="url(#gem)" stroke="#c29a29" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <text x="800" y="338" text-anchor="middle" font-family="Georgia,serif" font-size="151" font-weight="900" fill="url(#gold)" stroke="#163b19" stroke-width="15" paint-order="stroke">NATURI N</text>
+    <polygon points="1072,184 1126,218 1119,314 1072,369 1024,314 1017,218" fill="url(#gem)" stroke="#c49c26" stroke-width="9"/>
+    <path d="M1072 194L1072 354M1027 224L1113 310M1115 224L1030 310" stroke="#fff" stroke-opacity=".45" stroke-width="4"/>
+    <rect x="515" y="355" width="570" height="73" rx="20" fill="#4c3011" stroke="#6f4c1d" stroke-width="8"/>
+    <text x="800" y="406" text-anchor="middle" font-family="Arial,sans-serif" font-size="37" font-weight="900" letter-spacing="4" fill="#f6e58d" stroke="#281806" stroke-width="4" paint-order="stroke">GUARDIÕES DA NATUREZA</text>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="557" y="551" width="507" height="115" rx="22" fill="url(#greenBtn)" stroke="#1d4d1c" stroke-width="10"/>
+    <rect x="573" y="567" width="475" height="83" rx="13" fill="none" stroke="#f2d65a" stroke-width="5"/>
+    <rect x="776" y="531" width="48" height="47" rx="10" fill="#64aa36" stroke="#245918" stroke-width="6"/>
+    <path d="M800 542c-11 12-17 22-16 32 10-1 19-7 24-19 1 7 0 13-4 18" fill="none" stroke="#e9e860" stroke-width="6" stroke-linecap="round"/>
+    <text x="810" y="625" text-anchor="middle" font-family="Arial,sans-serif" font-size="48" font-weight="900" fill="#fff" stroke="#1d321b" stroke-width="5" paint-order="stroke">NOVA JORNADA</text>
+
+    <rect x="572" y="696" width="476" height="112" rx="22" fill="url(#blueBtn)" stroke="#193b6d" stroke-width="10"/>
+    <rect x="588" y="712" width="444" height="80" rx="13" fill="none" stroke="#f0cf55" stroke-width="5"/>
+    <rect x="786" y="674" width="48" height="47" rx="10" fill="#dfa927" stroke="#755514" stroke-width="6"/>
+    <circle cx="810" cy="697" r="12" fill="none" stroke="#fff4b1" stroke-width="6"/><path d="M810 678v8m0 22v8m-19-19h8m22 0h8m-32-14 6 6m14 14 6 6m0-26-6 6m-14 14-6 6" stroke="#fff4b1" stroke-width="5"/>
+    <text x="810" y="770" text-anchor="middle" font-family="Arial,sans-serif" font-size="51" font-weight="900" fill="#fff" stroke="#152d4c" stroke-width="5" paint-order="stroke">OPÇÕES</text>
+  </g>
+
+  <g fill="#6bc254"><rect x="0" y="930" width="18" height="62"/><rect x="16" y="914" width="19" height="27"/><rect x="40" y="937" width="17" height="51"/><rect x="52" y="919" width="19" height="27"/><rect x="74" y="930" width="18" height="58"/><rect x="87" y="913" width="18" height="25"/><rect x="720" y="931" width="18" height="58"/><rect x="735" y="914" width="19" height="26"/></g>
+  <g><rect x="25" y="945" width="17" height="17" fill="#ec5858"/><rect x="42" y="962" width="17" height="17" fill="#ec5858"/><rect x="67" y="939" width="17" height="17" fill="#fff"/><rect x="84" y="956" width="17" height="17" fill="#fff"/><rect x="110" y="953" width="17" height="17" fill="#4fb7ff"/><rect x="127" y="970" width="17" height="17" fill="#4fb7ff"/><rect x="786" y="954" width="16" height="16" fill="#f2df61"/><rect x="802" y="970" width="16" height="16" fill="#f2df61"/></g>
+
+  <text x="20" y="997" font-family="Arial,sans-serif" font-size="29" font-weight="700" fill="#fff" stroke="#000" stroke-width="4" paint-order="stroke">v0.1.0</text>
+  <g transform="translate(1492 922)" filter="url(#smallShadow)"><rect width="84" height="78" rx="17" fill="#343d46" stroke="#171c20" stroke-width="6"/><path d="M22 49c4-23 13-29 20-20 7-9 16-3 20 20-1 7-7 7-13-1H35c-6 8-12 8-13 1z" fill="#f5f5f5"/><circle cx="35" cy="39" r="4" fill="#323b45"/><circle cx="52" cy="38" r="4" fill="#323b45"/><path d="M26 39h11m-5-5v10" stroke="#323b45" stroke-width="4"/></g>
+</svg>
