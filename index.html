@@ -2098,6 +2098,8 @@
     .forest-intro[hidden],
     .forest-exploration[hidden],
     .forest-battle[hidden],
+    .absorption-lesson[hidden],
+    .absorption-result[hidden],
     .forest-complete[hidden],
     .battle-victory[hidden] {
       display: none;
@@ -3485,6 +3487,441 @@
       }
     }
 
+    .forest-screen,
+    .forest-screen * {
+      font-family: "Trebuchet MS", Arial, sans-serif;
+    }
+
+    .absorption-lesson {
+      position: absolute;
+      z-index: 17;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 49% 40%, rgba(96, 207, 157, .08), transparent 42%),
+        linear-gradient(180deg, rgba(2, 15, 9, .08), rgba(1, 12, 7, .56));
+    }
+
+    .absorption-stage {
+      position: absolute;
+      inset: 74px 0 160px;
+    }
+
+    .absorption-iris-wrap {
+      position: absolute;
+      z-index: 4;
+      bottom: 0;
+      left: 5%;
+      width: clamp(230px, 29vw, 410px);
+      height: min(72vh, 660px);
+      transform-origin: 50% 100%;
+      transition: filter .4s ease, transform .4s ease;
+    }
+
+    .absorption-iris {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom;
+      filter: drop-shadow(9px 13px 10px rgba(0, 0, 0, .55));
+    }
+
+    .iris-wrist-device {
+      position: absolute;
+      z-index: 7;
+      top: 34.2%;
+      left: 24.5%;
+      display: grid;
+      width: 14%;
+      min-width: 34px;
+      aspect-ratio: 1;
+      place-items: center;
+      border-radius: 50%;
+      transform: rotate(-19deg);
+      transform-origin: center;
+      transition: filter .35s ease, transform .35s ease;
+    }
+
+    .iris-wrist-device::before {
+      position: absolute;
+      z-index: -1;
+      inset: 34% -22%;
+      border: 3px solid #8b5d17;
+      border-radius: 999px;
+      content: "";
+      background: linear-gradient(180deg, #d39a32, #5f3a0d);
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 227, 121, .3),
+        0 2px 4px rgba(0, 0, 0, .5);
+    }
+
+    .iris-wrist-device img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 5px rgba(84, 222, 255, .92))
+        drop-shadow(1px 2px 2px rgba(0, 0, 0, .65));
+    }
+
+    .absorption-lesson.active .iris-wrist-device {
+      filter: brightness(1.35);
+      animation: wrist-watch-pulse .62s ease-in-out infinite alternate;
+    }
+
+    .absorption-plumirel {
+      position: absolute;
+      z-index: 4;
+      top: 28%;
+      right: 10%;
+      display: grid;
+      justify-items: center;
+      width: clamp(210px, 28vw, 390px);
+      transform: translateY(-10%);
+      transform-origin: 50% 80%;
+      transition:
+        opacity 1.5s ease,
+        filter 1.5s ease,
+        transform 1.5s cubic-bezier(.2, .75, .2, 1);
+    }
+
+    .absorption-plumirel img {
+      width: 100%;
+      max-height: 48vh;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 12px rgba(255, 225, 127, .54))
+        drop-shadow(8px 12px 9px rgba(0, 0, 0, .5));
+      animation: tired-plumirel 2.2s ease-in-out infinite;
+    }
+
+    .absorption-plumirel span {
+      margin-top: -8px;
+      padding: 5px 12px;
+      border: 1px solid rgba(237, 208, 108, .65);
+      border-radius: 999px;
+      color: #fff6b7;
+      background: rgba(3, 24, 14, .86);
+      font-size: .7rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .absorption-lesson.active .absorption-plumirel {
+      opacity: .22;
+      filter: brightness(1.8) saturate(.55);
+      transform: translate(-8%, -13%) scale(.76);
+    }
+
+    .absorption-stream {
+      position: absolute;
+      z-index: 5;
+      top: 39%;
+      left: 13%;
+      width: 60%;
+      height: 16px;
+      border-radius: 50%;
+      opacity: 0;
+      background:
+        repeating-linear-gradient(90deg, #fff4a6 0 10px, #9fe8ff 10px 20px, transparent 20px 30px);
+      box-shadow:
+        0 0 9px #fff1a0,
+        0 0 23px rgba(100, 220, 255, .82);
+      filter: blur(1px);
+      transform: rotate(-5deg) scaleX(0);
+      transform-origin: left center;
+      transition: opacity .3s ease;
+      pointer-events: none;
+    }
+
+    .absorption-lesson.active .absorption-stream {
+      opacity: .85;
+      animation: absorption-stream 1.1s ease-in-out .18s infinite alternate;
+    }
+
+    .absorption-particles {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .essence-particle {
+      position: absolute;
+      left: var(--essence-start-x);
+      top: var(--essence-start-y);
+      width: var(--essence-size);
+      height: var(--essence-size);
+      border-radius: var(--essence-radius, 50%);
+      opacity: 0;
+      background: var(--essence-color);
+      box-shadow:
+        0 0 8px var(--essence-color),
+        0 0 18px var(--essence-color);
+      animation: essence-to-wrist var(--essence-duration) cubic-bezier(.42, 0, .22, 1) var(--essence-delay) forwards;
+    }
+
+    .absorption-dialogue-box {
+      position: absolute;
+      z-index: 12;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      left: 50%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      width: min(calc(100% - 32px), 900px);
+      min-height: 120px;
+      gap: 12px 20px;
+      padding: 18px 22px;
+      border: 2px solid rgba(231, 196, 80, .86);
+      color: #f4f7e9;
+      background:
+        linear-gradient(135deg, rgba(14, 49, 30, .98), rgba(4, 21, 13, .98));
+      box-shadow:
+        inset 0 0 0 4px rgba(3, 15, 9, .65),
+        0 18px 48px rgba(0, 0, 0, .48);
+      clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px), 0 15px);
+    }
+
+    .absorption-dialogue-box strong {
+      grid-column: 1 / -1;
+      color: #f3d76d;
+      font-size: .75rem;
+      font-weight: 1000;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .absorption-dialogue-box p {
+      min-height: 45px;
+      margin: 0;
+      font-size: clamp(.88rem, 1.35vw, 1.05rem);
+      line-height: 1.45;
+    }
+
+    .absorption-result {
+      position: absolute;
+      z-index: 19;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(1, 13, 8, .72);
+      backdrop-filter: blur(8px);
+    }
+
+    .absorption-result-card {
+      display: grid;
+      grid-template-columns: 135px 1fr;
+      align-items: center;
+      width: min(94vw, 670px);
+      gap: 16px;
+      padding: 24px;
+      border: 2px solid #efd26b;
+      color: #f4f8eb;
+      background:
+        radial-gradient(circle at 16% 50%, rgba(82, 211, 255, .18), transparent 35%),
+        linear-gradient(145deg, #123821, #061b10);
+      box-shadow:
+        inset 0 0 0 5px rgba(0, 0, 0, .3),
+        0 22px 65px rgba(0, 0, 0, .58);
+      clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+    }
+
+    .absorption-result-visual {
+      position: relative;
+      display: grid;
+      width: 135px;
+      height: 180px;
+      place-items: center;
+    }
+
+    .absorption-result-watch {
+      width: 83px;
+      height: 105px;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 13px #6ce7ff)
+        drop-shadow(0 0 24px rgba(255, 218, 102, .56));
+      animation: result-watch-pulse 1.35s ease-in-out infinite alternate;
+    }
+
+    .absorption-result-plumirel {
+      position: absolute;
+      right: -2px;
+      bottom: 4px;
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      filter: drop-shadow(3px 5px 4px rgba(0, 0, 0, .55));
+    }
+
+    .absorption-result-copy {
+      display: grid;
+      gap: 8px;
+    }
+
+    .absorption-result-copy span {
+      color: #8ee8ff;
+      font-size: .72rem;
+      font-weight: 1000;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .absorption-result-copy h2 {
+      margin: 0;
+      color: #fff1a0;
+      font-size: clamp(1.55rem, 4vw, 2.25rem);
+      text-shadow: 0 3px 0 #503509;
+    }
+
+    .absorption-result-copy p {
+      margin: 0;
+      line-height: 1.48;
+    }
+
+    .absorption-result-copy .forest-action {
+      justify-self: start;
+      margin-top: 7px;
+    }
+
+    @keyframes wrist-watch-pulse {
+      from {
+        transform: rotate(-19deg) scale(.96);
+        filter: brightness(1.05) drop-shadow(0 0 2px #72e8ff);
+      }
+      to {
+        transform: rotate(-19deg) scale(1.1);
+        filter: brightness(1.5) drop-shadow(0 0 13px #72e8ff);
+      }
+    }
+
+    @keyframes tired-plumirel {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(5px) rotate(1deg); }
+    }
+
+    @keyframes absorption-stream {
+      from { transform: rotate(-5deg) scaleX(.08); filter: blur(2px); }
+      to { transform: rotate(-5deg) scaleX(1); filter: blur(.4px); }
+    }
+
+    @keyframes essence-to-wrist {
+      0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(.4) rotate(0);
+      }
+      18% {
+        opacity: 1;
+      }
+      65% {
+        opacity: .95;
+        transform:
+          translate(var(--essence-mid-x), var(--essence-mid-y))
+          scale(1.25)
+          rotate(220deg);
+      }
+      100% {
+        opacity: 0;
+        transform:
+          translate(var(--essence-to-x), var(--essence-to-y))
+          scale(.12)
+          rotate(470deg);
+      }
+    }
+
+    @keyframes result-watch-pulse {
+      from { transform: scale(.96); filter: brightness(1) drop-shadow(0 0 8px #6ce7ff); }
+      to { transform: scale(1.05); filter: brightness(1.35) drop-shadow(0 0 18px #6ce7ff); }
+    }
+
+    @media (max-width: 760px) {
+      .absorption-stage {
+        inset: 116px 0 178px;
+      }
+
+      .absorption-iris-wrap {
+        bottom: 0;
+        left: -7%;
+        width: min(58vw, 245px);
+        height: 56vh;
+      }
+
+      .iris-wrist-device {
+        min-width: 27px;
+      }
+
+      .absorption-plumirel {
+        top: 22%;
+        right: -3%;
+        width: min(50vw, 215px);
+      }
+
+      .absorption-stream {
+        top: 37%;
+        left: 11%;
+        width: 63%;
+      }
+
+      .absorption-dialogue-box {
+        bottom: max(9px, env(safe-area-inset-bottom));
+        grid-template-columns: 1fr;
+        width: calc(100% - 16px);
+        min-height: 158px;
+        gap: 6px;
+        padding: 13px 15px;
+      }
+
+      .absorption-dialogue-box strong {
+        font-size: .64rem;
+      }
+
+      .absorption-dialogue-box p {
+        min-height: 57px;
+        font-size: .78rem;
+        line-height: 1.34;
+      }
+
+      .absorption-dialogue-box .forest-action {
+        justify-self: end;
+        min-width: 145px;
+      }
+
+      .absorption-result-card {
+        grid-template-columns: 95px 1fr;
+        gap: 8px;
+        padding: 18px 14px;
+      }
+
+      .absorption-result-visual {
+        width: 95px;
+        height: 150px;
+      }
+
+      .absorption-result-watch {
+        width: 66px;
+        height: 88px;
+      }
+
+      .absorption-result-plumirel {
+        width: 58px;
+        height: 58px;
+      }
+
+      .absorption-result-copy h2 {
+        font-size: 1.22rem;
+      }
+
+      .absorption-result-copy p {
+        font-size: .76rem;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -3937,7 +4374,56 @@
             <strong id="victoryExpText">+24 EXP</strong>
             <span class="xp-track"><span class="xp-fill" id="victoryXpFill"></span></span>
           </div>
-          <button class="battle-victory-button" id="completeBattleTutorial" type="button">Concluir tutorial</button>
+          <button class="battle-victory-button" id="completeBattleTutorial" type="button">Continuar com Dra. Íris</button>
+        </article>
+      </section>
+    </section>
+
+    <section class="absorption-lesson" id="absorptionLesson" aria-label="Demonstração de absorção de essência" hidden>
+      <div class="absorption-stage">
+        <div class="absorption-iris-wrap" id="absorptionIrisWrap">
+          <img
+            class="absorption-iris"
+            src="assets/story/dr-iris.webp"
+            alt="Dra. Íris demonstrando o Relógio Cristalíneo"
+          >
+          <span class="iris-wrist-device" aria-label="Relógio Cristalíneo preso ao punho da Dra. Íris">
+            <img src="assets/story/crystal-watch.webp" alt="">
+          </span>
+        </div>
+
+        <div class="absorption-plumirel" id="absorptionPlumirel">
+          <img
+            src="assets/map/plumirel.webp"
+            alt="Plumirel enfraquecido"
+            width="748"
+            height="713"
+          >
+          <span>Plumirel · Essência Voadora</span>
+        </div>
+
+        <span class="absorption-stream" aria-hidden="true"></span>
+        <div class="absorption-particles" id="absorptionParticles" aria-hidden="true"></div>
+      </div>
+
+      <aside class="absorption-dialogue-box">
+        <strong>Dra. Íris · Absorção de essência</strong>
+        <p id="absorptionDialogueText" aria-live="polite"></p>
+        <button class="forest-action" id="absorptionDialogueAction" type="button">Continuar</button>
+      </aside>
+
+      <section class="absorption-result" id="absorptionResult" aria-labelledby="absorptionResultTitle" hidden>
+        <article class="absorption-result-card">
+          <div class="absorption-result-visual" aria-hidden="true">
+            <img class="absorption-result-watch" src="assets/story/crystal-watch.webp" alt="">
+            <img class="absorption-result-plumirel" src="assets/map/plumirel.webp" alt="">
+          </div>
+          <div class="absorption-result-copy">
+            <span>Registro de pesquisa concluído</span>
+            <h2 id="absorptionResultTitle">Essência absorvida!</h2>
+            <p>Plumirel · Tipo Voador foi armazenado com segurança no Relógio de Pesquisa da Dra. Íris.</p>
+            <button class="forest-action" id="finishAbsorptionLesson" type="button">Concluir demonstração</button>
+          </div>
         </article>
       </section>
     </section>
@@ -4106,6 +4592,12 @@
       const victoryExpText = document.getElementById("victoryExpText");
       const victoryXpFill = document.getElementById("victoryXpFill");
       const completeBattleTutorial = document.getElementById("completeBattleTutorial");
+      const absorptionLesson = document.getElementById("absorptionLesson");
+      const absorptionDialogueText = document.getElementById("absorptionDialogueText");
+      const absorptionDialogueAction = document.getElementById("absorptionDialogueAction");
+      const absorptionParticles = document.getElementById("absorptionParticles");
+      const absorptionResult = document.getElementById("absorptionResult");
+      const finishAbsorptionLesson = document.getElementById("finishAbsorptionLesson");
       const forestComplete = document.getElementById("forestComplete");
       const forestCompleteText = document.getElementById("forestCompleteText");
       const saveForestProgress = document.getElementById("saveForestProgress");
@@ -4132,6 +4624,7 @@
       let battleLocked = false;
       let playerBattleHp = 34;
       let wildBattleHp = 26;
+      let absorptionDialogueIndex = 0;
 
       const STARTERS = {
         axolume: {
@@ -4664,6 +5157,10 @@
         forestIntro.hidden = false;
         forestExploration.hidden = true;
         forestBattle.hidden = true;
+        absorptionLesson.hidden = true;
+        absorptionLesson.classList.remove("active");
+        absorptionResult.hidden = true;
+        absorptionParticles.replaceChildren();
         forestComplete.hidden = true;
         encounterBanner.hidden = true;
         battleVictory.hidden = true;
@@ -4934,12 +5431,137 @@
         basicAttack.focus();
       };
 
+      const writeAbsorptionDialogue = (message, buttonLabel) => {
+        clearInterval(typingTimer);
+        absorptionDialogueText.textContent = "";
+        absorptionDialogueAction.textContent = buttonLabel;
+        absorptionDialogueAction.disabled = true;
+
+        if (prefersLessMotion()) {
+          absorptionDialogueText.textContent = message;
+          absorptionDialogueAction.disabled = false;
+          absorptionDialogueAction.focus();
+          return;
+        }
+
+        let cursor = 0;
+        typingTimer = window.setInterval(() => {
+          absorptionDialogueText.textContent += message[cursor];
+          if (cursor % 6 === 0 && message[cursor] !== " ") playTone(690, 0, .022, "sine");
+          cursor += 1;
+          if (cursor >= message.length) {
+            clearInterval(typingTimer);
+            absorptionDialogueAction.disabled = false;
+          }
+        }, 18);
+      };
+
+      const renderAbsorptionDialogue = () => {
+        const starter = STARTERS[selectedStarter];
+        const lines = [
+          {
+            text: `Excelente trabalho. ${starter.name} venceu, e Plumirel está apenas enfraquecido. Agora observe com atenção.`,
+            action: "Observar"
+          },
+          {
+            text: "Quando um Naturion está enfraquecido, sua essência pode responder ao cristal. A absorção preserva essa energia dentro do relógio.",
+            action: "Ver o relógio"
+          },
+          {
+            text: "Mantenho o Relógio Cristalíneo preso ao meu punho para que o cristal permaneça alinhado com a essência. Veja como ela será conduzida.",
+            action: "Iniciar absorção"
+          }
+        ];
+
+        writeAbsorptionDialogue(
+          lines[absorptionDialogueIndex].text,
+          lines[absorptionDialogueIndex].action
+        );
+      };
+
+      const startAbsorptionLesson = () => {
+        forestBattle.hidden = true;
+        battleVictory.hidden = true;
+        absorptionLesson.hidden = false;
+        absorptionLesson.classList.remove("active");
+        absorptionResult.hidden = true;
+        absorptionParticles.replaceChildren();
+        absorptionDialogueIndex = 0;
+        forestObjective.textContent = "Observe a absorção da essência";
+        renderAbsorptionDialogue();
+        playSequence([330, 440, 554], .08);
+      };
+
+      const createAbsorptionParticles = () => {
+        absorptionParticles.replaceChildren();
+        const count = prefersLessMotion() ? 20 : 76;
+        const colors = ["#fff0a3", "#a8efff", "#ffffff", "#f4cf68"];
+
+        for (let index = 0; index < count; index += 1) {
+          const particle = document.createElement("i");
+          const startX = 66 + Math.random() * 13;
+          const startY = 30 + Math.random() * 28;
+          const targetX = 13 + Math.random() * 2;
+          const targetY = 39 + Math.random() * 4;
+          const deltaX = targetX - startX;
+          const deltaY = targetY - startY;
+          particle.className = "essence-particle";
+          particle.style.setProperty("--essence-start-x", `${startX}%`);
+          particle.style.setProperty("--essence-start-y", `${startY}%`);
+          particle.style.setProperty("--essence-to-x", `${deltaX}vw`);
+          particle.style.setProperty("--essence-to-y", `${deltaY}vh`);
+          particle.style.setProperty("--essence-mid-x", `${deltaX * .7}vw`);
+          particle.style.setProperty("--essence-mid-y", `${deltaY * .7 - 5 + Math.random() * 10}vh`);
+          particle.style.setProperty("--essence-size", `${3 + Math.random() * 7}px`);
+          particle.style.setProperty("--essence-color", colors[index % colors.length]);
+          particle.style.setProperty("--essence-radius", index % 4 === 0 ? "80% 10%" : "50%");
+          particle.style.setProperty("--essence-duration", `${1.25 + Math.random() * .85}s`);
+          particle.style.setProperty("--essence-delay", `${.12 + Math.random() * 1.15}s`);
+          absorptionParticles.append(particle);
+        }
+      };
+
+      const runAbsorptionDemonstration = async () => {
+        absorptionDialogueAction.disabled = true;
+        absorptionDialogueAction.textContent = "Absorvendo...";
+        absorptionDialogueText.textContent = "A essência voadora se desprende em partículas de luz e é guiada até o cristal no punho da Dra. Íris.";
+        createAbsorptionParticles();
+        requestAnimationFrame(() => absorptionLesson.classList.add("active"));
+        playSequence([440, 554, 659, 784, 988, 1175], .12);
+        await forestPause(2900);
+
+        currentPlayer = {
+          ...currentPlayer,
+          tutorials: {
+            ...(currentPlayer.tutorials || {}),
+            absorptionDemonstration: true
+          },
+          storyFlags: {
+            ...(currentPlayer.storyFlags || {}),
+            irisAbsorbedPlumirel: true
+          },
+          activeMission: {
+            ...currentPlayer.activeMission,
+            progress: "absorcao-demonstrada"
+          }
+        };
+        saveCurrentPlayer();
+        absorptionResult.hidden = false;
+        playSequence([523, 659, 784, 1046], .09);
+        window.dispatchEvent(new CustomEvent("naturion:absorption-demonstrated", {
+          detail: currentPlayer
+        }));
+        finishAbsorptionLesson.focus();
+      };
+
       const showForestCompletion = () => {
         const starter = STARTERS[selectedStarter];
         forestBattle.hidden = true;
+        absorptionLesson.hidden = true;
+        absorptionLesson.classList.remove("active");
         forestComplete.hidden = false;
-        forestObjective.textContent = "Tutorial de batalha concluído";
-        forestCompleteText.textContent = `Plumirel está bem e voltou para a clareira. ${starter.name} ganhou experiência e seu vínculo ficou mais forte.`;
+        forestObjective.textContent = "Tutoriais de batalha e absorção concluídos";
+        forestCompleteText.textContent = `A essência de Plumirel foi guardada no Relógio de Pesquisa da Dra. Íris. ${starter.name} ganhou experiência e seu vínculo ficou mais forte.`;
         playSequence([392, 494, 587, 784], .08);
         saveForestProgress.focus();
       };
@@ -5137,7 +5759,20 @@
         void runBattleAction("defend");
       });
 
-      completeBattleTutorial.addEventListener("click", showForestCompletion);
+      completeBattleTutorial.addEventListener("click", startAbsorptionLesson);
+
+      absorptionDialogueAction.addEventListener("click", () => {
+        if (absorptionDialogueAction.disabled) return;
+        playClick(330);
+        if (absorptionDialogueIndex < 2) {
+          absorptionDialogueIndex += 1;
+          renderAbsorptionDialogue();
+        } else {
+          void runAbsorptionDemonstration();
+        }
+      });
+
+      finishAbsorptionLesson.addEventListener("click", showForestCompletion);
 
       saveForestProgress.addEventListener("click", () => {
         currentPlayer = {
