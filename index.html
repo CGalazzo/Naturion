@@ -2448,19 +2448,25 @@
     .plumirel-world {
       position: absolute;
       z-index: 4;
-      top: 38%;
+      top: 18%;
       left: 72%;
       display: grid;
+      isolation: isolate;
       justify-items: center;
       width: clamp(112px, 14vw, 180px);
-      transform: translate(-50%, -100%);
+      pointer-events: none;
+      transform: translateX(-50%);
       transition: filter .28s ease, transform .28s ease;
     }
 
     .plumirel-world::after {
+      position: absolute;
+      z-index: -1;
+      right: 22%;
+      bottom: 1%;
+      left: 22%;
       width: 56%;
       height: 13px;
-      margin-top: -10px;
       border-radius: 50%;
       content: "";
       background: rgba(0, 0, 0, .42);
@@ -2468,9 +2474,15 @@
     }
 
     .plumirel-world img {
+      position: relative;
+      z-index: 1;
+      display: block;
       width: 100%;
+      height: auto;
       aspect-ratio: 748 / 713;
+      opacity: 1;
       object-fit: contain;
+      visibility: visible;
       filter:
         drop-shadow(0 0 9px rgba(255, 226, 120, .5))
         drop-shadow(5px 8px 7px rgba(0, 0, 0, .5));
@@ -2480,21 +2492,11 @@
 
     .plumirel-world.alert {
       filter: brightness(1.2);
-      transform: translate(-50%, -100%) scale(1.09);
+      transform: translateX(-50%) scale(1.09);
     }
 
     .plumirel-world-name {
-      margin-top: -1px;
-      padding: 4px 10px;
-      border: 1px solid rgba(255, 226, 120, .65);
-      border-radius: 999px;
-      color: #fff8c2;
-      background: rgba(4, 22, 13, .82);
-      box-shadow: 0 5px 12px rgba(0, 0, 0, .35);
-      font-size: .68rem;
-      font-weight: 900;
-      letter-spacing: .09em;
-      text-transform: uppercase;
+      display: none;
     }
 
     .movement-guide {
@@ -2646,7 +2648,7 @@
 
     .battle-field {
       position: absolute;
-      inset: 82px 0 152px;
+      inset: 70px 0 96px;
     }
 
     .battle-platform {
@@ -2670,8 +2672,8 @@
     }
 
     .battle-platform.wild {
-      top: 23%;
-      right: 7%;
+      top: 53%;
+      right: 8%;
       transform: scale(.82);
     }
 
@@ -2685,14 +2687,14 @@
     }
 
     .battle-player {
-      bottom: 5%;
-      left: 12%;
+      bottom: 4%;
+      left: 7%;
       width: clamp(165px, 25vw, 340px);
     }
 
     .battle-wild {
-      top: 2%;
-      right: 13%;
+      top: 13%;
+      right: 10%;
       width: clamp(155px, 23vw, 310px);
     }
 
@@ -2735,7 +2737,7 @@
       position: absolute;
       z-index: 6;
       display: grid;
-      width: min(38vw, 380px);
+      width: min(28vw, 340px);
       gap: 6px;
       padding: 11px 14px;
       border: 1px solid rgba(230, 194, 78, .8);
@@ -2748,13 +2750,13 @@
     }
 
     .battle-status.wild {
-      top: 94px;
-      left: 26px;
+      top: 72px;
+      right: 8%;
     }
 
     .battle-status.player {
-      right: 26px;
-      bottom: 164px;
+      bottom: 18px;
+      left: 7%;
     }
 
     .battle-status-head {
@@ -2822,14 +2824,14 @@
     .battle-guide {
       position: absolute;
       z-index: 9;
-      top: 88px;
-      left: 50%;
+      top: 72px;
+      left: 42%;
       display: grid;
-      grid-template-columns: 52px minmax(180px, 460px);
+      grid-template-columns: 44px minmax(180px, 410px);
       align-items: center;
-      width: min(58vw, 560px);
-      gap: 11px;
-      padding: 9px 15px 9px 9px;
+      width: min(36vw, 470px);
+      gap: 9px;
+      padding: 7px 13px 7px 7px;
       border: 1px solid rgba(125, 226, 177, .76);
       border-radius: 8px;
       color: #edf9eb;
@@ -2839,8 +2841,8 @@
     }
 
     .battle-guide img {
-      width: 52px;
-      height: 52px;
+      width: 44px;
+      height: 44px;
       object-fit: contain;
       object-position: top;
       border-radius: 6px;
@@ -2860,7 +2862,7 @@
     }
 
     .battle-guide em {
-      font-size: .82rem;
+      font-size: .76rem;
       font-style: normal;
       line-height: 1.35;
     }
@@ -2868,13 +2870,12 @@
     .battle-menu {
       position: absolute;
       z-index: 10;
-      bottom: max(20px, env(safe-area-inset-bottom));
-      left: 50%;
+      bottom: max(112px, calc(env(safe-area-inset-bottom) + 96px));
+      left: calc(7% + clamp(165px, 25vw, 340px) + 24px);
       display: grid;
-      grid-template-columns: repeat(3, minmax(145px, 210px));
-      width: min(calc(100% - 32px), 680px);
-      gap: 10px;
-      transform: translateX(-50%);
+      grid-template-columns: minmax(150px, 1fr);
+      width: min(18vw, 220px);
+      gap: 8px;
     }
 
     .battle-action {
@@ -3272,7 +3273,7 @@
       }
 
       .plumirel-world {
-        top: 43%;
+        top: 27%;
         left: 69%;
         width: clamp(105px, 31vw, 142px);
       }
@@ -3318,7 +3319,7 @@
       }
 
       .battle-wild {
-        top: 11%;
+        top: 18%;
         right: 1%;
         width: min(42vw, 190px);
       }
@@ -3330,7 +3331,7 @@
       }
 
       .battle-platform.wild {
-        top: 32%;
+        top: 54%;
         right: -4%;
         width: 48vw;
       }
@@ -3341,13 +3342,13 @@
       }
 
       .battle-status.wild {
-        top: 132px;
-        left: 8px;
+        top: 108px;
+        right: 8px;
       }
 
       .battle-status.player {
-        right: 8px;
-        bottom: 171px;
+        bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px));
+        left: 8px;
       }
 
       .battle-status-head strong {
@@ -3388,9 +3389,11 @@
 
       .battle-menu {
         bottom: max(10px, env(safe-area-inset-bottom));
+        left: 50%;
         grid-template-columns: repeat(3, 1fr);
         width: calc(100% - 16px);
         gap: 5px;
+        transform: translateX(-50%);
       }
 
       .battle-action {
@@ -3463,7 +3466,7 @@
       }
 
       .battle-field {
-        inset-block: 66px 116px;
+        inset-block: 62px 64px;
       }
 
       .battle-status.wild {
@@ -3471,7 +3474,7 @@
       }
 
       .battle-status.player {
-        bottom: 122px;
+        bottom: 10px;
       }
 
       .battle-guide {
@@ -3479,7 +3482,7 @@
       }
 
       .battle-menu {
-        bottom: 10px;
+        bottom: 78px;
       }
 
       .battle-action {
@@ -3493,12 +3496,14 @@
     }
 
     .absorption-lesson {
+      --sync-color: #a8efff;
+      --sync-glow: #f4cf68;
       position: absolute;
       z-index: 17;
       inset: 0;
       overflow: hidden;
       background:
-        radial-gradient(circle at 49% 40%, rgba(96, 207, 157, .08), transparent 42%),
+        radial-gradient(circle at 14% 40%, color-mix(in srgb, var(--sync-color) 16%, transparent), transparent 35%),
         linear-gradient(180deg, rgba(2, 15, 9, .08), rgba(1, 12, 7, .56));
     }
 
@@ -3568,10 +3573,11 @@
 
     .absorption-lesson.active .iris-wrist-device {
       filter: brightness(1.35);
-      animation: wrist-watch-pulse .62s ease-in-out infinite alternate;
+      animation: wrist-watch-pulse .7s ease-in-out infinite alternate;
     }
 
     .absorption-plumirel {
+      --absorb-x: -57vw;
       position: absolute;
       z-index: 4;
       top: 28%;
@@ -3611,9 +3617,7 @@
     }
 
     .absorption-lesson.active .absorption-plumirel {
-      opacity: .22;
-      filter: brightness(1.8) saturate(.55);
-      transform: translate(-8%, -13%) scale(.76);
+      animation: essence-release-to-wrist 2.25s cubic-bezier(.45, .02, .8, .35) .45s forwards;
     }
 
     .absorption-stream {
@@ -3622,24 +3626,17 @@
       top: 39%;
       left: 13%;
       width: 60%;
-      height: 16px;
-      border-radius: 50%;
+      height: 8px;
       opacity: 0;
-      background:
-        repeating-linear-gradient(90deg, #fff4a6 0 10px, #9fe8ff 10px 20px, transparent 20px 30px);
-      box-shadow:
-        0 0 9px #fff1a0,
-        0 0 23px rgba(100, 220, 255, .82);
-      filter: blur(1px);
-      transform: rotate(-5deg) scaleX(0);
+      background: linear-gradient(90deg, transparent, var(--sync-color), #fff, var(--sync-color), transparent);
+      box-shadow: 0 0 22px 7px var(--sync-glow);
+      transform: rotate(-3deg) scaleX(.2);
       transform-origin: left center;
-      transition: opacity .3s ease;
       pointer-events: none;
     }
 
     .absorption-lesson.active .absorption-stream {
-      opacity: .85;
-      animation: absorption-stream 1.1s ease-in-out .18s infinite alternate;
+      animation: beam-on 1.6s ease .65s forwards;
     }
 
     .absorption-particles {
@@ -3650,19 +3647,9 @@
       pointer-events: none;
     }
 
-    .essence-particle {
-      position: absolute;
-      left: var(--essence-start-x);
-      top: var(--essence-start-y);
-      width: var(--essence-size);
-      height: var(--essence-size);
-      border-radius: var(--essence-radius, 50%);
-      opacity: 0;
-      background: var(--essence-color);
-      box-shadow:
-        0 0 8px var(--essence-color),
-        0 0 18px var(--essence-color);
-      animation: essence-to-wrist var(--essence-duration) cubic-bezier(.42, 0, .22, 1) var(--essence-delay) forwards;
+    .absorption-sync-particle {
+      background: var(--particle-color, var(--sync-color));
+      box-shadow: 0 0 12px 3px var(--particle-glow, var(--sync-glow));
     }
 
     .absorption-dialogue-box {
@@ -3793,11 +3780,11 @@
     @keyframes wrist-watch-pulse {
       from {
         transform: rotate(-19deg) scale(.96);
-        filter: brightness(1.05) drop-shadow(0 0 2px #72e8ff);
+        filter: brightness(.92) drop-shadow(0 0 18px var(--sync-color));
       }
       to {
-        transform: rotate(-19deg) scale(1.1);
-        filter: brightness(1.5) drop-shadow(0 0 13px #72e8ff);
+        transform: rotate(-19deg) scale(1.04);
+        filter: brightness(1.24) drop-shadow(0 0 50px var(--sync-glow));
       }
     }
 
@@ -3806,32 +3793,21 @@
       50% { transform: translateY(5px) rotate(1deg); }
     }
 
-    @keyframes absorption-stream {
-      from { transform: rotate(-5deg) scaleX(.08); filter: blur(2px); }
-      to { transform: rotate(-5deg) scaleX(1); filter: blur(.4px); }
-    }
-
-    @keyframes essence-to-wrist {
+    @keyframes essence-release-to-wrist {
       0% {
-        opacity: 0;
-        transform: translate(0, 0) scale(.4) rotate(0);
-      }
-      18% {
         opacity: 1;
+        filter: drop-shadow(0 0 24px var(--sync-color));
+        transform: translateY(-10%) scale(1);
       }
-      65% {
-        opacity: .95;
-        transform:
-          translate(var(--essence-mid-x), var(--essence-mid-y))
-          scale(1.25)
-          rotate(220deg);
+      55% {
+        opacity: .78;
+        filter: brightness(1.8) saturate(1.4) drop-shadow(0 0 44px var(--sync-color));
+        transform: translateY(-10%) scale(.88);
       }
       100% {
         opacity: 0;
-        transform:
-          translate(var(--essence-to-x), var(--essence-to-y))
-          scale(.12)
-          rotate(470deg);
+        filter: brightness(2.5) blur(7px);
+        transform: translate(var(--absorb-x), -1vh) scale(.08) rotate(-24deg);
       }
     }
 
@@ -3857,6 +3833,7 @@
       }
 
       .absorption-plumirel {
+        --absorb-x: -48vw;
         top: 22%;
         right: -3%;
         width: min(50vw, 215px);
@@ -4686,6 +4663,19 @@
         }
       };
 
+      /*
+       * Toda absorção usa a mesma coreografia da sintonia inicial.
+       * Para novos Naturions, apenas a paleta e o formato das partículas mudam.
+       */
+      const ESSENCE_STYLES = {
+        voador: {
+          color: "#a8efff",
+          glow: "#f4cf68",
+          palette: ["#a8efff", "#ffffff", "#f7dc82"],
+          radius: "1px 70%"
+        }
+      };
+
       const showAssetError = () => {
         assetError.hidden = false;
         document.querySelectorAll("button").forEach((button) => {
@@ -5492,43 +5482,52 @@
         playSequence([330, 440, 554], .08);
       };
 
-      const createAbsorptionParticles = () => {
+      const createAbsorptionParticles = (essenceStyle) => {
         absorptionParticles.replaceChildren();
-        const count = prefersLessMotion() ? 20 : 76;
-        const colors = ["#fff0a3", "#a8efff", "#ffffff", "#f4cf68"];
+        const count = prefersLessMotion() ? 18 : 72;
 
         for (let index = 0; index < count; index += 1) {
           const particle = document.createElement("i");
-          const startX = 66 + Math.random() * 13;
-          const startY = 30 + Math.random() * 28;
+          const startX = 66 + Math.random() * 16;
+          const startY = 18 + Math.random() * 52;
           const targetX = 13 + Math.random() * 2;
-          const targetY = 39 + Math.random() * 4;
-          const deltaX = targetX - startX;
-          const deltaY = targetY - startY;
-          particle.className = "essence-particle";
-          particle.style.setProperty("--essence-start-x", `${startX}%`);
-          particle.style.setProperty("--essence-start-y", `${startY}%`);
-          particle.style.setProperty("--essence-to-x", `${deltaX}vw`);
-          particle.style.setProperty("--essence-to-y", `${deltaY}vh`);
-          particle.style.setProperty("--essence-mid-x", `${deltaX * .7}vw`);
-          particle.style.setProperty("--essence-mid-y", `${deltaY * .7 - 5 + Math.random() * 10}vh`);
-          particle.style.setProperty("--essence-size", `${3 + Math.random() * 7}px`);
-          particle.style.setProperty("--essence-color", colors[index % colors.length]);
-          particle.style.setProperty("--essence-radius", index % 4 === 0 ? "80% 10%" : "50%");
-          particle.style.setProperty("--essence-duration", `${1.25 + Math.random() * .85}s`);
-          particle.style.setProperty("--essence-delay", `${.12 + Math.random() * 1.15}s`);
+          const targetY = 38 + Math.random() * 5;
+          particle.className = "sync-particle absorption-sync-particle";
+          particle.style.setProperty("--start-x", `${startX}vw`);
+          particle.style.setProperty("--start-y", `${startY}vh`);
+          particle.style.setProperty("--arc-x", `${-12 - Math.random() * 20}vw`);
+          particle.style.setProperty("--arc-y", `${-18 + Math.random() * 36}vh`);
+          particle.style.setProperty("--end-x", `${targetX - startX}vw`);
+          particle.style.setProperty("--end-y", `${targetY - startY}vh`);
+          particle.style.setProperty("--size", `${3 + Math.random() * 8}px`);
+          particle.style.setProperty("--radius", essenceStyle.radius);
+          particle.style.setProperty("--duration", `${1.45 + Math.random() * .85}s`);
+          particle.style.setProperty("--delay", `${.28 + Math.random() * .95}s`);
+          particle.style.setProperty(
+            "--particle-color",
+            essenceStyle.palette[index % essenceStyle.palette.length]
+          );
+          particle.style.setProperty("--particle-glow", essenceStyle.glow);
           absorptionParticles.append(particle);
         }
       };
 
       const runAbsorptionDemonstration = async () => {
+        const essenceStyle = ESSENCE_STYLES.voador;
         absorptionDialogueAction.disabled = true;
         absorptionDialogueAction.textContent = "Absorvendo...";
         absorptionDialogueText.textContent = "A essência voadora se desprende em partículas de luz e é guiada até o cristal no punho da Dra. Íris.";
-        createAbsorptionParticles();
+        absorptionLesson.style.setProperty("--sync-color", essenceStyle.color);
+        absorptionLesson.style.setProperty("--sync-glow", essenceStyle.glow);
+        createAbsorptionParticles(essenceStyle);
         requestAnimationFrame(() => absorptionLesson.classList.add("active"));
         playSequence([440, 554, 659, 784, 988, 1175], .12);
-        await forestPause(2900);
+        const successDelay = prefersLessMotion() ? 450 : 2600;
+        const resultDelay = prefersLessMotion() ? 850 : 3600;
+        await forestPause(successDelay);
+        absorptionDialogueText.textContent = "A essência de Plumirel foi reconhecida. O cristal pulsa e conclui a absorção!";
+        playSequence([1175, 988, 784, 659, 554, 440], .09);
+        await forestPause(resultDelay - successDelay);
 
         currentPlayer = {
           ...currentPlayer,
