@@ -1,43 +1,98 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Naturion — Guardiões da Natureza</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#051017;font-family:Arial,Helvetica,sans-serif;color:#fff}body{display:grid;place-items:center}.game{position:relative;width:min(100vw,calc(100vh*25/16));height:min(100vh,calc(100vw*16/25));aspect-ratio:25/16;overflow:hidden;background:#0b6ab2}.scene{position:absolute;inset:0;width:100%;height:100%;display:block}.shade{position:absolute;inset:0;background:radial-gradient(circle at 50% 22%,transparent 0 48%,rgba(0,0,0,.08) 70%,rgba(0,0,0,.38) 100%);pointer-events:none}.hit{position:absolute;border:0;border-radius:18px;background:transparent;cursor:pointer;color:transparent;font-size:0;outline:0}.hit:focus-visible,.hit:hover{box-shadow:inset 0 0 0 5px rgba(255,255,255,.7),0 0 26px rgba(255,230,100,.75)}#newJourney{left:34.8%;top:53.8%;width:31.6%;height:11.5%}#optionsButton{left:35.5%;top:67.2%;width:30.5%;height:11.3%}.modal[hidden]{display:none}.modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.6);padding:20px;z-index:20}.card{width:min(92vw,540px);padding:26px;border:2px solid #d8b94f;border-radius:22px;background:linear-gradient(#183d28,#081a11);box-shadow:0 20px 60px rgba(0,0,0,.55)}h2{text-align:center;color:#f2d77d}.setting{display:grid;gap:8px;margin:17px 0;padding:13px;background:rgba(255,255,255,.06);border-radius:14px}.setting input[type=range]{width:100%}.toggle{display:flex;justify-content:space-between;align-items:center}.close{display:block;margin:22px auto 0;padding:13px 28px;border:0;border-radius:13px;background:linear-gradient(#7dc84d,#34712d);color:#fff;font-weight:900;font-size:1rem;cursor:pointer}.toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%) translateY(20px);padding:13px 18px;border:1px solid #d8b94f;border-radius:13px;background:rgba(8,24,16,.96);font-weight:800;opacity:0;transition:.2s;z-index:30}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071018">
+  <title>Naturion — Guardiões da Natureza</title>
+  <style>
+    :root{color-scheme:dark;--gold:#d8b94f;--panel:#0a1d14}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#071018;font-family:Arial,Helvetica,sans-serif;color:#fff}
+    body{display:grid;place-items:center}
+    .game{position:relative;width:min(100vw,calc(100vh*25/16));height:min(100vh,calc(100vw*16/25));aspect-ratio:25/16;overflow:hidden;background:#071018;box-shadow:0 20px 70px #0008}
+    .art{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;user-select:none;-webkit-user-drag:none}
+    .hit{position:absolute;border:0;border-radius:18px;background:transparent;cursor:pointer;color:transparent;font-size:0;outline:0;transition:.15s}
+    .hit:hover,.hit:focus-visible{box-shadow:inset 0 0 0 5px #ffffffb3,0 0 26px #ffe664bf}
+    .hit:active{transform:translateY(3px)}
+    #newJourney{left:34.8%;top:53.8%;width:31.6%;height:11.5%}
+    #optionsButton{left:35.5%;top:67.2%;width:30.5%;height:11.3%}
+    .load-error{position:absolute;inset:0;display:grid;place-items:center;padding:32px;text-align:center;background:linear-gradient(145deg,#102b20,#071018);font-weight:800;line-height:1.5}
+    .load-error[hidden]{display:none}
+    .modal[hidden]{display:none}
+    .modal{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:#000a;backdrop-filter:blur(5px);z-index:20}
+    .card{width:min(92vw,540px);padding:26px;border:2px solid var(--gold);border-radius:22px;background:linear-gradient(#183d28,#081a11);box-shadow:0 20px 60px #0009}
+    .card h2{margin:0 0 20px;text-align:center;color:#f2d77d}
+    .setting{display:grid;gap:8px;margin:17px 0;padding:13px;background:#ffffff0f;border-radius:14px}
+    .setting input[type=range]{width:100%;accent-color:#62a744}
+    .toggle{display:flex;justify-content:space-between;align-items:center}.toggle input{width:23px;height:23px;accent-color:#62a744}
+    .close{display:block;margin:22px auto 0;min-width:180px;padding:13px 28px;border:0;border-radius:13px;background:linear-gradient(#7dc84d,#34712d);color:#fff;font-weight:900;font-size:1rem;cursor:pointer}
+    .toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%) translateY(20px);max-width:min(90vw,620px);padding:13px 18px;border:1px solid var(--gold);border-radius:13px;background:#081810f5;font-weight:800;text-align:center;opacity:0;pointer-events:none;transition:.2s;z-index:30}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  </style>
 </head>
 <body>
-<main class="game" aria-label="Tela inicial do Naturion">
-<svg class="scene" viewBox="0 0 1600 1024" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-<defs>
-<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0871c9"/><stop offset=".62" stop-color="#58c4ef"/><stop offset="1" stop-color="#b9edf0"/></linearGradient>
-<linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffbd5"/><stop offset=".35" stop-color="#f6e76d"/><stop offset=".65" stop-color="#b9d93a"/><stop offset="1" stop-color="#35852e"/></linearGradient>
-<linearGradient id="green" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#91da55"/><stop offset=".48" stop-color="#3d9636"/><stop offset="1" stop-color="#1d5d25"/></linearGradient>
-<linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#5ec3ff"/><stop offset=".48" stop-color="#287fce"/><stop offset="1" stop-color="#174b91"/></linearGradient>
-<linearGradient id="gem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd8ff"/><stop offset=".35" stop-color="#d7dfff"/><stop offset=".7" stop-color="#8fd6ff"/><stop offset="1" stop-color="#5596ef"/></linearGradient>
-<filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-opacity=".48"/></filter>
-</defs>
-<rect width="1600" height="1024" fill="url(#sky)"/>
-<g fill="#f4fafc"><rect x="150" y="90" width="80" height="28"/><rect x="205" y="76" width="105" height="40"/><rect x="292" y="92" width="76" height="26"/><rect x="1020" y="78" width="90" height="30"/><rect x="1090" y="58" width="124" height="42"/><rect x="1190" y="80" width="84" height="27"/><rect x="1360" y="106" width="72" height="26"/><rect x="1418" y="88" width="94" height="36"/></g>
-<g><polygon points="950,220 1130,140 1320,205 1135,285" fill="#a5b3b5"/><polygon points="1135,285 1320,205 1320,600 1135,680" fill="#718084"/><polygon points="950,220 1135,285 1135,680 950,612" fill="#637276"/><polygon points="1130,140 1390,78 1540,165 1320,205" fill="#a9b6b7"/><polygon points="1320,205 1540,165 1540,590 1320,600" fill="#68777a"/><polygon points="1260,292 1312,280 1312,710 1260,720" fill="#9deeff"/><polygon points="1312,280 1350,270 1350,700 1312,710" fill="#43b9ef"/><polygon points="1260,720 1350,700 1392,758 1292,782" fill="#228fd4"/></g>
-<g><polygon points="0,650 230,568 430,650 210,738" fill="#57a045"/><polygon points="210,738 430,650 430,1024 210,1024" fill="#397137"/><polygon points="0,650 210,738 210,1024 0,1024" fill="#315f31"/><polygon points="250,606 515,509 745,606 478,710" fill="#62aa49"/><polygon points="478,710 745,606 745,1024 478,1024" fill="#447b3b"/><polygon points="250,606 478,710 478,1024 250,1024" fill="#376c35"/><polygon points="680,666 1065,559 1370,674 970,789" fill="#4d913d"/><polygon points="970,789 1370,674 1370,1024 970,1024" fill="#3e7335"/><polygon points="680,666 970,789 970,1024 680,1024" fill="#315f31"/><polygon points="1170,720 1600,636 1600,1024 1170,1024" fill="#407836"/></g>
-<g opacity=".95"><polygon points="760,637 820,651 1015,1024 917,1024" fill="#54c3ea"/><polygon points="800,646 852,659 1100,1024 1015,1024" fill="#218ecf"/></g>
-<g fill="#2b592c"><rect x="57" y="60" width="41" height="319"/><rect x="96" y="91" width="32" height="257"/></g><g fill="#3d7d36"><rect x="0" y="22" width="180" height="61"/><rect x="47" y="60" width="210" height="61"/><rect x="102" y="26" width="196" height="67"/><rect x="190" y="72" width="134" height="49"/></g><g fill="#58a544"><rect x="0" y="0" width="141" height="38"/><rect x="83" y="7" width="184" height="48"/><rect x="250" y="25" width="88" height="32"/></g>
-<g filter="url(#shadow)"><rect x="1380" y="746" width="104" height="137" fill="#71491f"/><polygon points="1348,768 1433,718 1518,768 1433,810" fill="#9c6c35"/><polygon points="1433,810 1518,768 1518,858 1433,898" fill="#82582b"/><polygon points="1348,768 1433,810 1433,898 1348,856" fill="#694522"/><rect x="1461" y="645" width="22" height="198" fill="#65421d"/><polygon points="1408,701 1472,661 1538,701 1472,735" fill="#dde0e3"/><polygon points="1472,735 1538,701 1538,812 1472,849" fill="#bfc5ca"/><polygon points="1408,701 1472,735 1472,849 1408,814" fill="#d9dde0"/></g>
-<g filter="url(#shadow)"><rect x="151" y="766" width="80" height="109" fill="#2d7138"/><rect x="169" y="873" width="20" height="76" fill="#68401f"/><rect x="202" y="873" width="20" height="76" fill="#68401f"/><rect x="146" y="729" width="91" height="47" fill="#3f8d50"/><rect x="170" y="676" width="45" height="61" fill="#f0bd98"/><rect x="136" y="783" width="22" height="66" fill="#f0bd98"/><rect x="228" y="783" width="22" height="66" fill="#f0bd98"/><rect x="162" y="633" width="65" height="54" fill="#714322"/><rect x="143" y="654" width="22" height="31" fill="#714322"/><rect x="226" y="654" width="22" height="31" fill="#714322"/><polygon points="111,712 174,682 254,712 191,743" fill="#7d5330"/><polygon points="191,743 254,712 254,840 191,871" fill="#604020"/><polygon points="111,712 191,743 191,871 111,840" fill="#704827"/><rect x="230" y="825" width="18" height="10" rx="2" fill="#6b5541"/><polygon points="246,817 261,808 271,818 260,835 246,832" fill="url(#gem)" stroke="#c29a29" stroke-width="4"/></g>
-<g filter="url(#shadow)"><text x="800" y="338" text-anchor="middle" font-family="Georgia,serif" font-size="151" font-weight="900" fill="url(#gold)" stroke="#163b19" stroke-width="15" paint-order="stroke">NATURI N</text><polygon points="1072,184 1126,218 1119,314 1072,369 1024,314 1017,218" fill="url(#gem)" stroke="#c49c26" stroke-width="9"/><rect x="515" y="355" width="570" height="73" rx="20" fill="#4c3011" stroke="#6f4c1d" stroke-width="8"/><text x="800" y="406" text-anchor="middle" font-family="Arial" font-size="37" font-weight="900" letter-spacing="4" fill="#f6e58d" stroke="#281806" stroke-width="4" paint-order="stroke">GUARDIÕES DA NATUREZA</text></g>
-<g filter="url(#shadow)"><rect x="557" y="551" width="507" height="115" rx="22" fill="url(#green)" stroke="#1d4d1c" stroke-width="10"/><rect x="573" y="567" width="475" height="83" rx="13" fill="none" stroke="#f2d65a" stroke-width="5"/><text x="810" y="625" text-anchor="middle" font-family="Arial" font-size="48" font-weight="900" fill="#fff" stroke="#1d321b" stroke-width="5" paint-order="stroke">NOVA JORNADA</text><rect x="572" y="696" width="476" height="112" rx="22" fill="url(#blue)" stroke="#193b6d" stroke-width="10"/><rect x="588" y="712" width="444" height="80" rx="13" fill="none" stroke="#f0cf55" stroke-width="5"/><text x="810" y="770" text-anchor="middle" font-family="Arial" font-size="51" font-weight="900" fill="#fff" stroke="#152d4c" stroke-width="5" paint-order="stroke">OPÇÕES</text></g>
-<text x="20" y="997" font-family="Arial" font-size="29" font-weight="700" fill="#fff" stroke="#000" stroke-width="4" paint-order="stroke">v0.1.1</text>
-</svg>
-<div class="shade"></div>
-<button class="hit" id="newJourney" aria-label="Nova Jornada">Nova Jornada</button><button class="hit" id="optionsButton" aria-label="Opções">Opções</button>
-</main>
-<section class="modal" id="optionsModal" hidden><div class="card"><h2>Opções</h2><div class="setting"><label for="musicVolume">Volume da música</label><input id="musicVolume" type="range" min="0" max="100" value="70"></div><div class="setting"><label for="effectsVolume">Volume dos efeitos</label><input id="effectsVolume" type="range" min="0" max="100" value="85"></div><div class="setting toggle"><label for="fullscreen">Tela cheia</label><input id="fullscreen" type="checkbox"></div><button class="close" id="closeOptions">Fechar</button></div></section>
-<div class="toast" id="toast"></div>
-<script>
-const K='naturion-settings-v1',m=document.getElementById('optionsModal'),t=document.getElementById('toast'),mv=document.getElementById('musicVolume'),ev=document.getElementById('effectsVolume'),fs=document.getElementById('fullscreen');let timer;function toast(s){t.textContent=s;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),2400)}function save(){localStorage.setItem(K,JSON.stringify({music:+mv.value,effects:+ev.value}))}try{const s=JSON.parse(localStorage.getItem(K)||'{}');if(Number.isFinite(s.music))mv.value=s.music;if(Number.isFinite(s.effects))ev.value=s.effects}catch{}document.getElementById('newJourney').onclick=()=>toast('A escolha do Naturion inicial será adicionada na próxima etapa.');document.getElementById('optionsButton').onclick=()=>m.hidden=false;document.getElementById('closeOptions').onclick=()=>{save();m.hidden=true};m.onclick=e=>{if(e.target===m){save();m.hidden=true}};mv.oninput=save;ev.oninput=save;fs.onchange=async()=>{try{fs.checked?await document.documentElement.requestFullscreen():document.fullscreenElement&&await document.exitFullscreen()}catch{toast('O navegador não permitiu ativar a tela cheia.')}};document.onfullscreenchange=()=>fs.checked=!!document.fullscreenElement;
-</script>
+  <main class="game" aria-label="Tela inicial do Naturion">
+    <img id="startArt" class="art" alt="Naturion — Guardiões da Natureza">
+    <div id="loadError" class="load-error" hidden>Não foi possível carregar a arte da tela inicial.<br>Atualize a página para tentar novamente.</div>
+    <button class="hit" id="newJourney" type="button" aria-label="Nova Jornada">Nova Jornada</button>
+    <button class="hit" id="optionsButton" type="button" aria-label="Opções">Opções</button>
+  </main>
+
+  <section class="modal" id="optionsModal" hidden aria-hidden="true">
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="optionsTitle">
+      <h2 id="optionsTitle">Opções</h2>
+      <div class="setting"><label for="musicVolume">Volume da música</label><input id="musicVolume" type="range" min="0" max="100" value="70"></div>
+      <div class="setting"><label for="effectsVolume">Volume dos efeitos</label><input id="effectsVolume" type="range" min="0" max="100" value="85"></div>
+      <div class="setting toggle"><label for="fullscreen">Tela cheia</label><input id="fullscreen" type="checkbox"></div>
+      <button class="close" id="closeOptions" type="button">Fechar</button>
+    </div>
+  </section>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>window.NATURION_BG='';</script>
+  <script src="./assets/naturion-bg-01.js"></script>
+  <script src="./assets/naturion-bg-02.js"></script>
+  <script src="./assets/naturion-bg-03-04.js"></script>
+  <script src="./assets/naturion-bg-05-06.js"></script>
+  <script src="./assets/naturion-bg-07-08.js"></script>
+  <script src="./assets/naturion-bg-09-10.js"></script>
+  <script src="./assets/naturion-bg-11-12.js"></script>
+  <script src="./assets/naturion-bg-13-14.js"></script>
+  <script>
+    const EXPECTED_BG_LENGTH=67172;
+    const art=document.getElementById('startArt');
+    const loadError=document.getElementById('loadError');
+    if(typeof window.NATURION_BG==='string'&&window.NATURION_BG.length===EXPECTED_BG_LENGTH){
+      art.src='data:image/webp;base64,'+window.NATURION_BG;
+    }else{
+      loadError.hidden=false;
+      document.getElementById('newJourney').disabled=true;
+      document.getElementById('optionsButton').disabled=true;
+      console.error('Arte da tela inicial incompleta:',window.NATURION_BG?.length,EXPECTED_BG_LENGTH);
+    }
+
+    const KEY='naturion-settings-v1';
+    const modal=document.getElementById('optionsModal');
+    const toastBox=document.getElementById('toast');
+    const music=document.getElementById('musicVolume');
+    const effects=document.getElementById('effectsVolume');
+    const fullscreen=document.getElementById('fullscreen');
+    let toastTimer;
+
+    function showToast(message){toastBox.textContent=message;toastBox.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastBox.classList.remove('show'),2600)}
+    function save(){localStorage.setItem(KEY,JSON.stringify({music:+music.value,effects:+effects.value}))}
+    function openOptions(){modal.hidden=false;modal.setAttribute('aria-hidden','false');document.getElementById('closeOptions').focus()}
+    function closeOptions(){save();modal.hidden=true;modal.setAttribute('aria-hidden','true');document.getElementById('optionsButton').focus()}
+    try{const saved=JSON.parse(localStorage.getItem(KEY)||'{}');if(Number.isFinite(saved.music))music.value=saved.music;if(Number.isFinite(saved.effects))effects.value=saved.effects}catch(error){console.warn('Falha ao carregar opções',error)}
+    document.getElementById('newJourney').addEventListener('click',()=>showToast('A escolha do Naturion inicial será adicionada na próxima etapa.'));
+    document.getElementById('optionsButton').addEventListener('click',openOptions);
+    document.getElementById('closeOptions').addEventListener('click',closeOptions);
+    modal.addEventListener('click',event=>{if(event.target===modal)closeOptions()});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!modal.hidden)closeOptions()});
+    music.addEventListener('input',save);effects.addEventListener('input',save);
+    fullscreen.addEventListener('change',async()=>{try{if(fullscreen.checked&&!document.fullscreenElement)await document.documentElement.requestFullscreen();else if(!fullscreen.checked&&document.fullscreenElement)await document.exitFullscreen()}catch(error){fullscreen.checked=!!document.fullscreenElement;showToast('O navegador não permitiu ativar a tela cheia.')}});
+    document.addEventListener('fullscreenchange',()=>fullscreen.checked=!!document.fullscreenElement);
+  </script>
 </body>
 </html>
