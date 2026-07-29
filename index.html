@@ -12,7 +12,7 @@
   <link rel="preload" href="assets/selection/hero-male.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/selection/hero-female.webp" as="image" type="image/webp">
   <link rel="preload" href="assets/story/research-outpost.webp" as="image" type="image/webp">
-  <link rel="preload" href="assets/story/crystal-watch-round.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/story/crystal-watch-round.webp?v=2" as="image" type="image/webp">
   <style>
     :root {
       --gold-light: #fff8ad;
@@ -1239,6 +1239,9 @@
       top: 14vh;
       left: 58%;
       width: min(24vw, 300px);
+      height: min(24vw, 300px);
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
       opacity: 0;
       filter: drop-shadow(0 0 22px rgba(93, 226, 255, .7));
       transform: translate(-50%, 25px) scale(.7) rotate(-7deg);
@@ -1901,6 +1904,7 @@
         top: 13vh;
         left: 70%;
         width: min(31vw, 210px);
+        height: min(31vw, 210px);
       }
 
       .dialogue-box {
@@ -2052,6 +2056,7 @@
       .watch-reveal {
         top: 7vh;
         width: min(22vw, 250px);
+        height: min(22vw, 250px);
       }
 
       .dialogue-box {
@@ -2216,7 +2221,7 @@
     >
 
     <div class="story-hud" id="watchHud" aria-label="Relógio Cristalíneo recebido">
-      <img src="assets/story/crystal-watch-round.webp" alt="" width="652" height="648">
+      <img src="assets/story/crystal-watch.webp" alt="" width="608" height="672">
       <span>Relógio recebido</span>
     </div>
 
@@ -2234,7 +2239,7 @@
           class="watch-reveal"
           id="watchReveal"
           data-essential-asset
-          src="assets/story/crystal-watch-round.webp"
+          src="assets/story/crystal-watch-round.webp?v=2"
           alt="Relógio Cristalíneo"
           width="652"
           height="648"
@@ -2332,7 +2337,7 @@
 
         <div class="mission-layout">
           <div class="mission-emblem" aria-hidden="true">
-            <img src="assets/story/crystal-watch-round.webp" alt="">
+            <img src="assets/story/crystal-watch.webp" alt="">
           </div>
           <div class="mission-details">
             <p><strong>Local</strong><span>Bosque Luminal</span></p>
@@ -2364,7 +2369,7 @@
     <div class="sync-scene">
       <img class="sync-creature" id="syncCreature" src="assets/story/axolume.webp" alt="">
       <span class="sync-beam" aria-hidden="true"></span>
-      <img class="sync-watch" src="assets/story/crystal-watch-round.webp" alt="Relógio Cristalíneo">
+      <img class="sync-watch" src="assets/story/crystal-watch.webp" alt="Relógio Cristalíneo">
     </div>
     <div id="particleField" aria-hidden="true"></div>
     <p class="sync-message" id="syncMessage">Iniciando sintonia...</p>
