@@ -4853,12 +4853,10 @@
       border: 2px solid #e0bc54;
       border-radius: 50%;
       color: #fff8c6;
-      background:
-        radial-gradient(circle at 38% 30%, #efffd6 0 10%, #56cf9e 12% 42%, #17664d 45% 100%);
+      background: #2d765c;
       box-shadow:
         inset 0 0 0 2px rgba(3, 42, 34, .42),
-        0 3px 0 #50370f,
-        0 0 9px rgba(120, 255, 204, .35);
+        0 3px 0 #50370f;
       clip-path: none;
       image-rendering: pixelated;
     }
@@ -4868,8 +4866,8 @@
       aspect-ratio: 1;
       border-radius: 50%;
       content: "";
-      background: #d9fff4;
-      box-shadow: 0 0 4px #9affdf;
+      background: #e7dfad;
+      box-shadow: none;
       transform: none;
     }
 
@@ -4908,11 +4906,10 @@
 
     .world-destination.current .world-destination-marker {
       border-color: #a5efff;
-      background: radial-gradient(circle at 38% 30%, #efffff 0 10%, #4fd4dc 12% 42%, #135c69 45% 100%);
+      background: #2f7d87;
       box-shadow:
         inset 0 0 0 2px rgba(5, 48, 59, .44),
-        0 3px 0 #164a55,
-        0 0 10px #5de7ff;
+        0 3px 0 #164a55;
     }
 
     .world-destination.unlocked .world-destination-marker {
@@ -4921,9 +4918,9 @@
 
     .world-destination.unlocked:hover .world-destination-marker,
     .world-destination.unlocked:focus-visible .world-destination-marker {
-      filter: brightness(1.18);
-      outline: 2px solid #fff2a0;
-      outline-offset: 3px;
+      border-color: #fff2a0;
+      filter: none;
+      outline: none;
     }
 
     .world-destination.locked {
@@ -4935,7 +4932,7 @@
 
     .world-destination.locked .world-destination-marker {
       border-color: #8d896f;
-      background: radial-gradient(circle at 38% 30%, #bab69f, #5d625b 46%, #303b38 48%);
+      background: #565b55;
       box-shadow:
         inset 0 0 0 2px rgba(15, 24, 22, .48),
         0 3px 0 #303127;
@@ -4967,48 +4964,58 @@
 
     .world-destination.visited .world-destination-marker {
       border-color: #fff1a2;
-      filter: brightness(1.16);
+      background: #3d8064;
+      filter: none;
       animation: none;
       box-shadow:
         inset 0 0 0 2px rgba(3, 42, 34, .38),
-        0 3px 0 #664314,
-        0 0 12px #8effd7;
+        0 3px 0 #664314;
     }
 
     .world-start {
-      left: 18.3%;
-      top: 82%;
+      left: 19.5%;
+      top: 82.4%;
     }
 
     .world-first-destination {
-      left: 29.2%;
-      top: 60.5%;
+      left: 29.3%;
+      top: 60.4%;
     }
 
     .world-central-destination {
-      left: 47.7%;
-      top: 47.5%;
+      left: 48%;
+      top: 45.6%;
     }
 
     .world-crystal-destination {
-      left: 24.5%;
-      top: 20.5%;
+      left: 25.7%;
+      top: 20%;
     }
 
     .world-volcano-destination {
-      left: 70%;
-      top: 20.5%;
+      left: 71.1%;
+      top: 18.2%;
     }
 
     .world-coast-destination {
-      left: 66%;
-      top: 61%;
+      left: 65.8%;
+      top: 61.1%;
+    }
+
+    .world-city-entry-destination {
+      left: 69.8%;
+      top: 73.3%;
+    }
+
+    .world-island-destination {
+      left: 47.4%;
+      top: 69%;
     }
 
     .world-map-party {
       z-index: 14;
-      left: 18.3%;
-      top: 82%;
+      left: 19.5%;
+      top: 82.4%;
       width: clamp(48px, 5vw, 78px);
       height: clamp(72px, 8vw, 120px);
       transition:
@@ -6182,6 +6189,24 @@
           <span class="world-destination-marker" aria-hidden="true"></span>
           <span class="world-destination-label">Vila Safira</span>
         </button>
+
+        <div
+          class="world-destination world-city-entry-destination locked"
+          role="img"
+          aria-label="Destino bloqueado: Entrada de Vila Safira"
+        >
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Entrada de Vila Safira</span>
+        </div>
+
+        <div
+          class="world-destination world-island-destination locked"
+          role="img"
+          aria-label="Destino bloqueado: Ilha Verde"
+        >
+          <span class="world-destination-marker" aria-hidden="true"></span>
+          <span class="world-destination-label">Ilha Verde</span>
+        </div>
 
         <div class="explorer-party open-map-party world-map-party" id="openMapParty" aria-label="Seu grupo">
           <img
@@ -8026,8 +8051,8 @@
           currentPlayer.storyFlags?.firstWorldDestinationReached
         );
         openMapPosition = firstWorldDestinationReached
-          ? { x: 29.2, y: 60.5 }
-          : { x: 18.3, y: 82 };
+          ? { x: 29.3, y: 60.4 }
+          : { x: 19.5, y: 82.4 };
         positionOpenMapParty();
         openMapParty.classList.remove("is-moving");
         worldMapTravelling = false;
@@ -8104,13 +8129,13 @@
         openMapParty.classList.add("is-moving");
 
         const route = prefersLessMotion()
-          ? [{ x: 29.2, y: 60.5 }]
+          ? [{ x: 29.3, y: 60.4 }]
           : [
-              { x: 19.8, y: 77.5 },
+              { x: 20.2, y: 77.5 },
               { x: 21.6, y: 73.2 },
               { x: 24.1, y: 68.7 },
               { x: 26.8, y: 64.6 },
-              { x: 29.2, y: 60.5 }
+              { x: 29.3, y: 60.4 }
             ];
 
         for (let index = 0; index < route.length; index += 1) {
