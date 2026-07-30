@@ -7685,36 +7685,108 @@
       }
     }
 
+    /* Cristais detalhados, sem pedestal e realmente apoiados no chão. */
+    .encounter-crystal .crystal-base {
+      display: none !important;
+    }
 
-    /* Cristais de encontro: sem pedestal separado e integrados ao chão. */
-    .encounter-crystal .crystal-base,
     .encounter-crystal .crystal-gem {
-      display: none;
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      clip-path: inset(0 0 22% 0);
+      transform: translateY(22%);
+      transform-origin: 50% 100%;
+      filter:
+        grayscale(.14)
+        contrast(1.18)
+        saturate(1.22)
+        brightness(.92)
+        drop-shadow(0 4px 2px rgba(0, 0, 0, .48));
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .encounter-crystal .crystal-visual::before {
+      opacity: .4;
     }
 
     .encounter-crystal .crystal-visual::after {
-      clip-path: inset(0 0 20% 0);
-      transform: translateY(18%);
+      opacity: .44;
+      clip-path: inset(0 0 22% 0);
+      background: linear-gradient(
+        155deg,
+        var(--encounter-bright) 0 12%,
+        var(--encounter-color) 42%,
+        var(--encounter-dark) 86%
+      );
+      mix-blend-mode: color;
+      filter: saturate(1.24) contrast(1.08);
+      transform: translateY(22%);
       transform-origin: 50% 100%;
-      animation: encounter-crystal-glow 2.8s ease-in-out var(--crystal-delay) infinite;
+      animation: none;
     }
 
-    .plumirel-world.alert .crystal-visual::after {
-      animation: encounter-crystal-alert .48s steps(2, end) infinite;
+    @keyframes encounter-crystal-detail-alert {
+      0%, 100% {
+        filter:
+          grayscale(.14)
+          contrast(1.18)
+          saturate(1.22)
+          brightness(.92)
+          drop-shadow(0 4px 2px rgba(0, 0, 0, .48));
+      }
+      50% {
+        filter:
+          grayscale(.08)
+          contrast(1.24)
+          saturate(1.32)
+          brightness(1.12)
+          drop-shadow(0 0 8px var(--encounter-color))
+          drop-shadow(0 4px 2px rgba(0, 0, 0, .48));
+      }
+    }
+
+    .plumirel-world.alert .crystal-gem {
+      animation: encounter-crystal-detail-alert .48s steps(2, end) infinite;
     }
 
     .encounter-crystal.is-spent .crystal-visual {
-      filter: grayscale(1) brightness(.62) drop-shadow(0 3px 2px rgba(0, 0, 0, .42));
+      filter: none;
     }
 
     .encounter-crystal.is-spent .crystal-visual::before {
       opacity: 0;
     }
 
-    .encounter-crystal.is-spent .crystal-visual::after {
-      opacity: .3;
-      filter: grayscale(1) brightness(.48);
+    .encounter-crystal.is-spent .crystal-gem {
+      opacity: .42;
+      filter: grayscale(1) contrast(.9) brightness(.48) drop-shadow(0 3px 2px rgba(0, 0, 0, .42));
       animation: none;
+    }
+
+    .encounter-crystal.is-spent .crystal-visual::after {
+      opacity: .12;
+      filter: grayscale(1) brightness(.4);
+      animation: none;
+    }
+
+    .echo-wild {
+      transform: translate(-50%, calc(-100% + 4px));
+    }
+
+    .plumirel-world,
+    .tutorial-world .plumirel-world {
+      transform: translate(-50%, 4px);
+    }
+
+    .plumirel-world.alert {
+      transform: translate(-50%, 4px) scale(1.07);
     }
 
     .echo-wild::after,
@@ -7729,28 +7801,21 @@
       filter: blur(2px);
     }
 
+    /* NPCs são acionados exclusivamente por clique direto. */
+    .echo-interact,
     .echo-npc-interact {
-      position: absolute;
-      z-index: 5;
-      top: calc(100% + 4px);
-      left: 50%;
-      width: max-content;
-      padding: 4px 7px;
-      border: 1px solid rgba(255, 241, 163, .82);
-      border-radius: 3px;
-      background: rgba(7, 27, 17, .9);
-      box-shadow: 0 2px 0 rgba(0, 0, 0, .5);
-      color: #fff6b8;
-      font-size: .48rem;
-      font-weight: 900;
-      letter-spacing: .04em;
-      text-shadow: 1px 1px 0 #000;
-      transform: translateX(-50%);
-      pointer-events: none;
+      display: none !important;
     }
 
-    .echo-npc-interact[hidden] {
-      display: none;
+    .echo-npc {
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .echo-npc:hover img {
+      filter:
+        brightness(1.08)
+        drop-shadow(0 4px 2px rgba(0, 0, 0, .52));
     }
 
   </style>
@@ -8100,7 +8165,9 @@
         </div>
 
         <div class="plumirel-world encounter-crystal" id="plumirelWorld" aria-label="Cristal Voador instável">
-          <span class="crystal-visual" aria-hidden="true"></span>
+          <span class="crystal-visual" aria-hidden="true">
+            <img class="crystal-gem" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
+          </span>
           <span class="plumirel-world-name">Cristal Voador instável</span>
         </div>
       </div>
@@ -8606,11 +8673,6 @@
         Equipe
         <b id="echoTeamCount">1/3</b>
       </button>
-
-      <div class="echo-interact" id="echoInteract" hidden>
-        <kbd id="echoInteractKey">E</kbd>
-        <span id="echoInteractText">Interagir</span>
-      </div>
 
       <nav class="echo-controls" aria-label="Controles da Clareira dos Ecos">
         <button class="echo-control" type="button" data-echo-move="left" aria-label="Mover para a esquerda">A</button>
@@ -11606,45 +11668,52 @@
         const size = getWildSize();
         const elevatedPlatforms = area.platforms.slice(1);
         const availablePlatforms = elevatedPlatforms.length ? elevatedPlatforms : area.platforms;
+        const fittingPlatforms = availablePlatforms.filter((platform) => (
+          (platform[1] - platform[0]) * echoWorldWidth >= size * 1.18
+        ));
+        const platformPool = fittingPlatforms.length ? fittingPlatforms : [area.platforms[0]];
         const reserved = [area.npc, area.puzzle, area.passages?.previous, area.passages?.next].filter(Boolean);
 
-        for (let attempt = 0; attempt < 80; attempt += 1) {
-const platform = availablePlatforms[echoRandom(0, availablePlatforms.length - 1)];
-const platformWidth = Math.max(.012, platform[1] - platform[0]);
-const inset = Math.min(.028, platformWidth * .22);
-const minRatio = platform[0] + inset;
-const maxRatio = platform[1] - inset;
-const xRatio = minRatio + Math.random() * Math.max(.001, maxRatio - minRatio);
-const x = xRatio * echoWorldWidth;
-const y = platform[2] * echoWorldHeight;
-const overlapsCrystal = occupied.some((other) => (
-  Math.abs(other.x - x) < Math.max(108, (other.size + size) * .72)
-  && Math.abs(other.y - y) < Math.max(88, (other.size + size) * .76)
-));
-const overlapsReserved = reserved.some((target) => (
-  Math.abs(target.x * echoWorldWidth - x) < 112
-  && Math.abs(target.y * echoWorldHeight - y) < 90
-));
-if (overlapsCrystal || overlapsReserved) continue;
+        for (let attempt = 0; attempt < 100; attempt += 1) {
+          const platform = platformPool[echoRandom(0, platformPool.length - 1)];
+          const platformWidth = Math.max(.012, platform[1] - platform[0]);
+          const crystalHalfWidth = size * .56 / echoWorldWidth;
+          const inset = Math.min(platformWidth * .44, Math.max(.01, crystalHalfWidth));
+          const minRatio = platform[0] + inset;
+          const maxRatio = platform[1] - inset;
+          if (maxRatio <= minRatio) continue;
 
-return {
-  instanceId: `${area.id}-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
-  chain,
-  form,
-  level,
-  behavior: "idle",
-  x,
-  y,
-  minX: x,
-  maxX: x,
-  direction: 1,
-  speed: 0,
-  size,
-  spent: false,
-  crystalStyle: getEncounterCrystalStyle(form.type),
-  crystalDelay: -(index % 4) * .42,
-  element: null
-};
+          const xRatio = minRatio + Math.random() * (maxRatio - minRatio);
+          const x = xRatio * echoWorldWidth;
+          const y = platform[2] * echoWorldHeight;
+          const overlapsCrystal = occupied.some((other) => (
+            Math.abs(other.x - x) < Math.max(112, (other.size + size) * .74)
+            && Math.abs(other.y - y) < Math.max(90, (other.size + size) * .78)
+          ));
+          const overlapsReserved = reserved.some((target) => (
+            Math.abs(target.x * echoWorldWidth - x) < 116
+            && Math.abs(target.y * echoWorldHeight - y) < 92
+          ));
+          if (overlapsCrystal || overlapsReserved) continue;
+
+          return {
+            instanceId: `${area.id}-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+            chain,
+            form,
+            level,
+            behavior: "idle",
+            x,
+            y,
+            minX: x,
+            maxX: x,
+            direction: 1,
+            speed: 0,
+            size,
+            spent: false,
+            crystalStyle: getEncounterCrystalStyle(form.type),
+            crystalDelay: -(index % 4) * .42,
+            element: null
+          };
         }
 
         return null;
@@ -11652,6 +11721,7 @@ return {
       const renderEchoWild = (wild) => {
         const element = document.createElement("span");
         const visual = document.createElement("span");
+        const gem = document.createElement("img");
         element.className = "echo-wild encounter-crystal";
         element.dataset.wildId = wild.instanceId;
         element.dataset.element = wild.form.type;
@@ -11664,6 +11734,11 @@ return {
         element.style.setProperty("--crystal-delay", `${wild.crystalDelay}s`);
         visual.className = "crystal-visual";
         visual.setAttribute("aria-hidden", "true");
+        gem.className = "crystal-gem";
+        gem.src = "assets/puzzle/crystal-blue-voxel.webp";
+        gem.alt = "";
+        gem.draggable = false;
+        visual.append(gem);
         element.append(visual);
         echoWildLayer.append(element);
         wild.element = element;
@@ -11692,19 +11767,31 @@ if (wild) echoWilds.push(wild);
           const npc = document.createElement("span");
           npc.className = "echo-npc";
           npc.dataset.echoNpc = area.npc.id;
+          npc.setAttribute("role", "button");
+          npc.setAttribute("aria-label", `Conversar com ${area.npc.name}`);
           npc.style.left = `${area.npc.x * echoWorldWidth}px`;
           npc.style.top = `${area.npc.y * echoWorldHeight}px`;
           const image = document.createElement("img");
           image.src = area.npc.image;
           image.alt = "";
           const label = document.createElement("small");
-label.className = "echo-npc-name";
-label.textContent = area.npc.name;
-const interaction = document.createElement("small");
-interaction.className = "echo-npc-interact";
-interaction.textContent = "E · Conversar";
-interaction.hidden = true;
-npc.append(image, label, interaction);
+          label.className = "echo-npc-name";
+          label.textContent = area.npc.name;
+          npc.append(image, label);
+          npc.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (
+              !echoActive
+              || !echoDialogue.hidden
+              || !echoPuzzle.hidden
+              || !echoBattle.hidden
+              || !echoEvolution.hidden
+              || !echoAbsorption.hidden
+              || !echoTeam.hidden
+              || !echoPassageConfirm.hidden
+            ) return;
+            showEchoDialogue(area.npc);
+          });
           echoNpcLayer.append(npc);
         }
 
@@ -11825,43 +11912,25 @@ npc.append(image, label, interaction);
         const area = getEchoArea();
         echoNearInteraction = null;
         const near = (target, horizontal = 92, vertical = 74) => (
-target
-&& Math.abs(echoPlayerX - target.x * echoWorldWidth) < horizontal
-&& Math.abs(echoPlayerY - target.y * echoWorldHeight) < vertical
+          target
+          && Math.abs(echoPlayerX - target.x * echoWorldWidth) < horizontal
+          && Math.abs(echoPlayerY - target.y * echoWorldHeight) < vertical
         );
-        if (near(area.npc)) {
-echoNearInteraction = { type: "npc", value: area.npc };
-        } else if (near(area.puzzle, 112, 86) && !isEchoPuzzleSolved()) {
-echoNearInteraction = { type: "puzzle", value: area.puzzle };
+
+        if (near(area.puzzle, 112, 86) && !isEchoPuzzleSolved()) {
+          echoNearInteraction = { type: "puzzle", value: area.puzzle };
         } else if (near(area.passages?.previous, 108, 92)) {
-echoNearInteraction = {
-  type: "passage",
-  direction: "previous",
-  value: area.passages.previous
-};
+          echoNearInteraction = {
+            type: "passage",
+            direction: "previous",
+            value: area.passages.previous
+          };
         } else if (near(area.passages?.next, 108, 92)) {
-echoNearInteraction = {
-  type: "passage",
-  direction: "next",
-  value: area.passages.next
-};
-        }
-
-        const npcInteraction = echoNpcLayer.querySelector(".echo-npc-interact");
-        if (npcInteraction) npcInteraction.hidden = echoNearInteraction?.type !== "npc";
-
-        const showGlobalInteraction = Boolean(echoNearInteraction && echoNearInteraction.type !== "npc");
-        echoInteract.hidden = !showGlobalInteraction;
-        if (showGlobalInteraction) {
-const isPassage = echoNearInteraction.type === "passage";
-echoInteractKey.textContent = isPassage ? "W" : "E";
-if (echoNearInteraction.type === "puzzle") {
-  echoInteractText.textContent = `Examinar desafio: ${echoNearInteraction.value.title}`;
-} else {
-  echoInteractText.textContent = echoNearInteraction.direction === "previous"
-    ? "Retornar ao ambiente anterior"
-    : "Entrar no próximo ambiente";
-}
+          echoNearInteraction = {
+            type: "passage",
+            direction: "next",
+            value: area.passages.next
+          };
         }
       };
       const closeEchoPassageConfirmation = () => {
@@ -12060,9 +12129,7 @@ if (echoNearInteraction.type === "puzzle") {
 
       const interactEchoWorld = () => {
         if (!echoActive || !echoNearInteraction || !echoDialogue.hidden || !echoPuzzle.hidden) return;
-        if (echoNearInteraction.type === "npc") {
-          showEchoDialogue(echoNearInteraction.value);
-        } else if (echoNearInteraction.type === "puzzle") {
+        if (echoNearInteraction.type === "puzzle") {
           openEchoPuzzle(echoNearInteraction.value);
         }
       };
