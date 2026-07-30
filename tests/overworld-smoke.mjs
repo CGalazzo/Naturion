@@ -85,14 +85,14 @@ try {
   await wait(650);
   window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyW", bubbles: true }));
   window.dispatchEvent(new KeyboardEvent("keyup", { code: "ShiftLeft", bubbles: true }));
-  await wait(1100);
-  assert(savedState?.mapId === "bosque-luminal-overworld", "Save do overworld ausente.");
-  assert(savedState.position.z < 19.5, "Movimento não alterou o save.");
+  await wait(250);
   document.getElementById("overworldTeamButton").click();
   assert(!document.getElementById("overworldTeamPanel").hidden, "Equipe não abriu.");
   document.getElementById("overworldTeamClose").click();
   document.getElementById("overworldBackMap").click();
   assert(returned && document.getElementById("overworldScreen").hidden, "Retorno ao mapa-múndi falhou.");
+  assert(savedState?.mapId === "bosque-luminal-overworld", "Save do overworld ausente.");
+  assert(savedState.position.z < 19.5, "A posição final não foi salva após o retorno ao mapa.");
   assert(errors.length === 0, "Erros de execução detectados.");
   document.documentElement.dataset.testStatus = "passed";
   output.textContent = JSON.stringify({ collisions: checks.length, houses: 2, npcs: 3, naturions: 3, battles: ["fled", "victory"], savedState, returned });
