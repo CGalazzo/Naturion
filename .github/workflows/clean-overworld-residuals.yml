@@ -22,6 +22,7 @@ jobs:
         run: |
           python3 <<'PY'
           from pathlib import Path
+          import re
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
           text = text.replace('`diorama-${form.id}-${Date.now()}`', '`overworld-${form.id}-${Date.now()}`')
@@ -29,15 +30,10 @@ jobs:
           if 'diorama' in text.lower():
               raise RuntimeError('Ainda existem referências nominais ao diorama no index.html.')
           path.write_text(text, encoding='utf-8')
-          PY
-          node --check <(python3 - <<'PY'
-          from pathlib import Path
-          import re
-          text = Path('index.html').read_text(encoding='utf-8')
           scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', text, flags=re.S | re.I)
-          print('\n'.join(scripts))
+          Path('/tmp/naturion-index-inline.js').write_text('\n'.join(scripts), encoding='utf-8')
           PY
-          )
+          node --check /tmp/naturion-index-inline.js
           find src/overworld -name '*.js' -print0 | xargs -0 -n1 node --check
           test ! -d src/diorama
           test ! -f styles/diorama.css
