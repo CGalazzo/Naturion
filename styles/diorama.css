@@ -1,0 +1,181 @@
+/* Clareira dos Ecos — diorama 3D para desktop. */
+.diorama-screen[hidden] {
+  display: none !important;
+}
+
+.diorama-screen {
+  position: absolute;
+  z-index: 72;
+  inset: 0;
+  overflow: hidden;
+  background: #102d24;
+  color: #fff8c1;
+  outline: none;
+  image-rendering: pixelated;
+}
+
+.diorama-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(118, 224, 171, .12), transparent 38%),
+    #102d24;
+  outline: none;
+}
+
+.diorama-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.diorama-hud {
+  position: absolute;
+  z-index: 6;
+  top: 18px;
+  left: 20px;
+  display: grid;
+  width: min(470px, calc(100% - 40px));
+  gap: 5px;
+  padding: 11px 15px 12px;
+  border: 2px solid rgba(232, 199, 82, .9);
+  border-radius: 3px;
+  background: rgba(5, 27, 19, .88);
+  box-shadow: inset 0 0 0 2px rgba(126, 212, 166, .13), 0 5px 0 rgba(41, 27, 5, .72);
+  pointer-events: none;
+}
+
+.diorama-hud small {
+  color: #80dab3;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.diorama-hud strong {
+  color: #fff1a2;
+  font-size: clamp(.78rem, 1.25vw, 1rem);
+  letter-spacing: .035em;
+  text-shadow: 2px 2px 0 #3d2705;
+}
+
+.diorama-hud em {
+  color: #dff5e5;
+  font-size: .63rem;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.diorama-status {
+  position: absolute;
+  z-index: 6;
+  top: 18px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.diorama-status span,
+.diorama-tool {
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 2px solid rgba(232, 199, 82, .82);
+  border-radius: 3px;
+  color: #fff4ac;
+  background: rgba(6, 31, 22, .9);
+  box-shadow: 0 4px 0 rgba(45, 30, 5, .72);
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .035em;
+}
+
+.diorama-tool {
+  cursor: pointer;
+}
+
+.diorama-tool:hover,
+.diorama-tool:focus-visible {
+  filter: brightness(1.14);
+  outline: 2px solid #9fffd3;
+  outline-offset: 2px;
+  transform: translateY(-1px);
+}
+
+.diorama-controls-help {
+  position: absolute;
+  z-index: 5;
+  right: 20px;
+  bottom: 18px;
+  display: flex;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(142, 224, 184, .55);
+  border-radius: 3px;
+  color: #d6efde;
+  background: rgba(5, 25, 18, .82);
+  font-size: .52rem;
+  pointer-events: none;
+}
+
+.diorama-interaction {
+  position: absolute;
+  z-index: 8;
+  bottom: 38px;
+  left: 50%;
+  min-width: 260px;
+  padding: 11px 18px;
+  border: 3px solid #e8c752;
+  border-radius: 3px;
+  color: #fff3a5;
+  background: rgba(5, 29, 20, .96);
+  box-shadow: inset 0 0 0 2px rgba(113, 218, 170, .17), 0 5px 0 #3b2707, 0 12px 24px rgba(0, 0, 0, .48);
+  font-size: .66rem;
+  font-weight: 1000;
+  letter-spacing: .035em;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: diorama-prompt-in .18s steps(3, end) both;
+}
+
+.diorama-interaction[hidden] {
+  display: none !important;
+}
+
+.echo-clearing.diorama-battle-only .echo-viewport,
+.echo-clearing.diorama-battle-only .echo-hud,
+.echo-clearing.diorama-battle-only .echo-mobile-controls,
+.echo-clearing.diorama-battle-only .echo-interact,
+.echo-clearing.diorama-battle-only .echo-team,
+.echo-clearing.diorama-battle-only .echo-passage-confirm,
+.echo-clearing.diorama-battle-only .echo-dialogue,
+.echo-clearing.diorama-battle-only .echo-puzzle {
+  display: none !important;
+}
+
+@keyframes diorama-prompt-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 900px) {
+  .diorama-screen::after {
+    position: absolute;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 30px;
+    content: "Esta fase foi desenvolvida especificamente para computador. Use uma janela maior para jogar.";
+    color: #fff0a3;
+    background: rgba(4, 20, 14, .96);
+    font-size: .78rem;
+    line-height: 1.7;
+    text-align: center;
+  }
+}
