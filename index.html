@@ -2665,48 +2665,42 @@
     }
 
     .plumirel-world {
+      --encounter-color: #8deaff;
+      --encounter-bright: #f4ffff;
+      --encounter-dark: #1f6b91;
+      --encounter-detail: #ffe582;
+      --crystal-delay: -.7s;
       position: absolute;
       z-index: 4;
       top: 18%;
       left: 72%;
       display: grid;
       isolation: isolate;
-      justify-items: center;
-      width: var(--naturion-stage-one-map-size);
+      width: clamp(72px, 7.4vw, 94px);
+      height: clamp(112px, 11.8vw, 148px);
+      place-items: end center;
       pointer-events: none;
       transform: translateX(-50%);
+      transform-origin: 50% 100%;
       transition: filter .28s ease, transform .28s ease;
     }
 
     .plumirel-world::after {
       position: absolute;
       z-index: -1;
-      right: 22%;
-      bottom: 1%;
-      left: 22%;
-      width: 56%;
-      height: 13px;
+      right: 18%;
+      bottom: -2px;
+      left: 18%;
+      height: 12px;
       border-radius: 50%;
       content: "";
       background: rgba(0, 0, 0, .42);
-      filter: blur(5px);
+      filter: blur(4px);
     }
 
-    .plumirel-world img {
-      position: relative;
-      z-index: 1;
-      display: block;
+    .plumirel-world .crystal-visual {
       width: 100%;
-      height: auto;
-      aspect-ratio: 748 / 713;
-      opacity: 1;
-      object-fit: contain;
-      visibility: visible;
-      filter:
-        drop-shadow(0 0 9px rgba(255, 226, 120, .5))
-        drop-shadow(5px 8px 7px rgba(0, 0, 0, .5));
-      transform-origin: 50% 86%;
-      animation: plumirel-flutter 1.65s ease-in-out infinite;
+      height: 100%;
     }
 
     .tutorial-world .plumirel-world {
@@ -2716,18 +2710,17 @@
       transform: translateX(-50%);
     }
 
-    .tutorial-world .plumirel-world img {
-      animation: tutorial-plumirel-idle .9s ease-in-out infinite;
-    }
-
-    .tutorial-world .plumirel-world::after {
-      transform-origin: center;
-      animation: tutorial-plumirel-shadow .9s ease-in-out infinite;
-    }
-
     .plumirel-world.alert {
-      filter: brightness(1.2);
-      transform: translateX(-50%) scale(1.09);
+      filter: brightness(1.22);
+      transform: translateX(-50%) scale(1.07);
+    }
+
+    .plumirel-world.alert .crystal-gem {
+      animation: encounter-crystal-alert .48s steps(2, end) infinite;
+    }
+
+    .plumirel-world.alert .crystal-visual::before {
+      opacity: .9;
     }
 
     .plumirel-world-name {
@@ -4322,6 +4315,80 @@
     .puzzle-crystal.is-wrong .crystal-gem {
       filter: saturate(1.4) brightness(.9) hue-rotate(145deg);
       animation: none;
+    }
+
+    .encounter-crystal {
+      --encounter-color: #62dcff;
+      --encounter-bright: #efffff;
+      --encounter-dark: #245f82;
+      --encounter-detail: #ffe27a;
+      --crystal-delay: 0s;
+    }
+
+    .encounter-crystal .crystal-visual {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      isolation: isolate;
+      filter:
+        drop-shadow(0 4px 2px rgba(0, 0, 0, .5))
+        drop-shadow(0 0 7px color-mix(in srgb, var(--encounter-color) 58%, transparent));
+      pointer-events: none;
+    }
+
+    .encounter-crystal .crystal-base {
+      opacity: .98;
+      mix-blend-mode: normal;
+      filter: grayscale(1) contrast(1.55) brightness(.48);
+    }
+
+    .encounter-crystal .crystal-gem {
+      opacity: 1;
+      mix-blend-mode: screen;
+      filter: grayscale(1) contrast(1.68) brightness(1.4);
+      animation: encounter-crystal-glow 2.8s ease-in-out var(--crystal-delay) infinite;
+    }
+
+    .encounter-crystal .crystal-visual::before {
+      inset: 6% 8% 18%;
+      opacity: .56;
+      background: radial-gradient(ellipse, var(--encounter-bright) 0 8%, var(--encounter-color) 34%, transparent 72%);
+      filter: blur(10px);
+    }
+
+    .encounter-crystal .crystal-visual::after {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      clip-path: inset(0 0 20% 0);
+      content: "";
+      opacity: .84;
+      background:
+        linear-gradient(145deg, transparent 0 29%, var(--encounter-detail) 32% 37%, transparent 40%),
+        linear-gradient(155deg, var(--encounter-bright), var(--encounter-color) 48%, var(--encounter-dark) 82%);
+      -webkit-mask: url("assets/puzzle/crystal-blue-voxel.webp") center bottom / contain no-repeat;
+      mask: url("assets/puzzle/crystal-blue-voxel.webp") center bottom / contain no-repeat;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    @keyframes encounter-crystal-glow {
+      0%, 100% {
+        filter: grayscale(1) contrast(1.62) brightness(1.32);
+      }
+      50% {
+        filter: grayscale(1) contrast(1.74) brightness(1.53);
+      }
+    }
+
+    @keyframes encounter-crystal-alert {
+      0%, 100% {
+        filter: grayscale(1) contrast(1.72) brightness(1.42);
+      }
+      50% {
+        filter: grayscale(1) contrast(1.9) brightness(1.78);
+      }
     }
 
     .puzzle-companion {
@@ -5931,43 +5998,31 @@
     }
 
     .echo-wild {
-      --wild-direction: 1;
-      --wild-ground-offset: 0%;
       position: absolute;
-      width: var(--wild-size, 88px);
-      height: var(--wild-size, 88px);
+      isolation: isolate;
+      width: var(--wild-size, 84px);
+      height: calc(var(--wild-size, 84px) * 1.46);
       padding: 0;
       border: 0;
       background: transparent;
       transform: translate(-50%, -100%);
       transform-origin: 50% 100%;
       pointer-events: none;
-      will-change: left, top, transform;
+      will-change: left, top;
     }
 
-    .echo-wild img {
+    .echo-wild .crystal-visual {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      object-position: center bottom;
-      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .5));
-      transform:
-        translateY(var(--wild-ground-offset))
-        scaleX(var(--wild-direction));
-      transform-origin: center bottom;
-      image-rendering: pixelated;
     }
 
-    .echo-wild.facing-left {
-      --wild-direction: -1;
-    }
-
-    .echo-wild.moving img {
-      animation: echo-naturion-step .46s cubic-bezier(.45, .05, .55, .95) infinite;
-    }
-
-    .echo-wild.flying img {
-      animation: echo-fly 1.25s ease-in-out infinite;
+    .echo-wild::after {
+      right: 18%;
+      bottom: -2px;
+      left: 18%;
+      width: auto;
+      height: 10px;
+      filter: blur(3px);
     }
 
     .echo-npc {
@@ -7975,14 +8030,12 @@
           </span>
         </div>
 
-        <div class="plumirel-world" id="plumirelWorld">
-          <img
-            src="assets/map/plumirel.webp"
-            alt=""
-            width="748"
-            height="713"
-          >
-          <span class="plumirel-world-name">Plumirel · Nv. 3</span>
+        <div class="plumirel-world encounter-crystal" id="plumirelWorld" aria-label="Cristal Voador instável">
+          <span class="crystal-visual" aria-hidden="true">
+            <img class="crystal-base" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
+            <img class="crystal-gem" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
+          </span>
+          <span class="plumirel-world-name">Cristal Voador instável</span>
         </div>
       </div>
 
@@ -8005,7 +8058,7 @@
         <button type="button" data-move="right" aria-label="Andar para a direita">▶</button>
       </nav>
 
-      <div class="encounter-banner" id="encounterBanner" hidden>Um Plumirel selvagem apareceu!</div>
+      <div class="encounter-banner" id="encounterBanner" hidden>O cristal instável reagiu!</div>
     </section>
 
     <section class="forest-battle" id="forestBattle" aria-label="Tutorial de batalha contra Plumirel" hidden>
@@ -9219,7 +9272,7 @@
           levels: [3, 5],
           maxStage: 1,
           scene: "assets/echo-scenes/clareira-1.webp",
-          count: 6,
+          count: 4,
           objective: "Converse com a Dra. Íris e siga pela trilha dos ecos.",
           platforms: [
             [0, 1, .844],
@@ -9240,9 +9293,9 @@
             x: .14,
             y: .844,
             lines: [
-              "Esta é a Clareira dos Ecos. Os Naturions daqui reagem ao som das ruínas e cada espécie se comporta de uma maneira.",
-              "Alguns se aproximam, outros fogem e alguns apenas observam. Ao encostar em um deles, a batalha começa.",
-              "Explore com calma. Você pode voltar às áreas anteriores quando quiser; os Naturions selvagens surgirão novamente em novos lugares."
+              "Esta é a Clareira dos Ecos. Os Naturions daqui permanecem protegidos dentro de cristais ligados à energia das ruínas.",
+              "A cor de cada cristal revela o elemento do Naturion. Quando um cristal fica instável, encostar nele inicia a batalha para restaurar seu equilíbrio.",
+              "Explore com calma. Você pode voltar às áreas anteriores quando quiser; novos cristais instáveis surgirão em lugares diferentes."
             ]
           }
         },
@@ -9252,8 +9305,8 @@
           levels: [5, 7],
           maxStage: 1,
           scene: "assets/echo-scenes/clareira-2.webp",
-          count: 7,
-          objective: "Atravesse as raízes antigas e observe o comportamento dos Naturions.",
+          count: 4,
+          objective: "Atravesse as raízes antigas e localize os cristais instáveis.",
           platforms: [
             [0, 1, .846],
             [.045, .105, .737],
@@ -9283,8 +9336,8 @@
             x: .47,
             y: .846,
             lines: [
-              "A Clareira muda sempre que alguém atravessa uma passagem. Por isso os encontros nunca aparecem exatamente no mesmo lugar.",
-              "Naturions que correm em sua direção costumam ser territoriais. Os que recuam só querem manter distância."
+              "A Clareira muda sempre que alguém atravessa uma passagem. Por isso os cristais instáveis nunca aparecem exatamente no mesmo lugar.",
+              "A cor de cada cristal indica o elemento do Naturion que se mantém nele. Aproxime-se apenas quando estiver pronto para batalhar."
             ]
           }
         },
@@ -9294,7 +9347,7 @@
           levels: [7, 10],
           maxStage: 2,
           scene: "assets/echo-scenes/clareira-3.webp",
-          count: 8,
+          count: 5,
           objective: "Encontre o desafio ancestral e restaure o Circuito das Raízes.",
           platforms: [
             [0, 1, .842],
@@ -9333,7 +9386,7 @@
           levels: [10, 14],
           maxStage: 2,
           scene: "assets/echo-scenes/clareira-4.webp",
-          count: 9,
+          count: 5,
           objective: "Resolva a Trama Crepuscular para libertar o Portão das Raízes.",
           platforms: [
             [0, 1, .84],
@@ -9380,7 +9433,7 @@
           levels: [14, 18],
           maxStage: 3,
           scene: "assets/echo-scenes/clareira-5.webp",
-          count: 10,
+          count: 6,
           objective: "Explore o santuário e encontre a origem do chamado cristalino.",
           platforms: [
             [0, 1, .84],
@@ -10001,7 +10054,7 @@
         const playerLabel = currentPlayer?.name || "explorador";
         const lines = [
           {
-            text: `Bem-vindos ao Bosque Luminal, ${playerLabel}. Os cristais daqui iluminam a floresta há muitas gerações.`,
+            text: `Bem-vindos ao Bosque Luminal, ${playerLabel}. Estes cristais são os locais onde os Naturions se mantêm protegidos e em equilíbrio.`,
             action: "Observar bosque"
           },
           {
@@ -10009,7 +10062,7 @@
             action: "Aprender movimento"
           },
           {
-            text: "O relógio detectou uma pequena essência voadora na clareira. Aproxime-se com calma: parece ser um Plumirel.",
+            text: "Alguns cristais ficam instáveis e fazem o Naturion reagir de forma agressiva. O relógio detectou um cristal Voador instável à frente; há um Plumirel dentro dele.",
             action: "Começar exploração"
           }
         ];
@@ -10025,7 +10078,7 @@
         explorerParty.style.left = `${tutorialPlayerX}px`;
         explorerParty.style.bottom = `${tutorialPlayerY - footInset}px`;
         plumirelWorld.style.left = `${tutorialPlumirelX}px`;
-        plumirelWorld.style.bottom = `${tutorialPlumirelY - 5}px`;
+        plumirelWorld.style.bottom = `${tutorialPlumirelY - footInset}px`;
       };
 
       const pulseTutorialLanding = () => {
@@ -10215,11 +10268,11 @@
 
         if (movementCount === 0 && Math.abs(tutorialPlayerX - Math.max(190, Math.min(270, viewportWidth * .22))) > 135) {
           movementCount = 1;
-          movementHint.textContent = "Muito bem! A câmera acompanha você. Continue em direção ao Plumirel.";
+          movementHint.textContent = "Muito bem! A câmera acompanha você. Continue em direção ao cristal instável.";
           playSequence([392, 523], .06);
         } else if (movementCount === 1 && tutorialCameraX > viewportWidth * .38) {
           movementCount = 2;
-          movementHint.textContent = "Continue pela trilha. O Plumirel está logo adiante.";
+          movementHint.textContent = "Continue pela trilha. O cristal instável está logo adiante.";
         }
 
         positionExplorerParty();
@@ -10304,7 +10357,7 @@
         clearInterval(typingTimer);
         forestIntro.hidden = true;
         forestExploration.hidden = false;
-        forestObjective.textContent = "Aproxime-se do Plumirel";
+        forestObjective.textContent = "Aproxime-se do cristal instável";
         movementHint.textContent = "Use A e D para andar. Pressione W para pular.";
         setupTutorialWorld();
         forestScreen.classList.add("side-scroll-test");
@@ -10318,8 +10371,8 @@
         if (!forestExploring) return;
         forestExploring = false;
         stopTutorialMovement();
-        forestObjective.textContent = "Encontro selvagem!";
-        movementHint.textContent = "O Plumirel percebeu vocês. Prepare-se para a batalha!";
+        forestObjective.textContent = "Cristal instável!";
+        movementHint.textContent = "O cristal se abriu e revelou um Plumirel instável. Prepare-se para a batalha!";
         plumirelWorld.classList.add("alert");
         encounterBanner.hidden = false;
         playSequence([660, 784, 988, 784], .085);
@@ -11461,10 +11514,22 @@
         return platforms.find((platform) => Math.abs(platform.y - echoPlayerY) <= 10) || null;
       };
 
-      const getWildSize = (form) => {
-        if (form.stage === 1) return echoRandom(72, 88);
-        if (form.stage === 2) return echoRandom(102, 124);
-        return echoRandom(142, 168);
+      const getWildSize = () => echoRandom(78, 88);
+
+      const getEncounterCrystalStyle = (type) => {
+        const [primaryType, secondaryType] = String(type || "").split("/");
+        const primary = ESSENCE_TYPE_STYLES[primaryType] || {
+          color: "#62dcff",
+          glow: "#2d93c7",
+          palette: ["#62dcff", "#efffff", "#245f82"]
+        };
+        const secondary = ESSENCE_TYPE_STYLES[secondaryType];
+        return {
+          color: primary.color,
+          bright: primary.palette?.[1] || "#efffff",
+          dark: primary.palette?.[2] || "#245f82",
+          detail: secondary?.color || primary.glow
+        };
       };
 
       const chooseEchoWild = (index) => {
@@ -11472,52 +11537,62 @@
         const level = echoRandom(area.levels[0], area.levels[1]);
         const chain = ECHO_WILD_CHAINS[echoRandom(0, ECHO_WILD_CHAINS.length - 1)];
         const form = getHighestForm(chain, level, area.maxStage, false);
-        const platforms = area.platforms.slice(1);
-        const platform = Math.random() < .58 && platforms.length
-          ? platforms[echoRandom(0, platforms.length - 1)]
-          : area.platforms[0];
+        const elevatedPlatforms = area.platforms.slice(1);
+        const availablePlatforms = elevatedPlatforms.length ? elevatedPlatforms : area.platforms;
+        const platform = availablePlatforms[(index * 3 + echoAreaIndex) % availablePlatforms.length];
         const platformWidth = Math.max(.012, platform[1] - platform[0]);
-        const inset = platform === area.platforms[0]
-          ? .09
-          : Math.min(.025, platformWidth * .2);
+        const inset = Math.min(.025, platformWidth * .2);
         const minRatio = platform[0] + inset;
         const maxRatio = platform[1] - inset;
-        const xRatio = minRatio + Math.random() * Math.max(.004, maxRatio - minRatio);
-        const behaviors = form.flying
-          ? ["wander", "flee", "idle"]
-          : ["wander", "flee", "chase", "idle"];
+        const centerRatio = (minRatio + maxRatio) / 2;
+        const jitter = (Math.random() - .5) * Math.min(.012, platformWidth * .16);
+        const xRatio = Math.max(minRatio, Math.min(maxRatio, centerRatio + jitter));
         return {
           instanceId: `${area.id}-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
           chain,
           form,
           level,
-          behavior: behaviors[echoRandom(0, behaviors.length - 1)],
+          behavior: "idle",
           x: xRatio * echoWorldWidth,
-          y: (platform[2] - (form.flying ? echoRandom(8, 17) / 100 : 0)) * echoWorldHeight,
-          minX: minRatio * echoWorldWidth,
-          maxX: maxRatio * echoWorldWidth,
-          direction: Math.random() > .5 ? 1 : -1,
-          speed: form.flying ? echoRandom(30, 48) : echoRandom(20, 42),
-          size: getWildSize(form),
-          nextTurn: performance.now() + echoRandom(900, 2600),
+          y: platform[2] * echoWorldHeight,
+          minX: xRatio * echoWorldWidth,
+          maxX: xRatio * echoWorldWidth,
+          direction: 1,
+          speed: 0,
+          size: getWildSize(),
+          crystalStyle: getEncounterCrystalStyle(form.type),
+          crystalDelay: -(index % 4) * .42,
           element: null
         };
       };
 
       const renderEchoWild = (wild) => {
         const element = document.createElement("span");
-        element.className = `echo-wild${wild.form.flying ? " flying" : ""}`;
+        const visual = document.createElement("span");
+        const base = document.createElement("img");
+        const gem = document.createElement("img");
+        element.className = "echo-wild encounter-crystal";
         element.dataset.wildId = wild.instanceId;
+        element.dataset.element = wild.form.type;
+        element.setAttribute("aria-label", `Cristal ${wild.form.type} instável`);
         element.style.setProperty("--wild-size", `${wild.size}px`);
-        element.style.setProperty(
-          "--wild-ground-offset",
-          getNaturionGroundOffset(wild.form)
-        );
-        const image = document.createElement("img");
-        image.src = wild.form.image;
-        image.alt = "";
-        image.draggable = false;
-        element.append(image);
+        element.style.setProperty("--encounter-color", wild.crystalStyle.color);
+        element.style.setProperty("--encounter-bright", wild.crystalStyle.bright);
+        element.style.setProperty("--encounter-dark", wild.crystalStyle.dark);
+        element.style.setProperty("--encounter-detail", wild.crystalStyle.detail);
+        element.style.setProperty("--crystal-delay", `${wild.crystalDelay}s`);
+        visual.className = "crystal-visual";
+        visual.setAttribute("aria-hidden", "true");
+        base.className = "crystal-base";
+        gem.className = "crystal-gem";
+        base.src = "assets/puzzle/crystal-blue-voxel.webp";
+        gem.src = "assets/puzzle/crystal-blue-voxel.webp";
+        base.alt = "";
+        gem.alt = "";
+        base.draggable = false;
+        gem.draggable = false;
+        visual.append(base, gem);
+        element.append(visual);
         echoWildLayer.append(element);
         wild.element = element;
       };
@@ -11644,32 +11719,11 @@
         playTone(440, 0, .07, "square");
       };
 
-      const updateEchoWilds = (dt, now) => {
+      const updateEchoWilds = () => {
         echoWilds.forEach((wild) => {
           if (!wild.element) return;
-          let velocity = 0;
-          const distance = echoPlayerX - wild.x;
-          if (wild.behavior === "chase" && Math.abs(distance) < 390) {
-            velocity = Math.sign(distance) * wild.speed * 1.25;
-          } else if (wild.behavior === "flee" && Math.abs(distance) < 310) {
-            velocity = -Math.sign(distance) * wild.speed * 1.35;
-          } else if (wild.behavior === "wander") {
-            if (now > wild.nextTurn) {
-              wild.direction *= Math.random() > .25 ? -1 : 1;
-              wild.nextTurn = now + echoRandom(900, 2600);
-            }
-            velocity = wild.direction * wild.speed;
-          }
-
-          wild.x += velocity * dt;
-          if (wild.x <= wild.minX || wild.x >= wild.maxX) {
-            wild.x = Math.max(wild.minX, Math.min(wild.maxX, wild.x));
-            wild.direction *= -1;
-          }
           wild.element.style.left = `${wild.x}px`;
           wild.element.style.top = `${wild.y}px`;
-          wild.element.classList.toggle("moving", Math.abs(velocity) > 1);
-          wild.element.classList.toggle("facing-left", velocity < 0);
 
           if (
             echoActive
@@ -11680,8 +11734,8 @@
             && echoAbsorption.hidden
             && echoTeam.hidden
             && echoPassageConfirm.hidden
-            && Math.abs(echoPlayerX - wild.x) < Math.max(42, wild.size * .43)
-            && Math.abs(echoPlayerY - wild.y) < Math.max(72, wild.size * .55)
+            && Math.abs(echoPlayerX - wild.x) < Math.max(44, wild.size * .44)
+            && Math.abs(echoPlayerY - wild.y) < Math.max(74, wild.size * .56)
           ) {
             startEchoBattle(wild);
           }
