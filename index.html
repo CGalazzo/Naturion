@@ -791,7 +791,7 @@
 
     .modal {
       position: fixed;
-      z-index: 20;
+      z-index: 140;
       inset: 0;
       display: grid;
       place-items: center;
@@ -5777,6 +5777,7 @@
     }
 
     .echo-player {
+      --echo-hero-direction: 1;
       position: absolute;
       z-index: 18;
       left: 120px;
@@ -5813,20 +5814,29 @@
       object-fit: contain;
       object-position: center bottom;
       filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .55));
+      transform: scaleX(var(--echo-hero-direction));
       transform-origin: center bottom;
       image-rendering: pixelated;
     }
 
-    .echo-player.facing-left img {
-      transform: scaleX(-1);
+    .echo-player[data-character="male"] {
+      --echo-hero-direction: 1;
+    }
+
+    .echo-player[data-character="male"].facing-right {
+      --echo-hero-direction: -1;
+    }
+
+    .echo-player[data-character="female"] {
+      --echo-hero-direction: -1;
+    }
+
+    .echo-player[data-character="female"].facing-right {
+      --echo-hero-direction: 1;
     }
 
     .echo-player.walking img {
-      animation: echo-hero-walk .32s steps(4, end) infinite;
-    }
-
-    .echo-player.facing-left.walking img {
-      animation-name: echo-hero-walk-left;
+      animation: echo-hero-walk .38s cubic-bezier(.45, .05, .55, .95) infinite;
     }
 
     .echo-player.jumping img {
@@ -5834,6 +5844,8 @@
     }
 
     .echo-starter-follower {
+      --follower-direction: 1;
+      --sprite-ground-offset: 0%;
       position: absolute;
       z-index: 17;
       left: 56px;
@@ -5843,15 +5855,21 @@
       object-fit: contain;
       object-position: center bottom;
       filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .48));
-      transform: translate(-50%, -100%);
+      transform:
+        translate(-50%, calc(-100% + var(--sprite-ground-offset)))
+        scaleX(var(--follower-direction));
       transform-origin: center bottom;
-      transition: left .16s linear, top .16s ease-out;
+      transition: left .14s linear, top .14s ease-out;
       image-rendering: pixelated;
       pointer-events: none;
     }
 
+    .echo-starter-follower.facing-left {
+      --follower-direction: -1;
+    }
+
     .echo-starter-follower.walking {
-      animation: echo-naturion-step .42s steps(4, end) infinite;
+      animation: echo-follower-step .44s cubic-bezier(.45, .05, .55, .95) infinite;
     }
 
     .echo-wild-layer,
@@ -5864,6 +5882,8 @@
     }
 
     .echo-wild {
+      --wild-direction: 1;
+      --wild-ground-offset: 0%;
       position: absolute;
       width: var(--wild-size, 88px);
       height: var(--wild-size, 88px);
@@ -5882,16 +5902,19 @@
       object-fit: contain;
       object-position: center bottom;
       filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .5));
+      transform:
+        translateY(var(--wild-ground-offset))
+        scaleX(var(--wild-direction));
       transform-origin: center bottom;
       image-rendering: pixelated;
     }
 
-    .echo-wild.facing-left img {
-      transform: scaleX(-1);
+    .echo-wild.facing-left {
+      --wild-direction: -1;
     }
 
     .echo-wild.moving img {
-      animation: echo-naturion-step .48s steps(4, end) infinite;
+      animation: echo-naturion-step .46s cubic-bezier(.45, .05, .55, .95) infinite;
     }
 
     .echo-wild.flying img {
@@ -6300,6 +6323,10 @@
     }
 
     .echo-fighter {
+      --fighter-direction: 1;
+      --fighter-ground-offset: 0%;
+      --fighter-strike-x: -34px;
+      --fighter-hit-x: 12px;
       position: relative;
       display: grid;
       min-height: 310px;
@@ -6328,11 +6355,17 @@
       object-fit: contain;
       object-position: center bottom;
       filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55));
+      transform:
+        translateY(var(--fighter-ground-offset))
+        scaleX(var(--fighter-direction));
+      transform-origin: center bottom;
       image-rendering: pixelated;
     }
 
-    .echo-fighter.player img {
-      transform: scaleX(-1);
+    .echo-fighter.player {
+      --fighter-direction: -1;
+      --fighter-strike-x: 34px;
+      --fighter-hit-x: -12px;
     }
 
     .echo-fighter.strike img {
@@ -6431,63 +6464,73 @@
     .echo-absorption {
       z-index: 72;
       background:
-        radial-gradient(circle at 50% 47%, color-mix(in srgb, var(--essence-color, #a8efff) 30%, transparent), transparent 36%),
-        rgba(2, 13, 10, .94);
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--essence-color, #a8efff) 18%, transparent), transparent 35%),
+        rgba(1, 10, 7, .96);
     }
 
     .echo-absorb-stage {
-      position: relative;
-      width: min(820px, 96vw);
-      height: min(580px, 80vh);
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      place-items: center;
+      gap: 9vw;
+      padding: 9vh 9vw 17vh;
     }
 
     .echo-absorb-creature {
-      position: absolute;
-      top: 50%;
-      left: 25%;
-      width: clamp(130px, 24vw, 260px);
-      height: clamp(130px, 24vw, 260px);
+      position: relative;
+      z-index: 2;
+      width: var(--naturion-stage-one-absorption-size);
+      max-height: 64vh;
       object-fit: contain;
-      filter: drop-shadow(0 0 14px var(--essence-color, #a8efff));
-      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 0 24px var(--essence-color, #a8efff));
       image-rendering: pixelated;
     }
 
     .echo-absorb-watch {
-      position: absolute;
-      top: 50%;
-      left: 75%;
-      width: clamp(150px, 26vw, 290px);
-      height: clamp(150px, 26vw, 290px);
+      position: relative;
+      z-index: 2;
+      width: min(33vw, 430px);
+      max-height: 64vh;
       object-fit: contain;
-      filter: drop-shadow(0 0 18px var(--essence-color, #a8efff));
-      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 0 24px var(--essence-color, #a8efff));
       image-rendering: pixelated;
     }
 
     .echo-absorb-beam {
       position: absolute;
-      top: 50%;
-      left: 47%;
-      width: 43%;
-      height: 12px;
-      border: 2px solid #fff6c1;
-      background: linear-gradient(90deg, var(--essence-color, #a8efff), #fff, var(--essence-color, #a8efff));
-      box-shadow: 0 0 16px var(--essence-color, #a8efff);
-      transform: translate(-50%, -50%);
-      transform-origin: right center;
+      z-index: 1;
+      top: 48%;
+      left: 36%;
+      width: 30%;
+      height: 8px;
+      opacity: 0;
+      background: linear-gradient(90deg, transparent, var(--essence-color, #a8efff), #fff, var(--essence-color, #a8efff), transparent);
+      box-shadow: 0 0 22px 7px var(--essence-color, #a8efff);
+      transform: rotate(-3deg) scaleX(.2);
+      transform-origin: right;
     }
 
     .echo-absorption.active .echo-absorb-creature {
-      animation: echo-absorb-creature 2.6s steps(18, end) both;
+      animation: essence-release 2.25s cubic-bezier(.45, .02, .8, .35) .45s forwards;
     }
 
-    .echo-absorption.active .echo-absorb-watch {
-      animation: echo-watch-pulse .58s steps(5, end) infinite;
+    .echo-absorption.releasing .echo-absorb-creature {
+      animation: essence-release 1.55s cubic-bezier(.2, .68, .35, 1) reverse both;
+    }
+
+    .echo-absorption.active .echo-absorb-watch,
+    .echo-absorption.releasing .echo-absorb-watch {
+      animation: sync-watch-pulse .7s ease-in-out infinite alternate;
     }
 
     .echo-absorption.active .echo-absorb-beam {
-      animation: echo-beam 1.1s steps(8, end) infinite;
+      animation: beam-on 1.6s ease .65s forwards;
+    }
+
+    .echo-absorption.releasing .echo-absorb-beam {
+      animation: beam-on 1.25s ease reverse both;
     }
 
     .echo-absorb-particles {
@@ -6497,67 +6540,246 @@
       pointer-events: none;
     }
 
-    .echo-absorb-particles i {
-      position: absolute;
-      top: 50%;
-      left: 25%;
-      width: var(--particle-size);
-      aspect-ratio: 1;
-      border-radius: var(--particle-radius);
-      background: var(--particle-color);
-      box-shadow: 0 0 9px var(--particle-color);
-      animation: echo-particle-stream var(--particle-duration) steps(15, end) var(--particle-delay) both;
+    .echo-absorption.releasing .echo-absorb-particles .sync-particle {
+      animation-direction: reverse;
+      animation-duration: 1.55s;
+      animation-delay: 0s;
     }
 
     .echo-absorb-message {
       position: absolute;
+      z-index: 6;
       right: 0;
-      bottom: 0;
+      bottom: 7vh;
       left: 0;
-      padding: 10px;
+      margin: 0;
+      padding: 10px 18px;
       color: #fff6b7;
-      font-size: .78rem;
-      font-weight: 1000;
+      font: 1000 clamp(.86rem, 2.2vw, 1.35rem)/1.35 var(--pixel-font);
+      letter-spacing: .04em;
       text-align: center;
-      text-shadow: 2px 2px 0 #392407;
+      text-shadow: 0 0 12px var(--essence-color, #a8efff), 3px 3px #18200d;
+      text-transform: uppercase;
     }
 
     .echo-evolution {
+      --evolution-color: #72dcff;
       z-index: 75;
       background:
-        radial-gradient(circle, rgba(255, 244, 161, .28), transparent 42%),
-        rgba(2, 15, 10, .95);
+        radial-gradient(circle at 50% 52%, color-mix(in srgb, var(--evolution-color) 28%, transparent), transparent 42%),
+        rgba(2, 15, 10, .96);
     }
 
-    .echo-evolution .echo-panel {
-      display: grid;
-      width: min(720px, 95vw);
-      justify-items: center;
-      gap: 10px;
-      padding: 24px;
-      text-align: center;
+    .echo-evolution-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
     }
 
-    .echo-evolution-pair {
-      display: grid;
-      width: min(540px, 90%);
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .echo-evolution-pair img {
-      width: min(180px, 30vw);
-      height: min(180px, 30vw);
+    .echo-evolution-watch {
+      position: absolute;
+      z-index: 2;
+      bottom: 1%;
+      left: 50%;
+      width: min(38vw, 310px);
+      height: min(38vw, 310px);
       object-fit: contain;
-      filter: drop-shadow(0 0 13px #fff0a2);
+      filter:
+        saturate(.95)
+        drop-shadow(0 16px 9px rgba(0, 0, 0, .62));
+      transform: translateX(-50%) perspective(560px) rotateX(67deg) scaleY(.9);
+      transform-origin: center;
       image-rendering: pixelated;
     }
 
-    .echo-evolution-pair span {
-      color: #fff1a1;
-      font-size: 2rem;
-      animation: echo-arrow .7s steps(3, end) infinite alternate;
+    .echo-evolution-creature {
+      position: absolute;
+      z-index: 4;
+      bottom: 18%;
+      left: 50%;
+      width: min(31vw, 250px);
+      height: min(31vw, 250px);
+      object-fit: contain;
+      object-position: center bottom;
+      opacity: 0;
+      filter: drop-shadow(0 0 18px var(--evolution-color));
+      transform: translateX(-50%);
+      transform-origin: 50% 88%;
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .echo-evolution-creature.to {
+      width: min(39vw, 315px);
+      height: min(39vw, 315px);
+    }
+
+    .echo-evolution-particles {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      overflow: hidden;
+      color: var(--evolution-color);
+      pointer-events: none;
+    }
+
+    .echo-evolution-particles i {
+      position: absolute;
+      top: 70%;
+      left: 50%;
+      width: var(--particle-size);
+      aspect-ratio: 1;
+      opacity: 0;
+      background: currentColor;
+      clip-path: polygon(50% 0, 63% 35%, 100% 50%, 63% 65%, 50% 100%, 37% 65%, 0 50%, 37% 35%);
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+
+    .echo-evolution-flash {
+      position: absolute;
+      z-index: 5;
+      inset: 0;
+      opacity: 0;
+      background: radial-gradient(circle at 50% 47%, #fff 0 7%, color-mix(in srgb, var(--evolution-color) 76%, transparent) 18%, transparent 52%);
+      pointer-events: none;
+    }
+
+    .echo-evolution-message {
+      position: absolute;
+      z-index: 7;
+      right: 5%;
+      bottom: 4%;
+      left: 5%;
+      width: min(690px, 90%);
+      margin: auto;
+      padding: 15px 20px;
+      border: 3px solid #dec65e;
+      border-radius: 3px;
+      color: #f9f5d5;
+      background: rgba(4, 28, 19, .96);
+      box-shadow: 0 5px 0 #382807;
+      opacity: 0;
+      text-align: center;
+      transform: translateY(14px);
+      pointer-events: none;
+    }
+
+    .echo-evolution-message small,
+    .echo-evolution-message h2,
+    .echo-evolution-message p {
+      margin: 0 0 7px;
+    }
+
+    .echo-evolution-message h2 {
+      color: #fff0a2;
+      font-size: clamp(1rem, 3vw, 1.6rem);
+    }
+
+    .echo-evolution.complete .echo-evolution-message {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      transition: opacity .28s ease, transform .28s ease;
+    }
+
+    .echo-evolution.active .echo-evolution-watch {
+      animation: echo-evolution-watch-awaken 4.1s ease both;
+    }
+
+    .echo-evolution.active .echo-evolution-creature.from {
+      animation:
+        echo-evolution-emerge 1.05s .2s ease-out both,
+        echo-evolution-transform 1.85s 1.2s ease-in-out both;
+    }
+
+    .echo-evolution.active .echo-evolution-creature.to {
+      animation: echo-evolution-reveal 1.35s 2.98s cubic-bezier(.16, .8, .23, 1) both;
+    }
+
+    .echo-evolution.active .echo-evolution-flash {
+      animation: echo-evolution-flash .8s 2.68s ease-out both;
+    }
+
+    .echo-evolution.active .echo-evolution-particles i {
+      animation: echo-evolution-particle var(--particle-duration) var(--particle-delay) ease-in-out both;
+    }
+
+    @keyframes echo-evolution-watch-awaken {
+      0%, 100% {
+        filter: brightness(1) saturate(.95) drop-shadow(0 16px 9px rgba(0, 0, 0, .62));
+        transform: translateX(-50%) perspective(560px) rotateX(67deg) scaleY(.9);
+      }
+      25% {
+        filter: brightness(1.35) drop-shadow(0 0 18px var(--evolution-color));
+        transform: translateX(-50%) perspective(560px) rotateX(67deg) scaleY(.9) scale(1.03);
+      }
+      68% {
+        filter: brightness(1.85) drop-shadow(0 0 34px var(--evolution-color));
+        transform: translateX(-50%) perspective(560px) rotateX(67deg) scaleY(.9) scale(1.06);
+      }
+    }
+
+    @keyframes echo-evolution-emerge {
+      0% { opacity: 0; transform: translate(-50%, 86px) scale(.24); }
+      45% { opacity: 1; }
+      100% { opacity: 1; transform: translate(-50%, -18px) scale(1); }
+    }
+
+    @keyframes echo-evolution-transform {
+      0% {
+        opacity: 1;
+        filter: brightness(1) drop-shadow(0 0 18px var(--evolution-color));
+        transform: translate(-50%, -18px) scale(1);
+      }
+      48% {
+        opacity: 1;
+        filter: brightness(2.6) saturate(.2) drop-shadow(0 0 30px var(--evolution-color));
+        transform: translate(-50%, -30px) scale(1.1);
+      }
+      80% {
+        opacity: .85;
+        filter: brightness(3.2) saturate(.1) blur(1px) drop-shadow(0 0 42px var(--evolution-color));
+        transform: translate(-50%, -38px) scale(1.22);
+      }
+      100% {
+        opacity: 0;
+        filter: brightness(3.4) blur(3px);
+        transform: translate(-50%, -42px) scale(1.32);
+      }
+    }
+
+    @keyframes echo-evolution-reveal {
+      0% {
+        opacity: 0;
+        filter: brightness(3) saturate(.2) blur(3px);
+        transform: translate(-50%, -45px) scale(.76);
+      }
+      40% {
+        opacity: 1;
+        filter: brightness(2.2) saturate(.55) blur(.5px) drop-shadow(0 0 30px var(--evolution-color));
+        transform: translate(-50%, -30px) scale(1.08);
+      }
+      74% { transform: translate(-50%, -13px) scale(.98); }
+      100% {
+        opacity: 1;
+        filter: brightness(1) saturate(1) drop-shadow(0 8px 7px rgba(0, 0, 0, .56));
+        transform: translate(-50%, -18px) scale(1);
+      }
+    }
+
+    @keyframes echo-evolution-flash {
+      0%, 100% { opacity: 0; transform: scale(.6); }
+      34% { opacity: 1; transform: scale(1.08); }
+    }
+
+    @keyframes echo-evolution-particle {
+      0% { opacity: 0; transform: translate(-50%, 0) rotate(0) scale(.3); }
+      18% { opacity: .9; }
+      58% {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--particle-x)), var(--particle-y)) rotate(180deg) scale(1);
+      }
+      100% { opacity: 0; transform: translate(-50%, -160px) rotate(360deg) scale(.15); }
     }
 
     @keyframes echo-panel-in {
@@ -6566,23 +6788,73 @@
     }
 
     @keyframes echo-hero-walk {
-      0%, 100% { transform: translateY(0) rotate(-1deg); }
-      50% { transform: translateY(-5px) rotate(2deg) scaleY(.98); }
-    }
-
-    @keyframes echo-hero-walk-left {
-      0%, 100% { transform: scaleX(-1) translateY(0) rotate(-1deg); }
-      50% { transform: scaleX(-1) translateY(-5px) rotate(2deg) scaleY(.98); }
+      0%, 100% {
+        transform: translateY(0) scaleX(var(--echo-hero-direction)) rotate(-.7deg);
+      }
+      25% {
+        transform: translateY(-2px) scaleX(var(--echo-hero-direction)) rotate(.9deg) scaleY(.992);
+      }
+      50% {
+        transform: translateY(-4px) scaleX(var(--echo-hero-direction)) rotate(1.4deg) scaleY(.982);
+      }
+      75% {
+        transform: translateY(-2px) scaleX(var(--echo-hero-direction)) rotate(.2deg) scaleY(.992);
+      }
     }
 
     @keyframes echo-naturion-step {
-      0%, 100% { transform: translateY(0) rotate(-2deg); }
-      50% { transform: translateY(-5px) rotate(2deg) scaleY(.97); }
+      0%, 100% {
+        transform:
+          translateY(var(--wild-ground-offset))
+          scaleX(var(--wild-direction))
+          rotate(-1deg);
+      }
+      25% {
+        transform:
+          translateY(calc(var(--wild-ground-offset) - 1px))
+          scaleX(var(--wild-direction))
+          rotate(.8deg)
+          scaleY(.992);
+      }
+      50% {
+        transform:
+          translateY(calc(var(--wild-ground-offset) - 3px))
+          scaleX(var(--wild-direction))
+          rotate(1.5deg)
+          scaleY(.98);
+      }
+      75% {
+        transform:
+          translateY(calc(var(--wild-ground-offset) - 1px))
+          scaleX(var(--wild-direction))
+          rotate(0)
+          scaleY(.992);
+      }
+    }
+
+    @keyframes echo-follower-step {
+      0%, 100% {
+        transform:
+          translate(-50%, calc(-100% + var(--sprite-ground-offset)))
+          scaleX(var(--follower-direction))
+          rotate(-1deg);
+      }
+      50% {
+        transform:
+          translate(-50%, calc(-100% + var(--sprite-ground-offset) - 3px))
+          scaleX(var(--follower-direction))
+          rotate(1.5deg)
+          scaleY(.98);
+      }
     }
 
     @keyframes echo-fly {
-      0%, 100% { transform: translateY(0) rotate(-2deg); }
-      50% { transform: translateY(-10px) rotate(2deg); }
+      0%, 100% {
+        transform: translateY(0) scaleX(var(--wild-direction)) rotate(-2deg);
+      }
+      50% {
+        transform: translateY(-10px) scaleX(var(--wild-direction)) rotate(2deg);
+      }
     }
 
     @keyframes echo-area-flash {
@@ -6591,40 +6863,32 @@
     }
 
     @keyframes echo-strike {
-      0%, 100% { transform: translateX(0); }
-      45% { transform: translateX(34px) scale(1.05); }
+      0%, 100% {
+        transform:
+          translate(0, var(--fighter-ground-offset))
+          scaleX(var(--fighter-direction));
+      }
+      45% {
+        transform:
+          translate(var(--fighter-strike-x), var(--fighter-ground-offset))
+          scaleX(var(--fighter-direction))
+          scale(1.05);
+      }
     }
 
     @keyframes echo-hit {
-      0%, 100% { filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55)); }
-      40% { filter: brightness(2) drop-shadow(0 0 13px #fff); transform: translateX(-12px); }
-    }
-
-    @keyframes echo-absorb-creature {
-      0%, 18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      72% { opacity: .72; transform: translate(46%, -50%) scale(.45) rotate(90deg); }
-      100% { opacity: 0; transform: translate(155%, -50%) scale(.08) rotate(240deg); }
-    }
-
-    @keyframes echo-watch-pulse {
-      from { filter: brightness(1) drop-shadow(0 0 11px var(--essence-color)); transform: translate(-50%, -50%) scale(.98); }
-      to { filter: brightness(1.5) drop-shadow(0 0 26px var(--essence-color)); transform: translate(-50%, -50%) scale(1.04); }
-    }
-
-    @keyframes echo-beam {
-      0%, 100% { opacity: .55; transform: translate(-50%, -50%) scaleX(.92); }
-      50% { opacity: 1; transform: translate(-50%, -50%) scaleX(1.08); }
-    }
-
-    @keyframes echo-particle-stream {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(0); }
-      18% { opacity: 1; }
-      100% { opacity: 0; transform: translate(calc(410px + var(--particle-y)), calc(-50% + var(--particle-y))) scale(.08) rotate(540deg); }
-    }
-
-    @keyframes echo-arrow {
-      from { transform: translateX(-5px); }
-      to { transform: translateX(5px); }
+      0%, 100% {
+        filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55));
+        transform:
+          translate(0, var(--fighter-ground-offset))
+          scaleX(var(--fighter-direction));
+      }
+      40% {
+        filter: brightness(2) drop-shadow(0 0 13px #fff);
+        transform:
+          translate(var(--fighter-hit-x), var(--fighter-ground-offset))
+          scaleX(var(--fighter-direction));
+      }
     }
 
     @media (max-width: 760px) {
@@ -6690,6 +6954,40 @@
 
       .echo-rune {
         min-height: 95px;
+      }
+
+      .echo-absorb-stage {
+        gap: 3vw;
+        padding: 12vh 5vw 20vh;
+      }
+
+      .echo-absorb-watch {
+        width: min(40vw, 230px);
+      }
+
+      .echo-evolution-watch {
+        bottom: 5%;
+        width: min(58vw, 270px);
+        height: min(58vw, 270px);
+      }
+
+      .echo-evolution-creature {
+        bottom: 24%;
+        width: min(52vw, 225px);
+        height: min(52vw, 225px);
+      }
+
+      .echo-evolution-creature.to {
+        width: min(62vw, 275px);
+        height: min(62vw, 275px);
+      }
+
+      .echo-evolution-message {
+        right: 3%;
+        bottom: 2%;
+        left: 3%;
+        width: 94%;
+        padding: 11px 13px;
       }
     }
 
@@ -7633,17 +7931,35 @@
       </section>
 
       <section class="echo-evolution" id="echoEvolution" aria-live="assertive" hidden>
-        <article class="echo-panel">
-          <small>Evolução alcançada</small>
-          <h2 id="echoEvolutionTitle">Seu Naturion evoluiu!</h2>
-          <div class="echo-evolution-pair">
-            <img id="echoEvolutionFrom" src="assets/story/axolume.webp" alt="">
-            <span aria-hidden="true">➜</span>
-            <img id="echoEvolutionTo" src="assets/echo-creatures/hydrolume.webp" alt="">
-          </div>
-          <p id="echoEvolutionText">Axolume evoluiu para Hydrolume.</p>
-          <button class="echo-button" id="echoEvolutionContinue" type="button">Continuar jornada</button>
-        </article>
+        <div class="echo-evolution-stage">
+          <img
+            class="echo-evolution-watch"
+            src="assets/story/crystal-watch-round.webp?v=2"
+            alt="Relógio Cristalíneo deitado no chão"
+          >
+          <img
+            class="echo-evolution-creature from"
+            id="echoEvolutionFrom"
+            src="assets/story/axolume.webp"
+            alt=""
+          >
+          <img
+            class="echo-evolution-creature to"
+            id="echoEvolutionTo"
+            src="assets/echo-creatures/hydrolume.webp"
+            alt=""
+          >
+          <div class="echo-evolution-particles" id="echoEvolutionParticles" aria-hidden="true"></div>
+          <div class="echo-evolution-flash" aria-hidden="true"></div>
+          <article class="echo-evolution-message">
+            <small>Evolução alcançada</small>
+            <h2 id="echoEvolutionTitle">Seu Naturion evoluiu!</h2>
+            <p id="echoEvolutionText">Axolume evoluiu para Hydrolume.</p>
+            <button class="echo-button" id="echoEvolutionContinue" type="button" disabled>
+              Continuar jornada
+            </button>
+          </article>
+        </div>
       </section>
 
       <div class="echo-area-transition" id="echoAreaTransition" aria-hidden="true"></div>
@@ -7921,6 +8237,7 @@
       const echoEvolutionTitle = document.getElementById("echoEvolutionTitle");
       const echoEvolutionFrom = document.getElementById("echoEvolutionFrom");
       const echoEvolutionTo = document.getElementById("echoEvolutionTo");
+      const echoEvolutionParticles = document.getElementById("echoEvolutionParticles");
       const echoEvolutionText = document.getElementById("echoEvolutionText");
       const echoEvolutionContinue = document.getElementById("echoEvolutionContinue");
       const echoAreaTransition = document.getElementById("echoAreaTransition");
@@ -7937,6 +8254,7 @@
       const fullscreen = document.getElementById("fullscreen");
       const motion = document.getElementById("motion");
       let selectedCharacter = "";
+      let optionsReturnFocus = optionsButton;
       let currentPlayer = null;
       let selectedStarter = "";
       let dialogueIndex = 0;
@@ -8008,6 +8326,7 @@
       let echoPuzzleAccepting = false;
       let echoPuzzleArea = 0;
       let echoEvolutionQueue = [];
+      let echoEvolutionTimer = 0;
       const echoInput = { left: false, right: false };
 
       const STARTERS = {
@@ -8071,27 +8390,27 @@
       };
 
       const NATURION_FORMS = {
-        axolume: { id: "axolume", name: "Axolume", type: "Água", stage: 1, minLevel: 1, image: "assets/story/axolume.webp" },
-        hydrolume: { id: "hydrolume", name: "Hydrolume", type: "Água", stage: 2, minLevel: 14, image: "assets/echo-creatures/hydrolume.webp" },
-        abissolume: { id: "abissolume", name: "Abissolume", type: "Água", stage: 3, minLevel: 36, image: "assets/echo-creatures/abissolume.webp" },
-        brasguax: { id: "brasguax", name: "Brasguax", type: "Fogo", stage: 1, minLevel: 1, image: "assets/story/brasguax.webp" },
-        brasquati: { id: "brasquati", name: "Brasquati", type: "Fogo", stage: 2, minLevel: 14, image: "assets/echo-creatures/brasquati.webp" },
-        vulcaguax: { id: "vulcaguax", name: "Vulcaguax", type: "Fogo", stage: 3, minLevel: 36, image: "assets/echo-creatures/vulcaguax.webp" },
-        musgurso: { id: "musgurso", name: "Musgurso", type: "Planta", stage: 1, minLevel: 1, image: "assets/story/musgurso.webp" },
-        florurso: { id: "florurso", name: "Florurso", type: "Planta", stage: 2, minLevel: 14, image: "assets/echo-creatures/florurso.webp" },
-        silvurso: { id: "silvurso", name: "Silvurso", type: "Planta", stage: 3, minLevel: 36, image: "assets/echo-creatures/silvurso.webp" },
-        escaruli: { id: "escaruli", name: "Escaruli", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/escaruli.webp" },
-        carabruto: { id: "carabruto", name: "Carabruto", type: "Inseto", stage: 2, minLevel: 12, image: "assets/echo-creatures/carabruto.webp" },
-        titanoleo: { id: "titanoleo", name: "Titanóleo", type: "Inseto/Terra", stage: 3, minLevel: 25, image: "assets/echo-creatures/titanoleo.webp" },
+        axolume: { id: "axolume", name: "Axolume", type: "Água", stage: 1, minLevel: 1, image: "assets/story/axolume.webp", groundOffset: 2.3 },
+        hydrolume: { id: "hydrolume", name: "Hydrolume", type: "Água", stage: 2, minLevel: 14, image: "assets/echo-creatures/hydrolume.webp", groundOffset: 10.6 },
+        abissolume: { id: "abissolume", name: "Abissolume", type: "Água", stage: 3, minLevel: 36, image: "assets/echo-creatures/abissolume.webp", groundOffset: 5.2 },
+        brasguax: { id: "brasguax", name: "Brasguax", type: "Fogo", stage: 1, minLevel: 1, image: "assets/story/brasguax.webp", groundOffset: 2.3 },
+        brasquati: { id: "brasquati", name: "Brasquati", type: "Fogo", stage: 2, minLevel: 14, image: "assets/echo-creatures/brasquati.webp", groundOffset: 8.3 },
+        vulcaguax: { id: "vulcaguax", name: "Vulcaguax", type: "Fogo", stage: 3, minLevel: 36, image: "assets/echo-creatures/vulcaguax.webp", groundOffset: 8 },
+        musgurso: { id: "musgurso", name: "Musgurso", type: "Planta", stage: 1, minLevel: 1, image: "assets/story/musgurso.webp", groundOffset: 2.3 },
+        florurso: { id: "florurso", name: "Florurso", type: "Planta", stage: 2, minLevel: 14, image: "assets/echo-creatures/florurso.webp", groundOffset: 9.8 },
+        silvurso: { id: "silvurso", name: "Silvurso", type: "Planta", stage: 3, minLevel: 36, image: "assets/echo-creatures/silvurso.webp", groundOffset: 8.3 },
+        escaruli: { id: "escaruli", name: "Escaruli", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/escaruli.webp", groundOffset: 32 },
+        carabruto: { id: "carabruto", name: "Carabruto", type: "Inseto", stage: 2, minLevel: 12, image: "assets/echo-creatures/carabruto.webp", groundOffset: 22 },
+        titanoleo: { id: "titanoleo", name: "Titanóleo", type: "Inseto/Terra", stage: 3, minLevel: 25, image: "assets/echo-creatures/titanoleo.webp", groundOffset: 15.3 },
         lumpirim: { id: "lumpirim", name: "Lumpirim", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/lumpirim.webp", flying: true },
         vagalux: { id: "vagalux", name: "Vagalux", type: "Inseto", stage: 2, minLevel: 9, image: "assets/echo-creatures/vagalux.webp", flying: true },
         auralume: { id: "auralume", name: "Auralume", type: "Inseto/Luz", stage: 3, minLevel: 16, image: "assets/echo-creatures/auralume.webp", flying: true },
-        failino: { id: "failino", name: "Fáilino", type: "Elétrico", stage: 1, minLevel: 1, image: "assets/echo-creatures/failino.webp" },
-        trovagato: { id: "trovagato", name: "Trovagato", type: "Elétrico", stage: 2, minLevel: 17, image: "assets/echo-creatures/trovagato.webp" },
-        hambrio: { id: "hambrio", name: "Hambrio", type: "Sombrio", stage: 1, minLevel: 1, image: "assets/echo-creatures/hambrio.webp" },
-        umbrester: { id: "umbrester", name: "Umbrester", type: "Sombrio", stage: 2, minLevel: 14, image: "assets/echo-creatures/umbrester.webp" },
-        canumi: { id: "canumi", name: "Canumi", type: "Normal", stage: 1, minLevel: 1, image: "assets/echo-creatures/canumi.webp" },
-        fidelark: { id: "fidelark", name: "Fidelark", type: "Normal", stage: 2, minLevel: 9, image: "assets/echo-creatures/fidelark.webp" },
+        failino: { id: "failino", name: "Fáilino", type: "Elétrico", stage: 1, minLevel: 1, image: "assets/echo-creatures/failino.webp", groundOffset: 9.5 },
+        trovagato: { id: "trovagato", name: "Trovagato", type: "Elétrico", stage: 2, minLevel: 17, image: "assets/echo-creatures/trovagato.webp", groundOffset: 3.1 },
+        hambrio: { id: "hambrio", name: "Hambrio", type: "Sombrio", stage: 1, minLevel: 1, image: "assets/echo-creatures/hambrio.webp", groundOffset: 12.3 },
+        umbrester: { id: "umbrester", name: "Umbrester", type: "Sombrio", stage: 2, minLevel: 14, image: "assets/echo-creatures/umbrester.webp", groundOffset: 2.3 },
+        canumi: { id: "canumi", name: "Canumi", type: "Normal", stage: 1, minLevel: 1, image: "assets/echo-creatures/canumi.webp", groundOffset: 16.1 },
+        fidelark: { id: "fidelark", name: "Fidelark", type: "Normal", stage: 2, minLevel: 9, image: "assets/echo-creatures/fidelark.webp", groundOffset: 2.5 },
         zumbel: { id: "zumbel", name: "Zumbel", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/zumbel.webp", flying: true },
         melsting: { id: "melsting", name: "Melsting", type: "Inseto", stage: 2, minLevel: 8, image: "assets/echo-creatures/melsting.webp", flying: true },
         rainhaxa: { id: "rainhaxa", name: "Rainhaxa", type: "Inseto/Veneno", stage: 3, minLevel: 15, image: "assets/echo-creatures/rainhaxa.webp", flying: true }
@@ -8132,7 +8451,7 @@
           scene: "assets/echo-scenes/clareira-1.webp",
           count: 6,
           objective: "Converse com a Dra. Íris e siga pela trilha dos ecos.",
-          platforms: [[0, 1, .82], [.22, .34, .69], [.51, .63, .66], [.77, .9, .71]],
+          platforms: [[0, 1, .82], [.22, .41, .66], [.45, .56, .66], [.6, .69, .72], [.76, .94, .73]],
           npc: {
             id: "iris",
             name: "Dra. Íris",
@@ -8360,7 +8679,11 @@
         toastTimer = setTimeout(() => toastBox.classList.remove("show"), 2600);
       };
 
-      const openOptions = () => {
+      const openOptions = (event) => {
+        const trigger = event?.currentTarget;
+        optionsReturnFocus = trigger instanceof HTMLElement
+          ? trigger
+          : optionsButton;
         playClick(260);
         modal.hidden = false;
         requestAnimationFrame(() => closeButton.focus());
@@ -8370,7 +8693,7 @@
         saveSettings();
         playClick(220);
         modal.hidden = true;
-        optionsButton.focus();
+        optionsReturnFocus?.focus();
       };
 
       const prefersLessMotion = () => (
@@ -10049,11 +10372,19 @@
         return NATURION_FORMS[fallbackId] || NATURION_FORMS.axolume;
       };
 
+      const getNaturionGroundOffset = (form) => (
+        form?.flying ? "0%" : `${Number(form?.groundOffset) || 0}%`
+      );
+
       const refreshEchoStarterUI = () => {
         const member = ensureEchoPlayerData();
         const form = getMemberForm(member);
         echoStarterFollower.src = form.image;
         echoStarterFollower.alt = form.name;
+        echoStarterFollower.style.setProperty(
+          "--sprite-ground-offset",
+          getNaturionGroundOffset(form)
+        );
         echoHudStarter.src = form.image;
         echoHudStarter.alt = form.name;
         echoHudStarterName.textContent = `${form.name} · Nv. ${member.level}`;
@@ -10089,11 +10420,17 @@
 
       const getEchoGroundAt = (x, previousY, nextY) => {
         const platforms = getEchoArea().platforms
-          .map(([from, to, y]) => ({ from: from * echoWorldWidth, to: to * echoWorldWidth, y: y * echoWorldHeight }))
+          .map(([from, to, y], index) => ({
+            from: from * echoWorldWidth,
+            to: to * echoWorldWidth,
+            y: y * echoWorldHeight,
+            oneWay: index > 0
+          }))
           .filter((platform) => x >= platform.from - 18 && x <= platform.to + 18)
           .sort((a, b) => a.y - b.y);
         if (typeof previousY === "number" && typeof nextY === "number") {
           return platforms.find((platform) => (
+            /* Plataformas elevadas só recebem o jogador durante a descida. */
             previousY <= platform.y + 5
             && nextY >= platform.y
           )) || null;
@@ -10147,6 +10484,10 @@
         element.className = `echo-wild${wild.form.flying ? " flying" : ""}`;
         element.dataset.wildId = wild.instanceId;
         element.style.setProperty("--wild-size", `${wild.size}px`);
+        element.style.setProperty(
+          "--wild-ground-offset",
+          getNaturionGroundOffset(wild.form)
+        );
         const image = document.createElement("img");
         image.src = wild.form.image;
         image.alt = "";
@@ -10216,9 +10557,25 @@
         echoWorld.style.setProperty("--echo-camera", `${-echoCameraX}px`);
         echoPlayer.style.left = `${echoPlayerX}px`;
         echoPlayer.style.top = `${echoPlayerY}px`;
-        const followerOffset = echoInput.left ? 62 : echoInput.right ? -62 : echoPlayer.classList.contains("facing-left") ? 62 : -62;
+        const facingRight = echoPlayer.classList.contains("facing-right");
+        const followerOffset = facingRight ? -62 : 62;
+        echoStarterFollower.classList.toggle("facing-left", !facingRight);
         echoStarterFollower.style.left = `${echoPlayerX + followerOffset}px`;
-        echoStarterFollower.style.top = `${echoPlayerY + (echoGrounded ? 0 : 8)}px`;
+        /*
+         * O inicial usa exatamente o mesmo ponto de apoio do jogador. Assim ele
+         * acompanha chão, troncos, plataformas e saltos sem cair para outro nível.
+         * O recorte transparente de cada espécie é compensado separadamente por
+         * --sprite-ground-offset, mantendo os pés visíveis sobre esse ponto.
+         */
+        echoStarterFollower.style.top = `${echoPlayerY}px`;
+      };
+
+      const resetEchoMovement = () => {
+        echoInput.left = false;
+        echoInput.right = false;
+        echoVelocityX = 0;
+        echoPlayer.classList.remove("walking");
+        echoStarterFollower.classList.remove("walking");
       };
 
       const setEchoMovement = (direction, active) => {
@@ -10227,13 +10584,13 @@
         echoPlayer.classList.toggle("walking", echoInput.left || echoInput.right);
         echoStarterFollower.classList.toggle("walking", echoInput.left || echoInput.right);
         if (active) {
-          echoPlayer.classList.toggle("facing-left", direction === "left");
+          echoPlayer.classList.toggle("facing-right", direction === "right");
         }
       };
 
       const jumpEchoPlayer = () => {
         if (!echoActive || !echoGrounded || !echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
-        echoVelocityY = -630;
+        echoVelocityY = -700;
         echoGrounded = false;
         echoPlayer.classList.add("jumping");
         playTone(440, 0, .07, "square");
@@ -10488,10 +10845,8 @@
       const enterEchoArea = async (areaIndex, entrySide = "left", skipFlash = false) => {
         echoActive = false;
         cancelAnimationFrame(echoFrame);
-        echoInput.left = false;
-        echoInput.right = false;
-        echoPlayer.classList.remove("walking", "jumping");
-        echoStarterFollower.classList.remove("walking");
+        resetEchoMovement();
+        echoPlayer.classList.remove("jumping");
 
         if (!skipFlash) {
           echoAreaTransition.style.setProperty("--echo-transition-x", entrySide === "left" ? "12%" : "88%");
@@ -10509,6 +10864,7 @@
         syncEchoMetrics();
         echoPlayerX = entrySide === "right" ? echoWorldWidth - 125 : 125;
         echoPlayerY = area.platforms[0][2] * echoWorldHeight;
+        echoPlayer.classList.toggle("facing-right", entrySide !== "right");
         echoVelocityX = 0;
         echoVelocityY = 0;
         echoGrounded = true;
@@ -10545,6 +10901,7 @@
           ? "assets/selection/hero-female.webp"
           : "assets/selection/hero-male.webp";
         echoPlayerImage.alt = currentPlayer.name;
+        echoPlayer.dataset.character = currentPlayer.character;
         refreshEchoStarterUI();
         forestScreen.classList.add("world-map-open");
         worldDoorTransition.hidden = false;
@@ -10571,8 +10928,7 @@
       const returnEchoToMap = () => {
         echoActive = false;
         cancelAnimationFrame(echoFrame);
-        echoInput.left = false;
-        echoInput.right = false;
+        resetEchoMovement();
         echoClearing.hidden = true;
         echoDialogue.hidden = true;
         echoPuzzle.hidden = true;
@@ -10608,6 +10964,7 @@
         if (!echoActive || !echoBattle.hidden) return;
         echoActive = false;
         cancelAnimationFrame(echoFrame);
+        resetEchoMovement();
         echoEncounter = wild;
         const member = ensureEchoPlayerData();
         const playerForm = getMemberForm(member);
@@ -10618,9 +10975,17 @@
         echoBattlePlayerImage.src = playerForm.image;
         echoBattlePlayerImage.alt = playerForm.name;
         echoBattlePlayerImage.parentElement.style.setProperty("--fighter-size", `${170 + playerForm.stage * 35}px`);
+        echoBattlePlayerImage.parentElement.style.setProperty(
+          "--fighter-ground-offset",
+          getNaturionGroundOffset(playerForm)
+        );
         echoBattleWildImage.src = wild.form.image;
         echoBattleWildImage.alt = wild.form.name;
         echoBattleWildImage.parentElement.style.setProperty("--fighter-size", `${165 + wild.form.stage * 38}px`);
+        echoBattleWildImage.parentElement.style.setProperty(
+          "--fighter-ground-offset",
+          getNaturionGroundOffset(wild.form)
+        );
         echoBattlePlayerName.textContent = playerForm.name;
         echoBattlePlayerLevel.textContent = `Nv. ${member.level}`;
         echoBattleWildName.textContent = wild.form.name;
@@ -10701,6 +11066,7 @@
         echoBattle.hidden = true;
         echoWildFighter.classList.remove("hit", "strike");
         echoEncounter = null;
+        resetEchoMovement();
         await enterEchoArea(echoAreaIndex, "left");
       };
 
@@ -10762,27 +11128,60 @@
         saveCurrentPlayer();
       };
 
+      const createEchoEvolutionParticles = () => {
+        echoEvolutionParticles.replaceChildren();
+        const count = prefersLessMotion() ? 16 : 48;
+        for (let index = 0; index < count; index += 1) {
+          const particle = document.createElement("i");
+          const angle = Math.PI * 2 * index / count;
+          const radius = 72 + index % 7 * 11;
+          particle.style.setProperty("--particle-x", `${Math.cos(angle) * radius}px`);
+          particle.style.setProperty("--particle-y", `${Math.sin(angle) * radius - 80}px`);
+          particle.style.setProperty("--particle-size", `${4 + index % 5}px`);
+          particle.style.setProperty("--particle-delay", `${.16 + index % 9 * .1}s`);
+          particle.style.setProperty("--particle-duration", `${2.4 + index % 6 * .12}s`);
+          echoEvolutionParticles.append(particle);
+        }
+      };
+
       const showNextEchoEvolution = () => {
         refreshEchoStarterUI();
         if (!echoEvolutionQueue.length) {
+          echoEvolution.classList.remove("active", "complete");
+          echoEvolutionParticles.replaceChildren();
           startEchoLoop();
           echoClearing.focus();
           return;
         }
         const evolution = echoEvolutionQueue.shift();
-        echoEvolutionTitle.textContent = `${evolution.to.name} despertou!`;
+        const style = getEchoTypeStyle(evolution.to.type);
+        window.clearTimeout(echoEvolutionTimer);
+        echoEvolution.style.setProperty("--evolution-color", style.color);
+        echoEvolutionTitle.textContent = "Parabéns!";
         echoEvolutionFrom.src = evolution.from.image;
         echoEvolutionFrom.alt = evolution.from.name;
         echoEvolutionTo.src = evolution.to.image;
         echoEvolutionTo.alt = evolution.to.name;
-        echoEvolutionText.textContent = `${evolution.from.name} evoluiu para ${evolution.to.name} no nível ${evolution.member.level}.`;
+        echoEvolutionText.textContent = `${evolution.from.name} se transformou em ${evolution.to.name}!`;
+        echoEvolutionContinue.disabled = true;
+        createEchoEvolutionParticles();
         echoEvolution.hidden = false;
+        echoEvolution.classList.remove("active", "complete");
+        void echoEvolution.offsetWidth;
+        echoEvolution.classList.add("active");
         playSequence([392, 523, 659, 784, 1047, 1319], .085);
         saveCurrentPlayer();
-        echoEvolutionContinue.focus();
+        const duration = prefersLessMotion() ? 100 : 4300;
+        echoEvolutionTimer = window.setTimeout(() => {
+          echoEvolution.classList.add("complete");
+          echoEvolutionContinue.disabled = false;
+          playSequence([659, 784, 1047, 1319], .085);
+          echoEvolutionContinue.focus();
+        }, duration);
       };
 
       const finishEchoEncounter = () => {
+        resetEchoMovement();
         echoBattle.hidden = true;
         echoBattleChoice.hidden = true;
         echoWildFighter.classList.remove("hit", "strike");
@@ -10802,15 +11201,29 @@
 
       const createEchoAbsorptionParticles = (style) => {
         echoAbsorbParticles.replaceChildren();
-        const count = prefersLessMotion() ? 18 : 58;
+        const count = prefersLessMotion() ? 18 : 72;
         for (let index = 0; index < count; index += 1) {
           const particle = document.createElement("i");
-          particle.style.setProperty("--particle-size", `${3 + Math.random() * 8}px`);
-          particle.style.setProperty("--particle-radius", index % 3 ? "50%" : "2px");
-          particle.style.setProperty("--particle-color", style.palette[index % style.palette.length]);
-          particle.style.setProperty("--particle-y", `${-92 + Math.random() * 184}px`);
-          particle.style.setProperty("--particle-duration", `${1.15 + Math.random() * 1.15}s`);
-          particle.style.setProperty("--particle-delay", `${Math.random() * .85}s`);
+          const startX = 10 + Math.random() * 29;
+          const startY = 18 + Math.random() * 60;
+          const endX = 72 - startX + Math.random() * 5;
+          const endY = 49 - startY + Math.random() * 5;
+          particle.className = "sync-particle";
+          particle.style.setProperty("--start-x", `${startX}vw`);
+          particle.style.setProperty("--start-y", `${startY}vh`);
+          particle.style.setProperty("--arc-x", `${12 + Math.random() * 20}vw`);
+          particle.style.setProperty("--arc-y", `${-18 + Math.random() * 36}vh`);
+          particle.style.setProperty("--end-x", `${endX}vw`);
+          particle.style.setProperty("--end-y", `${endY}vh`);
+          particle.style.setProperty("--size", `${3 + Math.random() * 8}px`);
+          particle.style.setProperty("--radius", index % 3 ? "50%" : "2px");
+          particle.style.setProperty("--duration", `${1.45 + Math.random() * .85}s`);
+          particle.style.setProperty("--delay", `${.28 + Math.random() * .95}s`);
+          particle.style.setProperty(
+            "--particle-color",
+            style.palette[index % style.palette.length]
+          );
+          particle.style.setProperty("--particle-glow", style.glow);
           echoAbsorbParticles.append(particle);
         }
       };
@@ -10835,10 +11248,13 @@
       };
 
       const tryEchoAbsorption = async () => {
-        if (!echoEncounter) return;
+        if (!echoEncounter || echoAbsorption.dataset.busy === "true") return;
         const wild = echoEncounter;
         const style = getEchoTypeStyle(wild.form.type);
         const chance = wild.form.stage === 1 ? .82 : wild.form.stage === 2 ? .6 : .38;
+        const success = Math.random() < chance;
+        echoAbsorption.dataset.busy = "true";
+        resetEchoMovement();
         echoBattleChoice.hidden = true;
         echoBattle.hidden = true;
         echoAbsorption.style.setProperty("--essence-color", style.color);
@@ -10847,30 +11263,43 @@
         echoAbsorbMessage.textContent = `O Relógio Cristalíneo reconhece a essência de ${wild.form.name}...`;
         createEchoAbsorptionParticles(style);
         echoAbsorption.hidden = false;
-        echoAbsorption.classList.remove("active");
+        echoAbsorption.classList.remove("active", "releasing");
         void echoAbsorption.offsetWidth;
         echoAbsorption.classList.add("active");
         playSequence([392, 523, 659, 784, 988], .075);
-        await forestPause(2350);
-        const success = Math.random() < chance;
-        if (success) {
-          addCapturedNaturion(wild);
-          echoAbsorbMessage.textContent = `Essência absorvida! ${wild.form.name} agora faz parte do seu time.`;
-          playSequence([523, 659, 784, 988, 1175], .075);
-          currentPlayer.activeMission = {
-            ...currentPlayer.activeMission,
-            progress: `essencia-${wild.form.id}-absorvida`
-          };
-        } else {
-          echoAbsorbMessage.textContent = `A sintonia não se estabilizou. ${wild.form.name} permaneceu livre.`;
-          playSequence([440, 330, 262], .085);
+        try {
+          await forestPause(2850);
+          if (success) {
+            echoAbsorption.dataset.lastResult = "success";
+            addCapturedNaturion(wild);
+            echoAbsorbMessage.textContent = `Essência absorvida! ${wild.form.name} agora faz parte do seu time.`;
+            playSequence([523, 659, 784, 988, 1175], .075);
+            currentPlayer.activeMission = {
+              ...currentPlayer.activeMission,
+              progress: `essencia-${wild.form.id}-absorvida`
+            };
+            await forestPause(1050);
+          } else {
+            echoAbsorption.dataset.lastResult = "failed";
+            echoAbsorbMessage.textContent = "A sintonia se desfez. A essência está retornando...";
+            echoAbsorption.classList.remove("active");
+            createEchoAbsorptionParticles(style);
+            echoAbsorption.classList.add("releasing");
+            playSequence([988, 784, 659, 523, 392], .075);
+            await forestPause(1650);
+            echoAbsorbMessage.textContent = `Absorção não concluída! ${wild.form.name} permaneceu livre.`;
+            showToast(`Absorção não concluída: ${wild.form.name} retornou à clareira.`);
+            playSequence([440, 330, 262], .085);
+            await forestPause(950);
+          }
+          saveCurrentPlayer();
+        } finally {
+          echoAbsorption.classList.remove("active", "releasing");
+          echoAbsorption.hidden = true;
+          echoAbsorption.dataset.busy = "false";
+          echoAbsorbParticles.replaceChildren();
+          finishEchoEncounter();
         }
-        saveCurrentPlayer();
-        await forestPause(1150);
-        echoAbsorption.classList.remove("active");
-        echoAbsorption.hidden = true;
-        echoAbsorbParticles.replaceChildren();
-        finishEchoEncounter();
       };
 
       window.__naturionEcho = {
@@ -10882,6 +11311,11 @@
           active: echoActive,
           areaIndex: echoAreaIndex,
           playerX: echoPlayerX,
+          playerY: echoPlayerY,
+          followerY: Number.parseFloat(echoStarterFollower.style.top) || echoPlayerY,
+          moving: echoPlayer.classList.contains("walking"),
+          velocityX: echoVelocityX,
+          facingRight: echoPlayer.classList.contains("facing-right"),
           wilds: echoWilds.map((wild) => ({
             id: wild.form.id,
             name: wild.form.name,
@@ -10892,6 +11326,16 @@
           puzzles: { ...(currentPlayer?.echoProgress?.puzzles || {}) },
           team: [...(currentPlayer?.team || [])]
         }),
+        probeGround: (xRatio, previousYRatio, nextYRatio) => {
+          const ground = getEchoGroundAt(
+            Number(xRatio) * echoWorldWidth,
+            Number(previousYRatio) * echoWorldHeight,
+            Number(nextYRatio) * echoWorldHeight
+          );
+          return ground
+            ? { yRatio: ground.y / echoWorldHeight, oneWay: ground.oneWay }
+            : null;
+        },
         startBattle: (wildIndex = 0) => {
           const wild = echoWilds[wildIndex];
           if (!wild) return false;
@@ -11221,7 +11665,10 @@
       echoReleaseWild.addEventListener("click", releaseEchoWild);
 
       echoEvolutionContinue.addEventListener("click", () => {
+        window.clearTimeout(echoEvolutionTimer);
         echoEvolution.hidden = true;
+        echoEvolution.classList.remove("active", "complete");
+        echoEvolutionParticles.replaceChildren();
         showNextEchoEvolution();
       });
 
@@ -11307,10 +11754,7 @@
       window.addEventListener("blur", () => {
         tutorialInput.left = false;
         tutorialInput.right = false;
-        echoInput.left = false;
-        echoInput.right = false;
-        echoPlayer.classList.remove("walking");
-        echoStarterFollower.classList.remove("walking");
+        resetEchoMovement();
       });
 
       document.addEventListener("keydown", (event) => {
