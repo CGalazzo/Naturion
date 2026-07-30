@@ -26,6 +26,14 @@ jobs:
       - name: Apply and validate approved map change
         shell: bash
         run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/apply_map_crystals.py')
+          content = path.read_text(encoding='utf-8')
+          if content.count('""""') != 2:
+              raise SystemExit('Unexpected multiline delimiter count')
+          path.write_text(content.replace('""""', '"""'), encoding='utf-8')
+          PY
           python .github/apply_map_crystals.py
           python - <<'PY'
           from pathlib import Path
