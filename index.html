@@ -7684,6 +7684,75 @@
         transition-duration: .001ms !important;
       }
     }
+
+
+    /* Cristais de encontro: sem pedestal separado e integrados ao chão. */
+    .encounter-crystal .crystal-base,
+    .encounter-crystal .crystal-gem {
+      display: none;
+    }
+
+    .encounter-crystal .crystal-visual::after {
+      clip-path: inset(0 0 20% 0);
+      transform: translateY(18%);
+      transform-origin: 50% 100%;
+      animation: encounter-crystal-glow 2.8s ease-in-out var(--crystal-delay) infinite;
+    }
+
+    .plumirel-world.alert .crystal-visual::after {
+      animation: encounter-crystal-alert .48s steps(2, end) infinite;
+    }
+
+    .encounter-crystal.is-spent .crystal-visual {
+      filter: grayscale(1) brightness(.62) drop-shadow(0 3px 2px rgba(0, 0, 0, .42));
+    }
+
+    .encounter-crystal.is-spent .crystal-visual::before {
+      opacity: 0;
+    }
+
+    .encounter-crystal.is-spent .crystal-visual::after {
+      opacity: .3;
+      filter: grayscale(1) brightness(.48);
+      animation: none;
+    }
+
+    .echo-wild::after,
+    .plumirel-world::after {
+      right: 27%;
+      bottom: -1px;
+      left: 27%;
+      width: auto;
+      height: 7px;
+      opacity: .52;
+      background: rgba(0, 0, 0, .46);
+      filter: blur(2px);
+    }
+
+    .echo-npc-interact {
+      position: absolute;
+      z-index: 5;
+      top: calc(100% + 4px);
+      left: 50%;
+      width: max-content;
+      padding: 4px 7px;
+      border: 1px solid rgba(255, 241, 163, .82);
+      border-radius: 3px;
+      background: rgba(7, 27, 17, .9);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, .5);
+      color: #fff6b8;
+      font-size: .48rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-shadow: 1px 1px 0 #000;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .echo-npc-interact[hidden] {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
@@ -8031,10 +8100,7 @@
         </div>
 
         <div class="plumirel-world encounter-crystal" id="plumirelWorld" aria-label="Cristal Voador instável">
-          <span class="crystal-visual" aria-hidden="true">
-            <img class="crystal-base" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
-            <img class="crystal-gem" src="assets/puzzle/crystal-blue-voxel.webp" alt="">
-          </span>
+          <span class="crystal-visual" aria-hidden="true"></span>
           <span class="plumirel-world-name">Cristal Voador instável</span>
         </div>
       </div>
@@ -11532,45 +11598,60 @@
         };
       };
 
-      const chooseEchoWild = (index) => {
+      const chooseEchoWild = (index, occupied = []) => {
         const area = getEchoArea();
         const level = echoRandom(area.levels[0], area.levels[1]);
         const chain = ECHO_WILD_CHAINS[echoRandom(0, ECHO_WILD_CHAINS.length - 1)];
         const form = getHighestForm(chain, level, area.maxStage, false);
+        const size = getWildSize();
         const elevatedPlatforms = area.platforms.slice(1);
         const availablePlatforms = elevatedPlatforms.length ? elevatedPlatforms : area.platforms;
-        const platform = availablePlatforms[(index * 3 + echoAreaIndex) % availablePlatforms.length];
-        const platformWidth = Math.max(.012, platform[1] - platform[0]);
-        const inset = Math.min(.025, platformWidth * .2);
-        const minRatio = platform[0] + inset;
-        const maxRatio = platform[1] - inset;
-        const centerRatio = (minRatio + maxRatio) / 2;
-        const jitter = (Math.random() - .5) * Math.min(.012, platformWidth * .16);
-        const xRatio = Math.max(minRatio, Math.min(maxRatio, centerRatio + jitter));
-        return {
-          instanceId: `${area.id}-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
-          chain,
-          form,
-          level,
-          behavior: "idle",
-          x: xRatio * echoWorldWidth,
-          y: platform[2] * echoWorldHeight,
-          minX: xRatio * echoWorldWidth,
-          maxX: xRatio * echoWorldWidth,
-          direction: 1,
-          speed: 0,
-          size: getWildSize(),
-          crystalStyle: getEncounterCrystalStyle(form.type),
-          crystalDelay: -(index % 4) * .42,
-          element: null
-        };
-      };
+        const reserved = [area.npc, area.puzzle, area.passages?.previous, area.passages?.next].filter(Boolean);
 
+        for (let attempt = 0; attempt < 80; attempt += 1) {
+const platform = availablePlatforms[echoRandom(0, availablePlatforms.length - 1)];
+const platformWidth = Math.max(.012, platform[1] - platform[0]);
+const inset = Math.min(.028, platformWidth * .22);
+const minRatio = platform[0] + inset;
+const maxRatio = platform[1] - inset;
+const xRatio = minRatio + Math.random() * Math.max(.001, maxRatio - minRatio);
+const x = xRatio * echoWorldWidth;
+const y = platform[2] * echoWorldHeight;
+const overlapsCrystal = occupied.some((other) => (
+  Math.abs(other.x - x) < Math.max(108, (other.size + size) * .72)
+  && Math.abs(other.y - y) < Math.max(88, (other.size + size) * .76)
+));
+const overlapsReserved = reserved.some((target) => (
+  Math.abs(target.x * echoWorldWidth - x) < 112
+  && Math.abs(target.y * echoWorldHeight - y) < 90
+));
+if (overlapsCrystal || overlapsReserved) continue;
+
+return {
+  instanceId: `${area.id}-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+  chain,
+  form,
+  level,
+  behavior: "idle",
+  x,
+  y,
+  minX: x,
+  maxX: x,
+  direction: 1,
+  speed: 0,
+  size,
+  spent: false,
+  crystalStyle: getEncounterCrystalStyle(form.type),
+  crystalDelay: -(index % 4) * .42,
+  element: null
+};
+        }
+
+        return null;
+      };
       const renderEchoWild = (wild) => {
         const element = document.createElement("span");
         const visual = document.createElement("span");
-        const base = document.createElement("img");
-        const gem = document.createElement("img");
         element.className = "echo-wild encounter-crystal";
         element.dataset.wildId = wild.instanceId;
         element.dataset.element = wild.form.type;
@@ -11583,23 +11664,17 @@
         element.style.setProperty("--crystal-delay", `${wild.crystalDelay}s`);
         visual.className = "crystal-visual";
         visual.setAttribute("aria-hidden", "true");
-        base.className = "crystal-base";
-        gem.className = "crystal-gem";
-        base.src = "assets/puzzle/crystal-blue-voxel.webp";
-        gem.src = "assets/puzzle/crystal-blue-voxel.webp";
-        base.alt = "";
-        gem.alt = "";
-        base.draggable = false;
-        gem.draggable = false;
-        visual.append(base, gem);
         element.append(visual);
         echoWildLayer.append(element);
         wild.element = element;
       };
-
       const spawnEchoWilds = () => {
         echoWildLayer.replaceChildren();
-        echoWilds = Array.from({ length: getEchoArea().count }, (_, index) => chooseEchoWild(index));
+        echoWilds = [];
+        for (let index = 0; index < getEchoArea().count; index += 1) {
+const wild = chooseEchoWild(index, echoWilds);
+if (wild) echoWilds.push(wild);
+        }
         echoWilds.forEach(renderEchoWild);
       };
 
@@ -11623,9 +11698,13 @@
           image.src = area.npc.image;
           image.alt = "";
           const label = document.createElement("small");
-          label.className = "echo-npc-name";
-          label.textContent = area.npc.name;
-          npc.append(image, label);
+label.className = "echo-npc-name";
+label.textContent = area.npc.name;
+const interaction = document.createElement("small");
+interaction.className = "echo-npc-interact";
+interaction.textContent = "E · Conversar";
+interaction.hidden = true;
+npc.append(image, label, interaction);
           echoNpcLayer.append(npc);
         }
 
@@ -11721,7 +11800,7 @@
 
       const updateEchoWilds = () => {
         echoWilds.forEach((wild) => {
-          if (!wild.element) return;
+          if (!wild.element || wild.spent) return;
           wild.element.style.left = `${wild.x}px`;
           wild.element.style.top = `${wild.y}px`;
 
@@ -11746,43 +11825,45 @@
         const area = getEchoArea();
         echoNearInteraction = null;
         const near = (target, horizontal = 92, vertical = 74) => (
-          target
-          && Math.abs(echoPlayerX - target.x * echoWorldWidth) < horizontal
-          && Math.abs(echoPlayerY - target.y * echoWorldHeight) < vertical
+target
+&& Math.abs(echoPlayerX - target.x * echoWorldWidth) < horizontal
+&& Math.abs(echoPlayerY - target.y * echoWorldHeight) < vertical
         );
         if (near(area.npc)) {
-          echoNearInteraction = { type: "npc", value: area.npc };
+echoNearInteraction = { type: "npc", value: area.npc };
         } else if (near(area.puzzle, 112, 86) && !isEchoPuzzleSolved()) {
-          echoNearInteraction = { type: "puzzle", value: area.puzzle };
+echoNearInteraction = { type: "puzzle", value: area.puzzle };
         } else if (near(area.passages?.previous, 108, 92)) {
-          echoNearInteraction = {
-            type: "passage",
-            direction: "previous",
-            value: area.passages.previous
-          };
+echoNearInteraction = {
+  type: "passage",
+  direction: "previous",
+  value: area.passages.previous
+};
         } else if (near(area.passages?.next, 108, 92)) {
-          echoNearInteraction = {
-            type: "passage",
-            direction: "next",
-            value: area.passages.next
-          };
+echoNearInteraction = {
+  type: "passage",
+  direction: "next",
+  value: area.passages.next
+};
         }
-        echoInteract.hidden = !echoNearInteraction;
-        if (echoNearInteraction) {
-          const isPassage = echoNearInteraction.type === "passage";
-          echoInteractKey.textContent = isPassage ? "W" : "E";
-          if (echoNearInteraction.type === "npc") {
-            echoInteractText.textContent = `Conversar com ${echoNearInteraction.value.name}`;
-          } else if (echoNearInteraction.type === "puzzle") {
-            echoInteractText.textContent = `Examinar desafio: ${echoNearInteraction.value.title}`;
-          } else {
-            echoInteractText.textContent = echoNearInteraction.direction === "previous"
-              ? "Retornar ao ambiente anterior"
-              : "Entrar no próximo ambiente";
-          }
+
+        const npcInteraction = echoNpcLayer.querySelector(".echo-npc-interact");
+        if (npcInteraction) npcInteraction.hidden = echoNearInteraction?.type !== "npc";
+
+        const showGlobalInteraction = Boolean(echoNearInteraction && echoNearInteraction.type !== "npc");
+        echoInteract.hidden = !showGlobalInteraction;
+        if (showGlobalInteraction) {
+const isPassage = echoNearInteraction.type === "passage";
+echoInteractKey.textContent = isPassage ? "W" : "E";
+if (echoNearInteraction.type === "puzzle") {
+  echoInteractText.textContent = `Examinar desafio: ${echoNearInteraction.value.title}`;
+} else {
+  echoInteractText.textContent = echoNearInteraction.direction === "previous"
+    ? "Retornar ao ambiente anterior"
+    : "Entrar no próximo ambiente";
+}
         }
       };
-
       const closeEchoPassageConfirmation = () => {
         echoPassageConfirm.hidden = true;
         echoPendingPassage = null;
@@ -12207,7 +12288,7 @@
       };
 
       const startEchoBattle = (wild) => {
-        if (!echoActive || !echoBattle.hidden) return;
+        if (!echoActive || !echoBattle.hidden || wild.spent) return;
         echoActive = false;
         cancelAnimationFrame(echoFrame);
         resetEchoMovement();
@@ -12249,8 +12330,12 @@
 
       const removeEchoEncounter = () => {
         if (!echoEncounter) return;
-        echoEncounter.element?.remove();
-        echoWilds = echoWilds.filter((wild) => wild !== echoEncounter);
+        echoEncounter.spent = true;
+        echoEncounter.element?.classList.add("is-spent");
+        echoEncounter.element?.setAttribute(
+"aria-label",
+`Cristal ${echoEncounter.form.type} estabilizado`
+        );
       };
 
       const xpToNextEchoLevel = (level) => 55 + level * 20;
@@ -12496,7 +12581,7 @@
       const releaseEchoWild = () => {
         if (!echoEncounter) return;
         echoBattleChoice.hidden = true;
-        echoBattleMessage.textContent = `${echoEncounter.form.name} voltou em segurança para a clareira.`;
+        echoBattleMessage.textContent = `A essência de ${echoEncounter.form.name} retornou ao cristal, agora estabilizado.`;
         playSequence([659, 523, 392], .06);
         window.setTimeout(finishEchoEncounter, prefersLessMotion() ? 80 : 680);
       };
@@ -12599,8 +12684,8 @@
             echoAbsorption.classList.add("releasing");
             playSequence([988, 784, 659, 523, 392], .075);
             await forestPause(1650);
-            echoAbsorbMessage.textContent = `Absorção não concluída! ${wild.form.name} permaneceu livre.`;
-            showToast(`Absorção não concluída: ${wild.form.name} retornou à clareira.`);
+            echoAbsorbMessage.textContent = `Absorção não concluída! A essência de ${wild.form.name} retornou ao cristal estabilizado.`;
+            showToast(`Absorção não concluída: o cristal de ${wild.form.name} ficou estabilizado.`);
             playSequence([440, 330, 262], .085);
             await forestPause(950);
           }
