@@ -1,4 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js";
+import { ART_DIRECTION } from "./art/art-direction.js";
+import { resizePixelRenderer, snapCameraTargetToPixelGrid } from "./art/pixel-renderer.js";
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -8,8 +10,12 @@ export class DioramaEngine {
     this.container = container;
     this.stage = stage;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(stage.palette.sky);
-    this.scene.fog = new THREE.Fog(stage.palette.fog, 58, 118);
+    this.scene.background = new THREE.Color(stage.palette.sky || ART_DIRECTION.palette.skyBottom);
+    this.scene.fog = new THREE.Fog(
+      stage.palette.fog || ART_DIRECTION.palette.fog,
+      ART_DIRECTION.lighting.fogNear,
+      ART_DIRECTION.lighting.fogFar
+    );
 
     this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -23,6 +29,7 @@ export class DioramaEngine {
     this.camera = new THREE.OrthographicCamera(-18, 18, 11, -11, 0.1, 190);
     this.camera.position.set(29, 32, 29);
     this.cameraTarget = new THREE.Vector3();
+    this.renderCameraTarget = new THREE.Vector3();
     this.cameraLookAhead = new THREE.Vector3();
     this.cameraFocus = null;
     this.cameraZoom = 1.04;
@@ -32,6 +39,7 @@ export class DioramaEngine {
     this.updaters = new Set();
     this.occluders = [];
     this.playerObject = null;
+    this.renderResolution = { width: 640, height: 360 };
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.container);
@@ -40,11 +48,13 @@ export class DioramaEngine {
   }
 
   setupLights() {
-    const ambient = new THREE.HemisphereLight(0xd6f4df, 0x2f4737, 1.42);
-    const sun = new THREE.DirectionalLight(0xffe8ad, 2.05);
+    const palette = ART_DIRECTION.palette;
+    const light = ART_DIRECTION.lighting;
+    const ambient = new THREE.HemisphereLight(palette.sunHighlight, palette.shadow, light.hemisphereIntensity);
+    const sun = new THREE.DirectionalLight(palette.sun, light.sunIntensity);
     sun.position.set(-22, 34, 18);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.mapSize.set(light.shadowMapSize, light.shadowMapSize);
     sun.shadow.camera.left = -38;
     sun.shadow.camera.right = 38;
     sun.shadow.camera.top = 34;
@@ -54,9 +64,9 @@ export class DioramaEngine {
     sun.shadow.bias = -0.0009;
     sun.shadow.normalBias = 0.04;
 
-    const fill = new THREE.DirectionalLight(0x7acfc1, 0.52);
+    const fill = new THREE.DirectionalLight(palette.fill, light.fillIntensity);
     fill.position.set(24, 15, -28);
-    const warmBounce = new THREE.DirectionalLight(0xd9a96a, 0.22);
+    const warmBounce = new THREE.DirectionalLight(palette.gold[2], light.bounceIntensity);
     warmBounce.position.set(-8, 7, -20);
     this.scene.add(ambient, sun, fill, warmBounce);
     this.sun = sun;
@@ -65,14 +75,12 @@ export class DioramaEngine {
   resize() {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
-    const diagonal = Math.hypot(width, height);
-    const renderScale = clamp(0.52 + (diagonal - 900) / 8000, 0.52, 0.68);
-    const renderWidth = Math.max(640, Math.round(width * renderScale));
-    const renderHeight = Math.max(360, Math.round(height * renderScale));
-    this.renderer.setPixelRatio(1);
-    this.renderer.setSize(renderWidth, renderHeight, false);
-    this.renderer.domElement.style.width = `${width}px`;
-    this.renderer.domElement.style.height = `${height}px`;
+    this.renderResolution = resizePixelRenderer({
+      renderer: this.renderer,
+      canvas: this.renderer.domElement,
+      width,
+      height
+    });
     this.resizeProjectionOnly();
   }
 
@@ -128,15 +136,20 @@ export class DioramaEngine {
       this.cameraZoom = THREE.MathUtils.lerp(this.cameraZoom, 1.04, 1 - Math.exp(-delta * 3.8));
     }
 
+    this.resizeProjectionOnly();
+    this.renderCameraTarget.copy(snapCameraTargetToPixelGrid({
+      target: this.cameraTarget,
+      camera: this.camera,
+      renderHeight: this.renderResolution.height
+    }));
     const offset = new THREE.Vector3(28.5, 31.5, 28.5).multiplyScalar(1 / this.cameraZoom);
-    this.camera.position.copy(this.cameraTarget).add(offset);
-    this.camera.lookAt(this.cameraTarget);
+    this.camera.position.copy(this.renderCameraTarget).add(offset);
+    this.camera.lookAt(this.renderCameraTarget);
     if (this.sun) {
       this.sun.position.set(this.cameraTarget.x - 22, 34, this.cameraTarget.z + 18);
       this.sun.target.position.copy(this.cameraTarget);
       this.scene.add(this.sun.target);
     }
-    this.resizeProjectionOnly();
     this.updateOcclusion(delta);
   }
 

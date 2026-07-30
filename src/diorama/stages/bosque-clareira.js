@@ -1,10 +1,10 @@
 import { THREE } from "../engine.js";
+import { ART_DIRECTION } from "../art/art-direction.js";
 import { createDioramaMaterials } from "../art/materials.js";
 import {
   addPathRibbon,
   addPixelWaterPond,
   addPlateau,
-  addTexturedBox,
   addTexturedCylinder,
   buildLayeredDioramaBase
 } from "../art/environment-factory.js";
@@ -25,6 +25,8 @@ import {
   createRootGate,
   createWoodBridge
 } from "../art/prop-factory.js";
+import { createBackgroundLayers } from "../art/background-layers.js";
+import { createAtmosphericEffects } from "../art/atmospheric-effects.js";
 
 const rect = (minX, maxX, minZ, maxZ, height = 0) => ({ type: "rect", minX, maxX, minZ, maxZ, height });
 const circle = (x, z, radius, height = 0) => ({ type: "circle", x, z, radius, height });
@@ -50,15 +52,15 @@ export const bosqueClareiraStage = {
   objective: "Explore o bosque e alcance o portão de raízes.",
   sceneImage: "assets/map/bosque-luminal.webp",
   palette: {
-    sky: 0x183f34,
-    fog: 0x2a5645,
-    grass: 0x4f9d4b,
-    grassLight: 0x72bd54,
-    earth: 0x6d5332,
-    path: 0xb58c52,
-    stone: 0x657468,
-    water: 0x2f9ca2,
-    crystal: 0x69e7de
+    sky: ART_DIRECTION.palette.skyBottom,
+    fog: ART_DIRECTION.palette.fog,
+    grass: ART_DIRECTION.palette.grass[2],
+    grassLight: ART_DIRECTION.palette.grass[3],
+    earth: ART_DIRECTION.palette.earth[1],
+    path: ART_DIRECTION.palette.path[2],
+    stone: ART_DIRECTION.palette.stone[1],
+    water: ART_DIRECTION.palette.water[2],
+    crystal: ART_DIRECTION.palette.crystal[2]
   },
   startPosition: { x: -26, z: -20 },
   cameraBounds: { minX: -23, maxX: 23, minZ: -18, maxZ: 18.5 },
@@ -119,17 +121,12 @@ const addRampSteps = ({ parent, stage, materials, from, to, width, steps = 9 }) 
     const nextZ = THREE.MathUtils.lerp(from.z, to.z, Math.min(1, t + 1 / steps));
     const angle = Math.atan2(nextX - x, nextZ - z);
     const y = stage.getHeightAt(x, z);
-    addTexturedBox(parent, {
-      x,
-      y: y - 0.09,
-      z,
-      width,
-      height: 0.16,
-      depth: Math.hypot(to.x - from.x, to.z - from.z) / steps + 0.24,
-      material: materials.path,
-      receiveShadow: true,
-      rotationY: angle
-    });
+    const step = new THREE.Mesh(new THREE.DodecahedronGeometry(0.48, 0), index % 4 === 0 ? materials.mossStone : materials.path);
+    step.position.set(x, y + 0.02, z);
+    step.scale.set(width * (0.86 + (index % 3) * 0.035), 0.18, 0.72 + (index % 2) * 0.08);
+    step.rotation.set(0, angle, index % 2 ? 0.015 : -0.012);
+    step.receiveShadow = true;
+    parent.add(step);
   }
 };
 
@@ -140,9 +137,11 @@ const createLeafPile = ({ parent, stage, materials, x, z, color = 0xa77d3f, rota
   parent.add(group);
   const material = materials.tint(materials.leaf, color, `leaf-pile-${color}`);
   [[-0.2, 0, 0], [0.12, 0.02, 0.08], [0.28, 0, -0.13], [-0.05, 0.025, -0.2]].forEach(([lx, ly, lz], index) => {
-    const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.045, 0.16), index % 2 ? material : materials.leafAncient);
+    const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.18 + index * 0.012, 6), index % 2 ? material : materials.leafAncient);
+    leaf.rotation.x = -Math.PI / 2;
+    leaf.scale.set(1.55, 0.55, 1);
     leaf.position.set(lx, ly, lz);
-    leaf.rotation.y = index * 0.68;
+    leaf.rotation.z = index * 0.68;
     group.add(leaf);
   });
 };
@@ -151,12 +150,22 @@ const createEntryTotem = ({ parent, stage, materials, x, z }) => {
   const group = new THREE.Group();
   group.position.set(x, stage.getHeightAt(x, z), z);
   parent.add(group);
-  addTexturedCylinder(group, { y: 0, radiusTop: 0.28, radiusBottom: 0.38, height: 2.4, sides: 6, material: materials.barkDark, castShadow: true });
-  const sign = addTexturedBox(group, { x: 0.36, y: 1.2, width: 1.3, height: 0.7, depth: 0.16, material: materials.wood, castShadow: true });
-  sign.rotation.z = -0.06;
+  addTexturedCylinder(group, { y: 0, radiusTop: 0.22, radiusBottom: 0.4, height: 2.35, sides: 7, material: materials.barkDark, castShadow: true });
+  const sign = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 5), materials.wood);
+  sign.scale.set(1.35, 0.68, 0.16);
+  sign.position.set(0.38, 1.4, 0);
+  sign.rotation.z = -0.08;
+  sign.castShadow = true;
+  group.add(sign);
+  const goldInset = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 4, 12), materials.gold);
+  goldInset.rotation.x = Math.PI / 2;
+  goldInset.position.set(0.38, 1.4, -0.12);
+  goldInset.scale.set(1.3, 1, 1);
+  group.add(goldInset);
   const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), materials.crystal);
-  crystal.position.set(-0.18, 2.18, 0);
+  crystal.position.set(-0.18, 2.2, 0);
   crystal.scale.y = 1.4;
+  crystal.castShadow = true;
   group.add(crystal);
 };
 
@@ -165,9 +174,10 @@ export const buildBosqueClareira = ({ scene, engine }) => {
   stage.obstacles.length = 0;
   const materials = createDioramaMaterials();
   const root = new THREE.Group();
-  root.name = "BosqueClareiraPixelDiorama";
+  root.name = "BosqueClareiraStorybookDiorama";
   scene.add(root);
 
+  createBackgroundLayers({ scene, engine, materials });
   buildLayeredDioramaBase({ root, materials });
 
   addPlateau({ parent: root, x: 17, z: 12, width: 15.2, depth: 10.8, height: 1.05, materials, top: "grassLight", rotation: 0.03 });
@@ -177,46 +187,11 @@ export const buildBosqueClareira = ({ scene, engine }) => {
 
   addPixelWaterPond({ parent: root, engine, materials, x: -22, z: 3, scaleX: 0.88, scaleZ: 0.82 });
 
-  addPathRibbon({
-    parent: root,
-    stage,
-    materials,
-    seed: 1,
-    width: 3.5,
-    points: [[-28, -20], [-21, -20], [-14, -18], [-10, -11], [-8, -2], [-5, 1], [1, 1.2], [6.5, 3.2], [10.4, 7.3]]
-  });
-  addPathRibbon({
-    parent: root,
-    stage,
-    materials,
-    seed: 2,
-    width: 3.1,
-    points: [[-8, 1], [-8.8, 6], [-12, 10.5], [-18.5, 13.5], [-24, 16]]
-  });
-  addPathRibbon({
-    parent: root,
-    stage,
-    materials,
-    seed: 3,
-    width: 3.2,
-    points: [[1, 1], [7, -1.1], [13, -1.2], [19, 1]]
-  });
-  addPathRibbon({
-    parent: root,
-    stage,
-    materials,
-    seed: 4,
-    width: 2.75,
-    points: [[-4, -17], [1.5, -15.7], [7.2, -15]]
-  });
-  addPathRibbon({
-    parent: root,
-    stage,
-    materials,
-    seed: 5,
-    width: 3.15,
-    points: [[14, 10.5], [19, 12], [22, 14], [25, 17.5], [27, 20]]
-  });
+  addPathRibbon({ parent: root, stage, materials, seed: 1, width: 3.5, points: [[-28, -20], [-21, -20], [-14, -18], [-10, -11], [-8, -2], [-5, 1], [1, 1.2], [6.5, 3.2], [10.4, 7.3]] });
+  addPathRibbon({ parent: root, stage, materials, seed: 2, width: 3.1, points: [[-8, 1], [-8.8, 6], [-12, 10.5], [-18.5, 13.5], [-24, 16]] });
+  addPathRibbon({ parent: root, stage, materials, seed: 3, width: 3.2, points: [[1, 1], [7, -1.1], [13, -1.2], [19, 1]] });
+  addPathRibbon({ parent: root, stage, materials, seed: 4, width: 2.75, points: [[-4, -17], [1.5, -15.7], [7.2, -15]] });
+  addPathRibbon({ parent: root, stage, materials, seed: 5, width: 3.15, points: [[14, 10.5], [19, 12], [22, 14], [25, 17.5], [27, 20]] });
   addRampSteps({ parent: root, stage, materials, from: { x: 10.4, z: 6 }, to: { x: 13.2, z: 10.1 }, width: 3.1, steps: 9 });
   addRampSteps({ parent: root, stage, materials, from: { x: 22, z: 14.2 }, to: { x: 26, z: 19.2 }, width: 3, steps: 10 });
   addRampSteps({ parent: root, stage, materials, from: { x: -10.5, z: 9 }, to: { x: -9, z: 13 }, width: 2.7, steps: 8 });
@@ -236,6 +211,8 @@ export const buildBosqueClareira = ({ scene, engine }) => {
     [16, 20, 0.78, "young", 1.2], [-34, -2, 1.05, "ancient", 0.4], [34, -14, 1.05, "common", 2.1]
   ];
   trees.forEach(([x, z, scale, variant, rotation]) => createPixelTree({ parent: root, stage, engine, materials, x, z, scale, variant, rotation }));
+  createPixelTree({ parent: root, stage, engine, materials, x: 16, z: 7.2, scale: 0.98, variant: "magic", rotation: 0.6, obstacle: false });
+  createPixelTree({ parent: root, stage, engine, materials, x: 33, z: 18, scale: 1.08, variant: "magic", rotation: 2.1, obstacle: false });
 
   const rocks = [
     [-20, -18, 0.9, 0.2, true], [-10, -8, 0.75, 1.1, false], [-3, 4, 0.7, 2.4, true],
@@ -292,26 +269,17 @@ export const buildBosqueClareira = ({ scene, engine }) => {
     crystal.castShadow = true;
     root.add(crystal);
     engine.addUpdater((delta, elapsed) => {
-      crystal.material.emissiveIntensity = 0.4 + Math.sin(elapsed * 1.4 + index) * 0.14;
+      const frame = Math.floor(elapsed * 8);
+      crystal.material.emissiveIntensity = 0.4 + (frame + index) % 3 * 0.07;
     });
   });
 
   [[-35, -27], [-35, 27], [35, -27], [35, 27]].forEach(([x, z], index) => {
-    addTexturedCylinder(root, {
-      x,
-      y: -0.1,
-      z,
-      radiusTop: 1.05,
-      radiusBottom: 1.35,
-      height: 4.5 + index * 0.12,
-      sides: 7,
-      material: index % 2 ? materials.mossStone : materials.stoneDark,
-      castShadow: true,
-      receiveShadow: true
-    });
+    addTexturedCylinder(root, { x, y: -0.1, z, radiusTop: 1.05, radiusBottom: 1.35, height: 4.5 + index * 0.12, sides: 9, material: index % 2 ? materials.mossStone : materials.stoneDark, castShadow: true, receiveShadow: true });
   });
 
   installVegetationWind({ engine, windObjects });
+  createAtmosphericEffects({ scene, engine, materials });
 
   return {
     root,
