@@ -1,0 +1,132 @@
+name: Validate diorama art direction
+
+on:
+  push:
+    branches:
+      - change/naturion-art-direction-pass
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: change/naturion-art-direction-pass
+          fetch-depth: 0
+
+      - name: Validate syntax, imports and preserved mechanics
+        shell: bash
+        run: |
+          set -euo pipefail
+          find src/diorama -name '*.js' -print0 | xargs -0 -n1 node --check
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess
+
+          def current(path):
+              return Path(path).read_text(encoding='utf-8')
+          def base(path):
+              return subprocess.check_output(['git','show',f'origin/main:{path}'], text=True)
+          def compact(value):
+              return re.sub(r'\s+', '', value)
+          def block(text, start, end):
+              a = text.index(start)
+              b = text.index(end, a)
+              return text[a:b]
+
+          player = current('src/diorama/player-controller.js')
+          for literal in [
+              'this.radius = 0.56;',
+              'this.walkSpeed = 5.15;',
+              'this.runSpeed = 7.25;',
+              'this.acceleration = 13;',
+              'const worldX = (movement.x + movement.z) * Math.SQRT1_2;',
+              'const worldZ = (movement.z - movement.x) * Math.SQRT1_2;'
+          ]:
+              assert literal in player, literal
+
+          old_stage = base('src/diorama/stages/bosque-clareira.js')
+          new_stage = current('src/diorama/stages/bosque-clareira.js')
+          assert compact(block(old_stage, 'walkableZones:', 'obstacles:')) == compact(block(new_stage, 'walkableZones:', 'obstacles:'))
+          assert compact(old_stage[old_stage.index('export const bosqueEntities'):]) == compact(new_stage[new_stage.index('export const bosqueEntities'):])
+
+          props = current('src/diorama/art/prop-factory.js')
+          required = [
+              'minX: x - 3.15, maxX: x + 3.15, minZ: z - 1.25, maxZ: z + 1.25',
+              'minX: x - 0.8, maxX: x + 0.8, minZ: z - width * 0.7, maxZ: z + width * 0.7',
+              'type: "circle", x, z, radius: 0.95',
+              'minX: x - 2.8, maxX: x + 2.8, minZ: z - 1.05, maxZ: z + 1.05'
+          ]
+          for literal in required:
+              assert literal in props, literal
+
+          imports = re.compile(r'import\s+(?:[^"\']+?\s+from\s+)?["\']([^"\']+)["\']')
+          for file in Path('src/diorama').rglob('*.js'):
+              for specifier in imports.findall(file.read_text(encoding='utf-8')):
+                  if not specifier.startswith('.'):
+                      continue
+                  target = (file.parent / specifier).resolve()
+                  assert target.exists(), f'{file}: import ausente {specifier}'
+          print('STATIC_VALIDATION_OK')
+          PY
+
+      - name: Browser smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tools
+          cat > tools/diorama-smoke.html <<'HTML'
+          <!doctype html><html><body><div id="viewport" style="width:1280px;height:720px"></div><script type="module">
+          const output = (value) => { document.body.dataset.result = value; document.body.append(value); };
+          try {
+            const [{ DioramaEngine }, { bosqueClareiraStage, buildBosqueClareira }, { PlayerController }] = await Promise.all([
+              import('../src/diorama/engine.js'),
+              import('../src/diorama/stages/bosque-clareira.js'),
+              import('../src/diorama/player-controller.js')
+            ]);
+            const container = document.getElementById('viewport');
+            Object.defineProperty(container, 'clientWidth', { value: 1280 });
+            Object.defineProperty(container, 'clientHeight', { value: 720 });
+            const engine = new DioramaEngine({ container, stage: bosqueClareiraStage });
+            const stageBuild = buildBosqueClareira({ scene: engine.scene, engine });
+            const input = { getMovement: () => ({ x: 0, z: 0, running: false }) };
+            const player = new PlayerController({ scene: engine.scene, stage: bosqueClareiraStage, input, characterImage: 'assets/selection/hero-male.webp', startPosition: bosqueClareiraStage.startPosition });
+            engine.setPlayerObject(player.group);
+            engine.cameraTarget.copy(player.group.position);
+            player.update(1 / 60, 0.1);
+            engine.updateCamera(1 / 60, player.velocity);
+            engine.renderer.render(engine.scene, engine.camera);
+            if (!stageBuild.root || !player.group || !engine.renderer.domElement) throw new Error('Cena incompleta');
+            output('DIORAMA_SMOKE_OK');
+            engine.dispose();
+          } catch (error) {
+            console.error(error);
+            output('DIORAMA_SMOKE_FAILED: ' + (error?.stack || error));
+          }
+          </script></body></html>
+          HTML
+          python3 -m http.server 4173 >/tmp/diorama-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill $server_pid || true' EXIT
+          sleep 2
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          "$browser" --headless=new --no-sandbox --disable-dev-shm-usage --enable-webgl --ignore-gpu-blocklist --use-angle=swiftshader --dump-dom http://127.0.0.1:4173/tools/diorama-smoke.html > /tmp/diorama-dom.txt
+          cat /tmp/diorama-dom.txt
+          grep -q 'DIORAMA_SMOKE_OK' /tmp/diorama-dom.txt
+
+      - name: Remove temporary validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tools/diorama-smoke.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/diorama-art-smoke.yml
+          git commit -m 'chore: remover validador temporário do diorama'
+          git push origin HEAD:change/naturion-art-direction-pass
