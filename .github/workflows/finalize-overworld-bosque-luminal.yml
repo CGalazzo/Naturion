@@ -1,0 +1,107 @@
+name: Finalizar Bosque Luminal
+
+on:
+  push:
+    branches:
+      - feature/overworld-bosque-luminal
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-finalize:
+    if: ${{ !contains(github.event.head_commit.message, '[overworld-complete]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Baixar branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/overworld-bosque-luminal
+          fetch-depth: 0
+
+      - name: Migrar integração e remover diorama
+        run: |
+          python3 scripts/migrate-overworld.py
+          git rm -r --ignore-unmatch src/diorama
+          git rm --ignore-unmatch styles/diorama.css
+          git rm -r --ignore-unmatch docs/visual-tests
+
+      - name: Validar código e integração
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', text, flags=re.S | re.I)
+          target = Path('/tmp/naturion-inline-scripts')
+          target.mkdir(exist_ok=True)
+          for index, script in enumerate(scripts):
+              (target / f'script-{index}.js').write_text(script, encoding='utf-8')
+          assert not Path('src/diorama').exists()
+          assert not Path('styles/diorama.css').exists()
+          for forbidden in ['NaturionDioramaBridge', 'dioramaBattleContext', 'id="dioramaScreen"', 'src/diorama/main.js']:
+              assert forbidden not in text, forbidden
+          PY
+          find src/overworld -name '*.js' -print0 | xargs -0 -n1 node --check
+          find /tmp/naturion-inline-scripts -name '*.js' -print0 | xargs -0 -n1 node --check
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const files = [];
+          const walk = (directory) => {
+            for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+              const target = path.join(directory, entry.name);
+              if (entry.isDirectory()) walk(target);
+              else if (target.endsWith('.js')) files.push(target);
+            }
+          };
+          walk('src/overworld');
+          for (const file of files) {
+            const source = fs.readFileSync(file, 'utf8');
+            for (const match of source.matchAll(/from\s+["'](\.[^"']+)["']/g)) {
+              const target = path.resolve(path.dirname(file), match[1]);
+              if (!fs.existsSync(target)) throw new Error(`Import local ausente: ${file} -> ${match[1]}`);
+            }
+          }
+          NODE
+          if grep -RniE 'placeholder|TODO|molde temporário|teste visual' src/overworld styles/overworld.css; then exit 1; fi
+          git diff --check
+
+      - name: Testar no Chrome
+        run: |
+          python3 -m http.server 8765 > /tmp/naturion-overworld-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          set +e
+          timeout 45s "$CHROME" --headless=new --no-sandbox --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --enable-webgl --ignore-gpu-blocklist --window-size=1280,720 --virtual-time-budget=14000 --dump-dom http://127.0.0.1:8765/tests/overworld-smoke.html > /tmp/naturion-overworld-dom.html 2> /tmp/naturion-overworld-chrome.log
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -ne 0 ] || ! grep -q 'data-test-status="passed"' /tmp/naturion-overworld-dom.html; then
+            cat /tmp/naturion-overworld-dom.html || true
+            cat /tmp/naturion-overworld-chrome.log || true
+            cat /tmp/naturion-overworld-http.log || true
+            exit 1
+          fi
+          grep 'id="result"' /tmp/naturion-overworld-dom.html
+
+      - name: Criar commit final limpo
+        run: |
+          rm -f scripts/migrate-overworld.py
+          rm -f tests/overworld-smoke.html tests/overworld-smoke.mjs
+          rm -f .github/workflows/finalize-overworld-bosque-luminal.yml
+          rmdir scripts tests .github/workflows .github 2>/dev/null || true
+          git config user.name "Naturion Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: substituir diorama pelo Bosque Luminal [overworld-complete]"
+          git push origin feature/overworld-bosque-luminal
+
+      - name: Exibir diagnóstico em caso de falha
+        if: failure()
+        run: |
+          for file in /tmp/naturion-overworld-dom.html /tmp/naturion-overworld-chrome.log /tmp/naturion-overworld-http.log; do
+            if [ -f "$file" ]; then echo "===== $file ====="; tail -n 180 "$file"; fi
+          done
