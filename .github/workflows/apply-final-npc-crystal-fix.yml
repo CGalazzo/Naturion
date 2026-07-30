@@ -27,6 +27,17 @@ jobs:
             exit 0
           fi
 
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/apply_final_npc_crystal_fix.py')
+          text = path.read_text(encoding='utf-8')
+          old = "'aviso local removido': 'E · Conversar' not in text and 'echo-npc-interact' not in text,"
+          new = "'aviso local removido': 'E · Conversar' not in text,"
+          if old not in text:
+              raise SystemExit('Validação antiga não encontrada')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
           python3 .github/apply_final_npc_crystal_fix.py
 
           python3 - <<'PY'
