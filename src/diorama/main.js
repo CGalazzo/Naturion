@@ -82,7 +82,10 @@ const handleInteraction = async () => {
       engine.focusOn(bosqueClareiraStage.focusPoints.blockedGate, { duration: 0.75, zoom: 1.12 });
       objective.textContent = "A passagem está selada. Um puzzle será adicionado em uma próxima etapa.";
       showToast("Passagem bloqueada: estrutura pronta para receber um puzzle.");
-      window.setTimeout(() => engine.returnToPlayer(), 1800);
+      window.setTimeout(() => {
+        engine.returnToPlayer();
+        objective.textContent = bosqueClareiraStage.objective;
+      }, 1800);
     } else if (activeInteraction.type === "reserved") {
       engine.focusOn(bosqueClareiraStage.focusPoints.npcArena, { duration: 0.7, zoom: 1.1 });
       showToast("Área reservada para a futura batalha obrigatória contra NPC.");
@@ -147,6 +150,8 @@ const returnToMap = () => {
   savePosition();
   active = false;
   input.reset();
+  teamPanel.hidden = true;
+  setPrompt(null);
   engine.stop();
   screen.hidden = true;
   worldMap.hidden = false;
@@ -208,6 +213,7 @@ const enterDiorama = async () => {
   await bridge()?.requestStageEntry?.();
   bridge()?.prepareStageEntry?.();
   worldMap.hidden = true;
+  teamPanel.hidden = true;
   screen.hidden = false;
   objective.textContent = bosqueClareiraStage.objective;
   if (!engine) createScene();
@@ -236,6 +242,12 @@ teamPanel?.addEventListener("click", (event) => {
     teamPanel.hidden = true;
     viewport.focus();
   }
+});
+window.addEventListener("keydown", (event) => {
+  if (!active || teamPanel.hidden || event.code !== "Escape") return;
+  event.preventDefault();
+  teamPanel.hidden = true;
+  viewport.focus();
 });
 window.addEventListener("naturion:open-diorama", enterDiorama);
 window.addEventListener("beforeunload", savePosition);

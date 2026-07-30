@@ -37,7 +37,7 @@ export const bosqueClareiraStage = {
   startPosition: { x: -26, z: -20 },
   cameraBounds: { minX: -22, maxX: 22, minZ: -17, maxZ: 18 },
   focusPoints: {
-    blockedGate: { x: 16, y: 2.8, z: 9 },
+    blockedGate: { x: 11.5, y: 2.4, z: 8.8 },
     npcArena: { x: 18, y: 1.2, z: 1 },
     finalArea: { x: 27, y: 2.2, z: 20 }
   },
@@ -192,7 +192,9 @@ export const buildBosqueClareira = ({ scene, engine }) => {
   }
 
   const gate = new THREE.Group();
-  const gateY = stage.getHeightAt(16, 9);
+  const gateX = 11.5;
+  const gateZ = 8.8;
+  const gateY = stage.getHeightAt(gateX, gateZ);
   const leftPillar = addBox(gate, -2.4, 0, 0, 1.2, 5.2, 1.2, 0x4c5f4f);
   const rightPillar = addBox(gate, 2.4, 0, 0, 1.2, 5.2, 1.2, 0x4c5f4f);
   const lintel = addBox(gate, 0, 4.2, 0, 6, 1, 1.25, 0x607263);
@@ -202,10 +204,9 @@ export const buildBosqueClareira = ({ scene, engine }) => {
     rootBar.rotation.z = index * 0.08;
   }
   gate.add(roots);
-  gate.position.set(16, gateY, 9);
-  gate.rotation.y = -0.16;
+  gate.position.set(gateX, gateY, gateZ);
   root.add(gate);
-  stage.obstacles.push({ type: "rect", minX: 13.2, maxX: 18.8, minZ: 8.1, maxZ: 10.2 });
+  stage.obstacles.push({ type: "rect", minX: 8.35, maxX: 14.65, minZ: 7.75, maxZ: 9.95 });
   [leftPillar, rightPillar, lintel].forEach((mesh) => engine.registerOccluder(mesh));
 
   const shortcutBridge = new THREE.Group();

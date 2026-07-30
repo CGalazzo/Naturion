@@ -13028,6 +13028,8 @@ if (wild) echoWilds.push(wild);
         getPlayer: () => JSON.parse(JSON.stringify(currentPlayer || {})),
         requestStageEntry: async () => {
           if (!firstWorldDestinationReached) await travelToFirstWorldDestination();
+          echoEntryConfirm.hidden = true;
+          openMapExploring = false;
           return true;
         },
         prepareStageEntry: () => {

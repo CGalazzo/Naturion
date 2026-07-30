@@ -65,7 +65,10 @@ export class PlayerController {
     const movement = this.input.getMovement();
     const hasInput = Math.abs(movement.x) + Math.abs(movement.z) > 0.01;
     const speed = movement.running ? this.runSpeed : this.walkSpeed;
-    this.desiredVelocity.set(movement.x * speed, 0, movement.z * speed);
+    /* Converte os eixos da tela para os eixos do mundo isométrico. */
+    const worldX = (movement.x + movement.z) * Math.SQRT1_2;
+    const worldZ = (movement.z - movement.x) * Math.SQRT1_2;
+    this.desiredVelocity.set(worldX * speed, 0, worldZ * speed);
     this.velocity.x = damp(this.velocity.x, this.desiredVelocity.x, this.acceleration, delta);
     this.velocity.z = damp(this.velocity.z, this.desiredVelocity.z, this.acceleration, delta);
     if (!hasInput) {
@@ -102,14 +105,17 @@ export class PlayerController {
 
     const planarSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     this.state = planarSpeed < 0.18 ? "idle" : movement.running && planarSpeed > this.walkSpeed * 0.82 ? "running" : "walking";
-    if (Math.abs(this.velocity.x) > 0.15) this.facing = this.velocity.x >= 0 ? 1 : -1;
+    if (Math.abs(movement.x) > 0.05) this.facing = movement.x >= 0 ? 1 : -1;
     this.sprite.scale.x = Math.abs(this.sprite.scale.x) * this.facing;
 
     const stride = this.state === "running" ? 12.5 : 8.2;
     const amplitude = this.state === "running" ? 0.14 : this.state === "walking" ? 0.085 : 0.018;
     const phase = elapsed * stride;
     this.sprite.position.y = 0.05 + Math.abs(Math.sin(phase)) * amplitude;
-    this.sprite.material.rotation = this.state === "idle" ? Math.sin(elapsed * 1.8) * 0.008 : Math.sin(phase) * (this.state === "running" ? 0.045 : 0.028);
+    const directionalLean = movement.x * (this.state === "running" ? 0.024 : 0.014);
+    this.sprite.material.rotation = this.state === "idle"
+      ? Math.sin(elapsed * 1.8) * 0.008
+      : Math.sin(phase) * (this.state === "running" ? 0.045 : 0.028) + directionalLean;
     this.shadow.scale.setScalar(this.state === "running" ? 0.9 + Math.abs(Math.sin(phase)) * 0.08 : 1);
     return { moved, velocity: this.velocity, state: this.state };
   }
