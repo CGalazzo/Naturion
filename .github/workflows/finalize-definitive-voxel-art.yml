@@ -23,6 +23,9 @@ jobs:
           ref: change/definitive-voxel-art-pass
           fetch-depth: 0
 
+      - name: Atualizar backend gráfico do teste
+        run: sed -i 's/--use-gl=swiftshader/--use-gl=angle --use-angle=swiftshader/g' scripts/finalize-definitive-voxel-art.sh
+
       - name: Finalizar, testar e capturar a Clareira
         run: bash scripts/finalize-definitive-voxel-art.sh
 
