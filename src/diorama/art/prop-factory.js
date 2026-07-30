@@ -76,6 +76,7 @@ const createRootTube = ({ material, points, radius = 0.22 }) => {
 };
 
 const createStoneBlock = (parent, materials, x, y, z, sx, sy, sz, rotation = 0, moss = false) => {
+  const blockMaterial = materials.clone(moss ? materials.mossStone : materials.stone);
   const block = addTexturedBox(parent, {
     x,
     y,
@@ -83,7 +84,7 @@ const createStoneBlock = (parent, materials, x, y, z, sx, sy, sz, rotation = 0, 
     width: sx,
     height: sy,
     depth: sz,
-    material: moss ? materials.mossStone : materials.stone,
+    material: blockMaterial,
     castShadow: true,
     receiveShadow: true,
     rotationY: rotation
@@ -133,7 +134,7 @@ export const createRootGate = ({ parent, stage, engine, materials, x, z }) => {
     [[0, 0.05, 0.42], [0.25, 1.15, 0.38], [-0.2, 2.3, 0.32], [0.15, 3.55, 0.3], [0, 4.55, 0.34]]
   ];
   rootPaths.forEach((points, index) => {
-    const root = createRootTube({ material: index % 2 ? materials.barkDark : materials.bark, points, radius: 0.18 + (index % 3) * 0.035 });
+    const root = createRootTube({ material: materials.clone(index % 2 ? materials.barkDark : materials.bark), points, radius: 0.18 + (index % 3) * 0.035 });
     group.add(root);
     occluders.push(root);
   });
