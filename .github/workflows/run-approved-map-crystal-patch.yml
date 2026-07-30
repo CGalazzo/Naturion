@@ -29,15 +29,21 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-          import textwrap
 
           workflow_path = Path('.github/workflows/apply-map-encounter-crystals.yml')
           workflow = workflow_path.read_text(encoding='utf-8')
           blocks = re.findall(r"          python - <<'PY'\n(.*?)\n          PY", workflow, flags=re.S)
           if len(blocks) < 2:
               raise SystemExit(f'Expected patch and validation blocks, found {len(blocks)}')
-          Path('/tmp/apply-map-crystals.py').write_text(textwrap.dedent(blocks[0]), encoding='utf-8')
-          Path('/tmp/validate-map-crystals.py').write_text(textwrap.dedent(blocks[1]), encoding='utf-8')
+
+          def unwrap(block):
+              return "\n".join(
+                  line[10:] if line.startswith("          ") else line
+                  for line in block.splitlines()
+              ) + "\n"
+
+          Path('/tmp/apply-map-crystals.py').write_text(unwrap(blocks[0]), encoding='utf-8')
+          Path('/tmp/validate-map-crystals.py').write_text(unwrap(blocks[1]), encoding='utf-8')
           PY
           python /tmp/apply-map-crystals.py
           python /tmp/validate-map-crystals.py
