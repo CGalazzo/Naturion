@@ -23,8 +23,23 @@ jobs:
           ref: change/definitive-voxel-art-pass
           fetch-depth: 0
 
-      - name: Atualizar backend gráfico do teste
-        run: sed -i 's/--use-gl=swiftshader/--use-gl=angle --use-angle=swiftshader/g' scripts/finalize-definitive-voxel-art.sh
+      - name: Preparar validação gráfica
+        run: |
+          sed -i 's/--use-gl=swiftshader/--use-gl=angle --use-angle=swiftshader/g' scripts/finalize-definitive-voxel-art.sh
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('src/diorama/art/voxel-clareira-composition.js')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              'arena: [[28, -2, 1.02, "common", 2.6], [31, 7, 1.12, "ancient", 0.6], [34, -14, 1.05, "common", 2.1]],',
+              'arena: [[28, -2, 1.02, "common", 2.6], [31, 7, 1.12, "ancient", 0.6]],'
+          )
+          text = text.replace(
+              '[8, 18.5, 0.96, "common", 2.9], [16, 20, 0.78, "young", 1.2], [-34, -2, 1.05, "ancient", 0.4]',
+              '[8, 18.5, 0.96, "common", 2.9], [16, 20, 0.78, "young", 1.2], [-34, -2, 1.05, "ancient", 0.4], [34, -14, 1.05, "common", 2.1]'
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
 
       - name: Finalizar, testar e capturar a Clareira
         run: bash scripts/finalize-definitive-voxel-art.sh
