@@ -51,6 +51,29 @@ const setPrompt = (interaction) => {
   interactionPrompt.hidden = false;
 };
 
+const recoverFromDioramaError = (error) => {
+  console.error("[Naturion Diorama] Falha ao carregar a Clareira dos Ecos:", error);
+  active = false;
+  interactionLocked = false;
+  try { input?.reset?.(); } catch (resetError) { console.warn(resetError); }
+  try { input?.dispose?.(); } catch (disposeError) { console.warn(disposeError); }
+  try { entities?.dispose?.(); } catch (disposeError) { console.warn(disposeError); }
+  try { player?.dispose?.(); } catch (disposeError) { console.warn(disposeError); }
+  try { engine?.dispose?.(); } catch (disposeError) { console.warn(disposeError); }
+  engine = null;
+  player = null;
+  input = null;
+  entities = null;
+  stageBuild = null;
+  teamPanel.hidden = true;
+  setPrompt(null);
+  screen.hidden = true;
+  worldMap.hidden = false;
+  bridge()?.returnToWorldMap?.();
+  showToast("Não foi possível carregar a Clareira dos Ecos. Você voltou ao mapa-múndi.");
+  destinationButton?.focus();
+};
+
 const getStaticInteraction = () => {
   if (!player || !stageBuild) return null;
   const position = player.group.position;
@@ -210,18 +233,22 @@ const createScene = () => {
 
 const enterDiorama = async () => {
   if (active || !screen) return;
-  await bridge()?.requestStageEntry?.();
-  bridge()?.prepareStageEntry?.();
-  worldMap.hidden = true;
-  teamPanel.hidden = true;
-  screen.hidden = false;
-  objective.textContent = bosqueClareiraStage.objective;
-  if (!engine) createScene();
-  active = true;
-  input.enabled = true;
-  engine.start();
-  viewport.focus();
-  showToast("WASD ou setas para mover · Shift para correr · E para interagir");
+  try {
+    await bridge()?.requestStageEntry?.();
+    bridge()?.prepareStageEntry?.();
+    worldMap.hidden = true;
+    teamPanel.hidden = true;
+    screen.hidden = false;
+    objective.textContent = bosqueClareiraStage.objective;
+    if (!engine) createScene();
+    active = true;
+    input.enabled = true;
+    engine.start();
+    viewport.focus();
+    showToast("WASD ou setas para mover · Shift para correr · E para interagir");
+  } catch (error) {
+    recoverFromDioramaError(error);
+  }
 };
 
 const handleDestination = async (event) => {
