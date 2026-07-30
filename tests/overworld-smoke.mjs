@@ -92,7 +92,7 @@ try {
   document.getElementById("overworldBackMap").click();
   assert(returned && document.getElementById("overworldScreen").hidden, "Retorno ao mapa-múndi falhou.");
   assert(savedState?.mapId === "bosque-luminal-overworld", "Save do overworld ausente.");
-  assert(savedState.position.z < 19.5, "A posição final não foi salva após o retorno ao mapa.");
+  assert(savedState.position.z < 19.5, `A posição final não foi salva após o retorno ao mapa: ${JSON.stringify(savedState)}`);
   assert(errors.length === 0, "Erros de execução detectados.");
   document.documentElement.dataset.testStatus = "passed";
   output.textContent = JSON.stringify({ collisions: checks.length, houses: 2, npcs: 3, naturions: 3, battles: ["fled", "victory"], savedState, returned });
