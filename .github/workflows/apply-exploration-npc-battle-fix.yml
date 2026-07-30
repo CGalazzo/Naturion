@@ -1,0 +1,51 @@
+name: Aplicar correções de exploração, NPC e batalha
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-approved-fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'change/fix-exploration-npc-battle-framing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout da branch aprovada
+        uses: actions/checkout@v4
+        with:
+          ref: change/fix-exploration-npc-battle-framing
+          fetch-depth: 0
+
+      - name: Aplicar e validar somente o jogo
+        shell: bash
+        run: |
+          python3 .github/apply_exploration_npc_battle_fix.py
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.S)
+          if not scripts:
+              raise SystemExit('Nenhum JavaScript inline encontrado')
+          Path('/tmp/naturion-inline.js').write_text('\n'.join(scripts), encoding='utf-8')
+          PY
+
+          node --check /tmp/naturion-inline.js
+          git diff --check
+          test "$(git diff --name-only | tr -d '\r')" = "index.html"
+
+      - name: Publicar somente index.html na branch
+        shell: bash
+        run: |
+          rm -f \
+            .github/apply_exploration_npc_battle_fix.py \
+            .github/workflows/apply-exploration-npc-battle-fix.yml
+          git config user.name "Naturion Update Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: corrigir exploração, NPCs e enquadramento das batalhas"
+          git push origin HEAD:change/fix-exploration-npc-battle-framing
