@@ -52,11 +52,33 @@ jobs:
           )
           if tutorial_count != 1:
               raise SystemExit(f'Tutorial crystal normalization expected 1 match, found {tutorial_count}')
+
+          npc_replacement = '''          const label = document.createElement("small");
+          label.className = "echo-npc-name";
+          label.textContent = area.npc.name;
+          const interaction = document.createElement("small");
+          interaction.className = "echo-npc-interact";
+          interaction.textContent = "E · Conversar";
+          interaction.hidden = true;
+          npc.append(image, label, interaction);'''
+          index_text, npc_count = re.subn(
+              r'          const label = document\.createElement\("small"\);\s*          label\.className = "echo-npc-name";\s*          label\.textContent = area\.npc\.name;\s*          npc\.append\(image, label\);',
+              npc_replacement,
+              index_text,
+              count=1
+          )
+          if npc_count != 1:
+              raise SystemExit(f'NPC interaction normalization expected 1 match, found {npc_count}')
           index_path.write_text(index_text, encoding='utf-8')
 
-          apply_script = unwrap(blocks[0]).replace(
+          apply_script = unwrap(blocks[0])
+          apply_script = apply_script.replace(
               "replace_once(old_tutorial, new_tutorial, 'remover base do cristal do tutorial')",
               "# cristal do tutorial ja normalizado pelo executor"
+          )
+          apply_script = apply_script.replace(
+              "replace_once(old_npc, new_npc, 'adicionar aviso local do NPC')",
+              "# aviso local do NPC ja normalizado pelo executor"
           )
           Path('/tmp/apply-crystal-polish.py').write_text(apply_script, encoding='utf-8')
           Path('/tmp/validate-crystal-polish.py').write_text(unwrap(blocks[1]), encoding='utf-8')
