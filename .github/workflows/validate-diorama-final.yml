@@ -1,0 +1,75 @@
+name: Validar versão final do diorama
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  validate-final:
+    if: github.head_ref == 'feature/diorama-forest-desktop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validar módulos do diorama
+        run: |
+          node --check src/diorama/engine.js
+          node --check src/diorama/input-controller.js
+          node --check src/diorama/player-controller.js
+          node --check src/diorama/entity-system.js
+          node --check src/diorama/battle-bridge.js
+          node --check src/diorama/stages/bosque-clareira.js
+          node --check src/diorama/main.js
+
+      - name: Validar script principal e integrações
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          index = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script>(.*?)</script>', index, re.S)
+          assert scripts
+          Path('/tmp/naturion-main.js').write_text(scripts[-1], encoding='utf-8')
+          main = Path('src/diorama/main.js').read_text(encoding='utf-8')
+          stage = Path('src/diorama/stages/bosque-clareira.js').read_text(encoding='utf-8')
+          assert '[playerData.starter, ...(playerData.team || [])].filter(Boolean)' in main
+          assert 'Math.SQRT1_2' in Path('src/diorama/player-controller.js').read_text(encoding='utf-8')
+          assert 'minX: 8.35, maxX: 14.65' in stage
+          assert 'echoEntryConfirm.hidden = true;' in index
+          assert 'const ECHO_AREAS = [];' in index
+          PY
+          node --check /tmp/naturion-main.js
+
+      - name: Confirmar escopo
+        run: |
+          python - <<'PY'
+          import subprocess
+          allowed = {
+            'index.html', 'styles/diorama.css',
+            'src/diorama/engine.js', 'src/diorama/input-controller.js',
+            'src/diorama/player-controller.js', 'src/diorama/entity-system.js',
+            'src/diorama/battle-bridge.js', 'src/diorama/main.js',
+            'src/diorama/stages/bosque-clareira.js',
+            '.github/workflows/validate-diorama-final.yml'
+          }
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only', 'origin/main'], text=True).splitlines())
+          assert changed == allowed, f'Escopo inesperado: {sorted(changed)}'
+          PY
+
+      - name: Remover validador temporário
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/validate-diorama-final.yml
+          git commit -m "chore: remover validador temporário do diorama"
+          git push origin HEAD:${{ github.head_ref }}
