@@ -72,11 +72,11 @@ export const VISUAL_BIBLE = Object.freeze({
     "assets/map/bosque-luminal.webp"
   ]),
   principles: Object.freeze([
-    "silhuetas orgânicas e arredondadas",
+    "mundo construído em blocos cúbicos visíveis",
+    "camadas voxel de grama, terra e pedra",
     "luz principal quente e sombras verde-azuladas",
-    "paletas pequenas por material",
-    "detalhes agrupados em clusters legíveis",
-    "profundidade em primeiro plano, área jogável, segundo plano e atmosfera",
+    "texturas próprias do Naturion em 16x16 ou 32x32",
+    "pixels consistentes em terreno, estruturas e personagens",
     "pixelização estável sem filtros de suavização"
   ])
 });
