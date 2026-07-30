@@ -1,10 +1,10 @@
 name: Aplicar polimento dos cristais
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
     paths:
-      - .github/workflows/apply-crystal-polish.yml
+      - README_CRYSTAL_TRIGGER.tmp
 
 permissions:
   contents: write
@@ -15,6 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
 
       - name: Aplicar alteracoes confirmadas
@@ -359,11 +361,12 @@ jobs:
           git diff --check
           test "$(git diff --name-only | tr -d '\r')" = "index.html"
 
-      - name: Publicar alteracao
+      - name: Publicar alteracao na branch temporaria
         shell: bash
         run: |
-          git config user.name "Naturion Automation"
-          git config user.email "actions@github.com"
-          git add index.html
+          rm -f README_CRYSTAL_TRIGGER.tmp
+          git config user.name "Naturion Update Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
           git commit -m "fix: integrar cristais e interacoes ao cenario"
-          git push origin main
+          git push origin HEAD:${GITHUB_HEAD_REF}
