@@ -41,7 +41,24 @@ jobs:
                   for line in block.splitlines()
               ) + "\n"
 
-          Path('/tmp/apply-crystal-polish.py').write_text(unwrap(blocks[0]), encoding='utf-8')
+          index_path = Path('index.html')
+          index_text = index_path.read_text(encoding='utf-8')
+          index_text, tutorial_count = re.subn(
+              r'(<div class="plumirel-world encounter-crystal"[^>]*>\s*)<span class="crystal-visual" aria-hidden="true">\s*<img class="crystal-base"[^>]*>\s*<img class="crystal-gem"[^>]*>\s*</span>',
+              r'\1<span class="crystal-visual" aria-hidden="true"></span>',
+              index_text,
+              count=1,
+              flags=re.S
+          )
+          if tutorial_count != 1:
+              raise SystemExit(f'Tutorial crystal normalization expected 1 match, found {tutorial_count}')
+          index_path.write_text(index_text, encoding='utf-8')
+
+          apply_script = unwrap(blocks[0]).replace(
+              "replace_once(old_tutorial, new_tutorial, 'remover base do cristal do tutorial')",
+              "# cristal do tutorial ja normalizado pelo executor"
+          )
+          Path('/tmp/apply-crystal-polish.py').write_text(apply_script, encoding='utf-8')
           Path('/tmp/validate-crystal-polish.py').write_text(unwrap(blocks[1]), encoding='utf-8')
           PY
           python3 /tmp/apply-crystal-polish.py
