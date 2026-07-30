@@ -25,6 +25,9 @@
       --pixel-font: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Courier New", monospace;
       --scene-x: 0px;
       --scene-y: 0px;
+      --game-button-min-height: 48px;
+      --game-button-font-size: .78rem;
+      --game-button-padding: 11px 20px;
       /* Escala-base das primeiras evoluções em cada contexto do jogo. */
       --naturion-stage-one-map-size: clamp(84px, 9vw, 110px);
       --naturion-stage-one-battle-size: clamp(170px, 19vw, 250px);
@@ -5689,8 +5692,8 @@
     }
 
     .echo-button {
-      min-height: 42px;
-      padding: 9px 17px;
+      min-height: var(--game-button-min-height);
+      padding: var(--game-button-padding);
       border: 2px solid #f2d261;
       border-radius: 3px;
       color: #112014;
@@ -5698,7 +5701,7 @@
       box-shadow:
         inset 0 2px 0 rgba(255, 255, 255, .65),
         0 4px 0 #64420c;
-      font-size: .7rem;
+      font-size: var(--game-button-font-size);
       font-weight: 1000;
       letter-spacing: .04em;
       text-transform: uppercase;
@@ -6002,31 +6005,59 @@
       transform: translateX(-50%);
     }
 
-    .echo-gate {
+    .echo-challenge-marker {
+      --challenge-color: #75e6bd;
       position: absolute;
       z-index: 9;
-      width: 118px;
-      height: 184px;
-      border: 8px solid #725527;
-      border-bottom: 0;
-      border-radius: 58px 58px 0 0;
+      display: grid;
+      width: 142px;
+      min-height: 76px;
+      place-items: center;
+      padding: 32px 9px 8px;
+      border: 3px solid #947836;
+      border-radius: 4px;
+      color: #fff2a7;
       background:
-        linear-gradient(90deg, #1b241b 0 12%, #07100c 12% 88%, #1b241b 88%);
+        linear-gradient(135deg, rgba(72, 104, 71, .96) 0 12%, rgba(13, 39, 27, .97) 12% 88%, rgba(7, 24, 17, .98) 88%),
+        #102d20;
       box-shadow:
-        inset 0 0 0 4px #b6974f,
-        0 7px 0 rgba(0, 0, 0, .25);
+        inset 0 0 0 3px #172419,
+        0 5px 0 #332408,
+        0 9px 16px rgba(0, 0, 0, .28);
       transform: translate(-50%, -100%);
-      image-rendering: pixelated;
+      text-align: center;
     }
 
-    .echo-gate.open {
-      border-color: #74cda0;
+    .echo-challenge-marker::before {
+      position: absolute;
+      top: -31px;
+      left: 50%;
+      width: 54px;
+      height: 58px;
+      border: 3px solid #d9c45b;
+      clip-path: polygon(50% 0, 88% 32%, 76% 90%, 50% 100%, 24% 90%, 12% 32%);
+      content: "";
       background:
-        radial-gradient(circle at 50% 58%, rgba(201, 255, 230, .7), transparent 10%),
-        linear-gradient(90deg, #1b4935 0 12%, rgba(12, 53, 38, .56) 12% 88%, #1b4935 88%);
+        linear-gradient(135deg, transparent 0 42%, rgba(255, 255, 255, .7) 44% 49%, transparent 51%),
+        linear-gradient(45deg, var(--challenge-color), #d9fff0 54%, #2b8c70);
       box-shadow:
-        inset 0 0 0 4px #d7d66e,
-        0 0 22px rgba(96, 255, 192, .45);
+        inset 0 0 0 4px rgba(14, 66, 48, .7),
+        0 0 16px color-mix(in srgb, var(--challenge-color) 75%, transparent);
+      transform: translateX(-50%);
+    }
+
+    .echo-challenge-marker strong {
+      font-size: .58rem;
+      line-height: 1.25;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .echo-challenge-marker small {
+      margin-top: 4px;
+      color: #bcebd4;
+      font-size: .47rem;
+      line-height: 1.3;
     }
 
     .echo-interact {
@@ -6156,20 +6187,21 @@
       z-index: 33;
       top: max(84px, calc(env(safe-area-inset-top) + 76px));
       left: 14px;
-      min-height: 34px;
-      padding: 6px 9px;
+      min-width: 142px;
+      min-height: var(--game-button-min-height);
+      padding: 10px 13px;
       border: 2px solid #b8a050;
       border-radius: 2px;
       color: #ecf9df;
       background: rgba(9, 39, 27, .92);
       box-shadow: 0 3px 0 #2e2109;
-      font-size: .56rem;
+      font-size: .68rem;
       font-weight: 900;
       cursor: pointer;
     }
 
     .echo-team-button {
-      top: max(126px, calc(env(safe-area-inset-top) + 118px));
+      top: max(142px, calc(env(safe-area-inset-top) + 134px));
       display: flex;
       align-items: center;
       gap: 7px;
@@ -6179,14 +6211,14 @@
 
     .echo-team-button b {
       display: grid;
-      min-width: 22px;
-      height: 20px;
+      min-width: 30px;
+      height: 26px;
       place-items: center;
       border: 1px solid #d9ed7a;
       border-radius: 2px;
       color: #15261a;
       background: #d8c75b;
-      font-size: .52rem;
+      font-size: .62rem;
     }
 
     .echo-controls {
@@ -6283,7 +6315,7 @@
     .echo-team-heading h2 {
       margin: 4px 0 0;
       color: #fff0a2;
-      font-size: clamp(.9rem, 2vw, 1.2rem);
+      font-size: clamp(1.05rem, 2.2vw, 1.38rem);
       text-transform: uppercase;
     }
 
@@ -6294,7 +6326,7 @@
       gap: 10px;
       margin: 16px 0 8px;
       color: #bdeed4;
-      font-size: .63rem;
+      font-size: .72rem;
       text-transform: uppercase;
     }
 
@@ -6347,12 +6379,12 @@
 
     .echo-member-card strong {
       color: #fff4ae;
-      font-size: .62rem;
+      font-size: .73rem;
     }
 
     .echo-member-card small {
       color: #a9e4c4;
-      font-size: .48rem;
+      font-size: .6rem;
       line-height: 1.35;
     }
 
@@ -6365,14 +6397,14 @@
     }
 
     .echo-member-actions button {
-      min-height: 28px;
-      padding: 5px 7px;
+      min-height: 38px;
+      padding: 7px 10px;
       border: 1px solid #e5cd61;
       border-radius: 2px;
       color: #fff9c8;
       background: #234b37;
       box-shadow: 0 2px 0 #171d0b;
-      font-size: .43rem;
+      font-size: .56rem;
       font-weight: 900;
       cursor: pointer;
     }
@@ -6386,7 +6418,7 @@
       place-content: center;
       border-style: dashed;
       color: #88b29b;
-      font-size: .55rem;
+      font-size: .64rem;
     }
 
     .echo-storage-empty {
@@ -6394,7 +6426,7 @@
       padding: 22px;
       border: 1px dashed #668a72;
       color: #9fcab2;
-      font-size: .58rem;
+      font-size: .66rem;
       text-align: center;
     }
 
@@ -6445,70 +6477,377 @@
       align-self: end;
     }
 
+    .echo-puzzle {
+      --puzzle-color: #72e1bd;
+      --puzzle-glow: #d9ff82;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(70, 175, 129, .2), transparent 34%),
+        rgba(1, 11, 8, .88);
+    }
+
     .echo-puzzle .echo-panel {
-      width: min(640px, 96vw);
-      padding: 22px;
+      width: min(940px, 97vw);
+      max-height: min(760px, 96vh);
+      overflow: auto;
+      padding: 22px 24px 26px;
+      border-width: 4px;
+      background:
+        linear-gradient(135deg, rgba(83, 111, 73, .34) 0 9%, transparent 9% 91%, rgba(5, 18, 12, .65) 91%),
+        linear-gradient(180deg, #123c2b, #071b13 68%);
       text-align: center;
     }
 
-    .echo-runes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin: 20px 0 10px;
+    .echo-puzzle-header small {
+      color: #9de6ca;
+      font-size: .64rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
     }
 
-    .echo-rune {
+    .echo-puzzle-header h2 {
+      margin: 7px 0 8px;
+      color: #fff0a2;
+      font-size: clamp(1.12rem, 3vw, 1.72rem);
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .echo-puzzle-header p {
+      max-width: 720px;
+      margin: 0 auto;
+      color: #e9f8e7;
+      font-size: clamp(.66rem, 1.6vw, .82rem);
+      line-height: 1.55;
+    }
+
+    .echo-puzzle-brief {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 18px;
+      max-width: 720px;
+      margin: 24px auto 8px;
+      align-items: center;
+      padding: 18px;
+      border: 3px solid #8f7b3d;
+      border-radius: 4px;
+      background:
+        linear-gradient(135deg, rgba(73, 112, 79, .7), rgba(8, 29, 20, .97) 58%),
+        #0b2a1d;
+      box-shadow:
+        inset 0 0 0 3px #122017,
+        0 5px 0 #302407;
+      text-align: left;
+    }
+
+    .echo-puzzle-seal {
       position: relative;
       display: grid;
-      min-height: 132px;
+      width: 96px;
+      height: 96px;
       place-items: center;
-      border: 3px solid #77612b;
-      border-radius: 4px;
-      color: #c4bf91;
+      border: 5px solid #947a31;
+      border-radius: 50%;
+      color: var(--puzzle-glow);
       background:
-        linear-gradient(135deg, #334638 0 12%, #172a20 12% 88%, #0d1c15 88%);
+        repeating-conic-gradient(from 45deg, #173d2b 0 12deg, #0a2118 12deg 24deg);
       box-shadow:
-        inset 0 0 0 3px #0b1912,
-        inset 0 -8px 0 rgba(0, 0, 0, .25),
-        0 5px 0 #2b2008;
-      font-size: clamp(1.5rem, 5vw, 2.5rem);
-      cursor: pointer;
+        inset 0 0 0 5px #091b13,
+        inset 0 0 24px var(--puzzle-color),
+        0 0 16px rgba(134, 238, 190, .28);
+      font-size: 2rem;
     }
 
-    .echo-rune::after {
+    .echo-puzzle-seal::after {
       position: absolute;
-      inset: 18%;
+      inset: 12px;
       border: 2px solid currentColor;
       border-radius: 50%;
       content: "";
-      opacity: .28;
-      box-shadow: inset 0 0 14px currentColor;
+      opacity: .6;
     }
 
-    .echo-rune.preview,
-    .echo-rune.correct {
-      border-color: #fff2a4;
-      color: var(--rune-color, #b9ffe5);
-      background: #285947;
-      filter: brightness(1.25);
+    .echo-puzzle-brief strong {
+      display: block;
+      margin-bottom: 7px;
+      color: #ffe985;
+      font-size: .72rem;
+      text-transform: uppercase;
+    }
+
+    .echo-puzzle-brief p {
+      margin: 0;
+      color: #d7f0df;
+      font-size: .7rem;
+      line-height: 1.55;
+    }
+
+    .echo-root-circuit[hidden],
+    .echo-puzzle-brief[hidden],
+    #echoPuzzleBriefActions[hidden] {
+      display: none !important;
+    }
+
+    .echo-root-circuit {
+      display: grid;
+      grid-template-columns: minmax(330px, .9fr) minmax(260px, .72fr);
+      gap: 24px;
+      margin-top: 18px;
+      align-items: center;
+    }
+
+    .echo-circuit-board {
+      position: relative;
+      width: min(430px, 74vw);
+      aspect-ratio: 1;
+      margin: auto;
+      border: 6px solid #806b32;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, #173f2d 0 12%, #091e16 12% 31%, #123625 31% 33%, #071b13 33% 100%);
       box-shadow:
-        inset 0 0 0 3px #0b281c,
-        inset 0 0 24px var(--rune-color, #b9ffe5),
-        0 5px 0 #5d430c;
+        inset 0 0 0 7px #0a1811,
+        inset 0 0 46px rgba(65, 197, 142, .18),
+        0 7px 0 #2d2107,
+        0 14px 35px rgba(0, 0, 0, .38);
+      image-rendering: pixelated;
     }
 
-    .echo-rune.wrong {
-      border-color: #ff765d;
-      color: #ff8068;
-      background: #58251f;
+    .echo-circuit-board::before,
+    .echo-circuit-board::after {
+      position: absolute;
+      z-index: 1;
+      content: "";
+      pointer-events: none;
+    }
+
+    .echo-circuit-board::before {
+      inset: 7%;
+      border: 3px dashed rgba(205, 226, 126, .32);
+      border-radius: 50%;
+    }
+
+    .echo-circuit-board::after {
+      top: 50%;
+      left: 50%;
+      width: 86%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #527d54, transparent);
+      box-shadow: 0 -62px 0 rgba(82, 125, 84, .75), 0 62px 0 rgba(82, 125, 84, .75);
+      transform: translate(-50%, -50%);
+    }
+
+    .echo-root-ring {
+      --ring-turn: 0;
+      position: absolute;
+      z-index: 3;
+      top: 50%;
+      left: 50%;
+      border: 10px solid #5d693c;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow:
+        inset 0 0 0 3px #192a1b,
+        0 0 0 3px #142218;
+      transform: translate(-50%, -50%) rotate(calc(var(--ring-turn) * 90deg));
+      transition: transform .36s steps(6, end), border-color .25s, box-shadow .25s;
+      pointer-events: none;
+    }
+
+    .echo-root-ring::before {
+      position: absolute;
+      top: 50%;
+      right: -14px;
+      width: 26px;
+      height: 18px;
+      border: 3px solid #25341d;
+      border-radius: 50% 3px 50% 3px;
+      content: "";
+      background: #7fa44c;
+      box-shadow: inset 0 0 7px #d8ef73;
+      transform: translateY(-50%);
+    }
+
+    .echo-root-ring.outer {
+      width: 82%;
+      height: 82%;
+    }
+
+    .echo-root-ring.middle {
+      width: 59%;
+      height: 59%;
+      border-color: #667446;
+    }
+
+    .echo-root-ring.inner {
+      width: 37%;
+      height: 37%;
+      border-color: #76814c;
+    }
+
+    .echo-root-ring.connected {
+      border-color: var(--puzzle-glow);
+      box-shadow:
+        inset 0 0 0 3px #214f34,
+        0 0 15px var(--puzzle-color),
+        0 0 0 3px #d9e878;
+    }
+
+    .echo-root-ring.connected::before {
+      border-color: #fff0a4;
+      background: var(--puzzle-color);
+      box-shadow: 0 0 14px var(--puzzle-color);
+    }
+
+    .echo-root-goal {
+      --goal-turn: 0;
+      --goal-radius: 174px;
+      position: absolute;
+      z-index: 6;
+      top: 50%;
+      left: 50%;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #fff0a3;
+      border-radius: 50%;
+      background: #152a1d;
+      box-shadow: 0 0 10px var(--puzzle-glow);
+      transform:
+        translate(-50%, -50%)
+        rotate(calc(var(--goal-turn) * 90deg))
+        translateX(var(--goal-radius));
+      pointer-events: none;
+    }
+
+    .echo-root-goal.middle {
+      --goal-radius: 125px;
+    }
+
+    .echo-root-goal.inner {
+      --goal-radius: 79px;
+    }
+
+    .echo-root-core {
+      position: absolute;
+      z-index: 8;
+      top: 50%;
+      left: 50%;
+      display: grid;
+      width: 104px;
+      height: 104px;
+      place-items: center;
+      border: 5px solid #c2a94c;
+      border-radius: 50%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, #e8fff2, var(--puzzle-color) 24%, #103728 62%);
+      box-shadow:
+        inset 0 0 0 5px #153425,
+        0 0 22px var(--puzzle-color);
+      transform: translate(-50%, -50%);
+    }
+
+    .echo-root-core img {
+      width: 86%;
+      height: 86%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .42));
+      image-rendering: pixelated;
+    }
+
+    .echo-root-core::after {
+      position: absolute;
+      inset: 12px;
+      border: 2px solid rgba(255, 255, 255, .66);
+      clip-path: polygon(50% 0, 88% 35%, 73% 91%, 50% 100%, 27% 91%, 12% 35%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .echo-circuit-board.complete {
+      animation: echo-circuit-complete .95s steps(9, end) both;
+    }
+
+    .echo-circuit-controls {
+      display: grid;
+      gap: 10px;
+      align-content: center;
+    }
+
+    .echo-ring-control {
+      display: grid;
+      min-height: 66px;
+      grid-template-columns: 46px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 12px;
+      border: 3px solid #857038;
+      border-radius: 3px;
+      color: #e9f8e7;
+      background:
+        linear-gradient(135deg, #294b36 0 12%, #102b1f 12% 88%, #091c14 88%);
+      box-shadow: inset 0 0 0 2px #0b1b13, 0 4px 0 #2b2007;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .echo-ring-control > i {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 3px solid #d2bd57;
+      border-radius: 50%;
+      color: #fff1a3;
+      background: #173b29;
+      font-size: 1rem;
+      font-style: normal;
+    }
+
+    .echo-ring-control strong {
+      display: block;
+      color: #fff0a2;
+      font-size: .67rem;
+    }
+
+    .echo-ring-control small {
+      display: block;
+      margin-top: 3px;
+      color: #a9dec2;
+      font-size: .54rem;
+      line-height: 1.3;
+    }
+
+    .echo-ring-control output {
+      color: var(--puzzle-glow);
+      font-size: 1.1rem;
+    }
+
+    .echo-ring-control.connected {
+      border-color: #e9df6a;
+      background: linear-gradient(135deg, #3e6941, #17462e 72%);
+      box-shadow: inset 0 0 15px rgba(170, 255, 158, .22), 0 4px 0 #4e3b0b;
+    }
+
+    .echo-ring-control:disabled {
+      opacity: 1;
+      cursor: default;
     }
 
     .echo-puzzle-status {
-      min-height: 30px;
-      color: #b9efd4;
-      font-size: .65rem;
-      line-height: 1.4;
+      min-height: 48px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 2px solid #54755d;
+      color: #d9f7e5;
+      background: rgba(4, 22, 15, .78);
+      font-size: .68rem;
+      line-height: 1.45;
+    }
+
+    .echo-puzzle-status strong {
+      color: #ffe479;
     }
 
     .echo-battle {
@@ -7080,6 +7419,41 @@
       35%, 68% { opacity: 1; }
     }
 
+    @keyframes echo-circuit-complete {
+      0%, 100% {
+        filter: brightness(1);
+        transform: scale(1);
+      }
+      45% {
+        filter: brightness(1.8) saturate(1.35);
+        transform: scale(1.025);
+      }
+    }
+
+    @keyframes echo-party-entry {
+      0% {
+        opacity: 0;
+        transform:
+          translate(-70px, calc(var(--fighter-ground-offset) - 36px))
+          scaleX(var(--fighter-direction))
+          scale(.72);
+      }
+      65% {
+        opacity: 1;
+        filter: brightness(1.8) drop-shadow(0 0 16px #fff0a2);
+      }
+      100% {
+        opacity: 1;
+        transform:
+          translate(0, calc(var(--fighter-ground-offset) - 36px))
+          scaleX(var(--fighter-direction));
+      }
+    }
+
+    .echo-fighter.switching img {
+      animation: echo-party-entry .68s steps(8, end) both;
+    }
+
     @keyframes echo-strike {
       0%, 100% {
         transform:
@@ -7130,7 +7504,7 @@
       }
 
       .echo-team-button {
-        top: 150px;
+        top: 164px;
       }
 
       .echo-controls {
@@ -7174,8 +7548,35 @@
         padding: 6px 8px;
       }
 
-      .echo-rune {
-        min-height: 95px;
+      .echo-root-circuit {
+        grid-template-columns: 1fr;
+      }
+
+      .echo-circuit-board {
+        width: min(330px, 78vw);
+      }
+
+      .echo-root-goal {
+        --goal-radius: 133px;
+      }
+
+      .echo-root-goal.middle {
+        --goal-radius: 96px;
+      }
+
+      .echo-root-goal.inner {
+        --goal-radius: 61px;
+      }
+
+      .echo-puzzle-brief {
+        grid-template-columns: 82px 1fr;
+        padding: 13px;
+      }
+
+      .echo-puzzle-seal {
+        width: 72px;
+        height: 72px;
+        font-size: 1.4rem;
       }
 
       .echo-roster,
@@ -8110,19 +8511,74 @@
       </section>
 
       <section class="echo-puzzle" id="echoPuzzle" aria-labelledby="echoPuzzleTitle" hidden>
-        <article class="echo-panel">
-          <small id="echoPuzzleEyebrow">Puzzle de ecos</small>
-          <h2 id="echoPuzzleTitle">Sintonize as runas antigas</h2>
-          <p id="echoPuzzleDescription">Observe a sequência e repita a ordem para abrir a passagem.</p>
-          <div class="echo-runes">
-            <button class="echo-rune" type="button" data-echo-rune="0" style="--rune-color:#72dcff" aria-label="Runa da água">◆</button>
-            <button class="echo-rune" type="button" data-echo-rune="1" style="--rune-color:#ffe36b" aria-label="Runa da luz">✦</button>
-            <button class="echo-rune" type="button" data-echo-rune="2" style="--rune-color:#76e28d" aria-label="Runa da folha">♠</button>
+        <article class="echo-panel echo-puzzle-panel">
+          <header class="echo-puzzle-header">
+            <small id="echoPuzzleEyebrow">Desafio ancestral</small>
+            <h2 id="echoPuzzleTitle">Circuito das Raízes</h2>
+            <p id="echoPuzzleDescription">Reconstrua o fluxo cristalino para liberar a passagem.</p>
+          </header>
+
+          <div class="echo-puzzle-brief" id="echoPuzzleBrief">
+            <span class="echo-puzzle-seal" aria-hidden="true">✦</span>
+            <span>
+              <strong>Objetivo do desafio</strong>
+              <p id="echoPuzzleGoal">
+                Gire os três anéis até que cada ramo alcance seu selo luminoso.
+              </p>
+            </span>
           </div>
-          <div class="echo-puzzle-status" id="echoPuzzleStatus">Prepare-se para observar.</div>
-          <div class="echo-panel-actions">
-            <button class="echo-button secondary" id="echoPuzzleReplay" type="button">Repetir sequência</button>
-            <button class="echo-button secondary" id="echoPuzzleClose" type="button">Voltar</button>
+
+          <div class="echo-panel-actions" id="echoPuzzleBriefActions">
+            <button class="echo-button" id="echoPuzzleStart" type="button">Iniciar desafio</button>
+            <button class="echo-button secondary" id="echoPuzzleClose" type="button">Voltar à exploração</button>
+          </div>
+
+          <div class="echo-root-circuit" id="echoRootCircuit" hidden>
+            <div class="echo-circuit-board" id="echoCircuitBoard" aria-label="Circuito ancestral com três anéis">
+              <span class="echo-root-ring outer" data-echo-ring-visual="0"></span>
+              <span class="echo-root-ring middle" data-echo-ring-visual="1"></span>
+              <span class="echo-root-ring inner" data-echo-ring-visual="2"></span>
+              <span class="echo-root-goal outer" data-echo-ring-goal="0"></span>
+              <span class="echo-root-goal middle" data-echo-ring-goal="1"></span>
+              <span class="echo-root-goal inner" data-echo-ring-goal="2"></span>
+              <span class="echo-root-core">
+                <img id="echoPuzzleCompanion" src="assets/story/axolume.webp" alt="">
+              </span>
+            </div>
+
+            <div class="echo-circuit-controls">
+              <button class="echo-ring-control" type="button" data-echo-ring-control="0">
+                <i>1</i>
+                <span>
+                  <strong>Anel exterior</strong>
+                  <small>Conduz a energia pela raiz mais distante.</small>
+                </span>
+                <output data-echo-ring-output="0">→</output>
+              </button>
+              <button class="echo-ring-control" type="button" data-echo-ring-control="1">
+                <i>2</i>
+                <span>
+                  <strong>Anel intermediário</strong>
+                  <small>Alinha a corrente com o segundo selo.</small>
+                </span>
+                <output data-echo-ring-output="1">→</output>
+              </button>
+              <button class="echo-ring-control" type="button" data-echo-ring-control="2">
+                <i>3</i>
+                <span>
+                  <strong>Anel interior</strong>
+                  <small>Fecha o circuito junto ao núcleo cristalino.</small>
+                </span>
+                <output data-echo-ring-output="2">→</output>
+              </button>
+              <div class="echo-puzzle-status" id="echoPuzzleStatus">
+                <strong>Desafio iniciado.</strong> Observe os selos e conecte cada ramo.
+              </div>
+              <div class="echo-panel-actions">
+                <button class="echo-button secondary" id="echoPuzzleRestart" type="button">Reiniciar circuito</button>
+                <button class="echo-button secondary" id="echoPuzzleCircuitClose" type="button">Sair do desafio</button>
+              </div>
+            </div>
           </div>
         </article>
       </section>
@@ -8495,10 +8951,21 @@
       const echoPuzzleEyebrow = document.getElementById("echoPuzzleEyebrow");
       const echoPuzzleTitle = document.getElementById("echoPuzzleTitle");
       const echoPuzzleDescription = document.getElementById("echoPuzzleDescription");
-      const echoRunes = [...document.querySelectorAll("[data-echo-rune]")];
+      const echoPuzzleGoal = document.getElementById("echoPuzzleGoal");
+      const echoPuzzleBrief = document.getElementById("echoPuzzleBrief");
+      const echoPuzzleBriefActions = document.getElementById("echoPuzzleBriefActions");
+      const echoPuzzleStart = document.getElementById("echoPuzzleStart");
+      const echoRootCircuit = document.getElementById("echoRootCircuit");
+      const echoCircuitBoard = document.getElementById("echoCircuitBoard");
+      const echoPuzzleCompanion = document.getElementById("echoPuzzleCompanion");
+      const echoRingVisuals = [...document.querySelectorAll("[data-echo-ring-visual]")];
+      const echoRingGoals = [...document.querySelectorAll("[data-echo-ring-goal]")];
+      const echoRingControls = [...document.querySelectorAll("[data-echo-ring-control]")];
+      const echoRingOutputs = [...document.querySelectorAll("[data-echo-ring-output]")];
       const echoPuzzleStatus = document.getElementById("echoPuzzleStatus");
-      const echoPuzzleReplay = document.getElementById("echoPuzzleReplay");
+      const echoPuzzleRestart = document.getElementById("echoPuzzleRestart");
       const echoPuzzleClose = document.getElementById("echoPuzzleClose");
+      const echoPuzzleCircuitClose = document.getElementById("echoPuzzleCircuitClose");
       const echoBattle = document.getElementById("echoBattle");
       const echoBattleScene = document.getElementById("echoBattleScene");
       const echoBattleMessage = document.getElementById("echoBattleMessage");
@@ -8622,10 +9089,11 @@
       let echoDialogueLines = [];
       let echoDialogueIndex = 0;
       let echoDialogueCallback = null;
-      let echoPuzzleSequence = [];
-      let echoPuzzleInput = 0;
+      let echoPuzzleRotations = [0, 0, 0];
+      let echoPuzzleConnected = [false, false, false];
       let echoPuzzleAccepting = false;
       let echoPuzzleArea = 0;
+      let echoBattleMemberUid = null;
       let echoPendingPassage = null;
       let echoEvolutionQueue = [];
       let echoEvolutionTimer = 0;
@@ -8692,27 +9160,27 @@
       };
 
       const NATURION_FORMS = {
-        axolume: { id: "axolume", name: "Axolume", type: "Água", stage: 1, minLevel: 1, image: "assets/story/axolume.webp", groundOffset: 2.3 },
-        hydrolume: { id: "hydrolume", name: "Hydrolume", type: "Água", stage: 2, minLevel: 14, image: "assets/echo-creatures/hydrolume.webp", groundOffset: 10.6 },
-        abissolume: { id: "abissolume", name: "Abissolume", type: "Água", stage: 3, minLevel: 36, image: "assets/echo-creatures/abissolume.webp", groundOffset: 5.2 },
-        brasguax: { id: "brasguax", name: "Brasguax", type: "Fogo", stage: 1, minLevel: 1, image: "assets/story/brasguax.webp", groundOffset: 2.3 },
-        brasquati: { id: "brasquati", name: "Brasquati", type: "Fogo", stage: 2, minLevel: 14, image: "assets/echo-creatures/brasquati.webp", groundOffset: 8.3 },
-        vulcaguax: { id: "vulcaguax", name: "Vulcaguax", type: "Fogo", stage: 3, minLevel: 36, image: "assets/echo-creatures/vulcaguax.webp", groundOffset: 8 },
-        musgurso: { id: "musgurso", name: "Musgurso", type: "Planta", stage: 1, minLevel: 1, image: "assets/story/musgurso.webp", groundOffset: 2.3 },
-        florurso: { id: "florurso", name: "Florurso", type: "Planta", stage: 2, minLevel: 14, image: "assets/echo-creatures/florurso.webp", groundOffset: 9.8 },
-        silvurso: { id: "silvurso", name: "Silvurso", type: "Planta", stage: 3, minLevel: 36, image: "assets/echo-creatures/silvurso.webp", groundOffset: 8.3 },
-        escaruli: { id: "escaruli", name: "Escaruli", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/escaruli.webp", groundOffset: 32 },
-        carabruto: { id: "carabruto", name: "Carabruto", type: "Inseto", stage: 2, minLevel: 12, image: "assets/echo-creatures/carabruto.webp", groundOffset: 22 },
-        titanoleo: { id: "titanoleo", name: "Titanóleo", type: "Inseto/Terra", stage: 3, minLevel: 25, image: "assets/echo-creatures/titanoleo.webp", groundOffset: 15.3 },
+        axolume: { id: "axolume", name: "Axolume", type: "Água", stage: 1, minLevel: 1, image: "assets/story/axolume.webp", groundOffset: 4.6 },
+        hydrolume: { id: "hydrolume", name: "Hydrolume", type: "Água", stage: 2, minLevel: 14, image: "assets/echo-creatures/hydrolume.webp", groundOffset: 21.1 },
+        abissolume: { id: "abissolume", name: "Abissolume", type: "Água", stage: 3, minLevel: 36, image: "assets/echo-creatures/abissolume.webp", groundOffset: 10 },
+        brasguax: { id: "brasguax", name: "Brasguax", type: "Fogo", stage: 1, minLevel: 1, image: "assets/story/brasguax.webp", groundOffset: 4.6 },
+        brasquati: { id: "brasquati", name: "Brasquati", type: "Fogo", stage: 2, minLevel: 14, image: "assets/echo-creatures/brasquati.webp", groundOffset: 16.6 },
+        vulcaguax: { id: "vulcaguax", name: "Vulcaguax", type: "Fogo", stage: 3, minLevel: 36, image: "assets/echo-creatures/vulcaguax.webp", groundOffset: 15.8 },
+        musgurso: { id: "musgurso", name: "Musgurso", type: "Planta", stage: 1, minLevel: 1, image: "assets/story/musgurso.webp", groundOffset: 4.6 },
+        florurso: { id: "florurso", name: "Florurso", type: "Planta", stage: 2, minLevel: 14, image: "assets/echo-creatures/florurso.webp", groundOffset: 19.6 },
+        silvurso: { id: "silvurso", name: "Silvurso", type: "Planta", stage: 3, minLevel: 36, image: "assets/echo-creatures/silvurso.webp", groundOffset: 16.5 },
+        escaruli: { id: "escaruli", name: "Escaruli", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/escaruli.webp", groundOffset: 63.6 },
+        carabruto: { id: "carabruto", name: "Carabruto", type: "Inseto", stage: 2, minLevel: 12, image: "assets/echo-creatures/carabruto.webp", groundOffset: 44 },
+        titanoleo: { id: "titanoleo", name: "Titanóleo", type: "Inseto/Terra", stage: 3, minLevel: 25, image: "assets/echo-creatures/titanoleo.webp", groundOffset: 30.4 },
         lumpirim: { id: "lumpirim", name: "Lumpirim", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/lumpirim.webp", flying: true },
         vagalux: { id: "vagalux", name: "Vagalux", type: "Inseto", stage: 2, minLevel: 9, image: "assets/echo-creatures/vagalux.webp", flying: true },
         auralume: { id: "auralume", name: "Auralume", type: "Inseto/Luz", stage: 3, minLevel: 16, image: "assets/echo-creatures/auralume.webp", flying: true },
-        failino: { id: "failino", name: "Fáilino", type: "Elétrico", stage: 1, minLevel: 1, image: "assets/echo-creatures/failino.webp", groundOffset: 9.5 },
-        trovagato: { id: "trovagato", name: "Trovagato", type: "Elétrico", stage: 2, minLevel: 17, image: "assets/echo-creatures/trovagato.webp", groundOffset: 3.1 },
-        hambrio: { id: "hambrio", name: "Hambrio", type: "Sombrio", stage: 1, minLevel: 1, image: "assets/echo-creatures/hambrio.webp", groundOffset: 12.3 },
-        umbrester: { id: "umbrester", name: "Umbrester", type: "Sombrio", stage: 2, minLevel: 14, image: "assets/echo-creatures/umbrester.webp", groundOffset: 2.3 },
-        canumi: { id: "canumi", name: "Canumi", type: "Normal", stage: 1, minLevel: 1, image: "assets/echo-creatures/canumi.webp", groundOffset: 16.1 },
-        fidelark: { id: "fidelark", name: "Fidelark", type: "Normal", stage: 2, minLevel: 9, image: "assets/echo-creatures/fidelark.webp", groundOffset: 2.5 },
+        failino: { id: "failino", name: "Fáilino", type: "Elétrico", stage: 1, minLevel: 1, image: "assets/echo-creatures/failino.webp", groundOffset: 18.8 },
+        trovagato: { id: "trovagato", name: "Trovagato", type: "Elétrico", stage: 2, minLevel: 17, image: "assets/echo-creatures/trovagato.webp", groundOffset: 6.3 },
+        hambrio: { id: "hambrio", name: "Hambrio", type: "Sombrio", stage: 1, minLevel: 1, image: "assets/echo-creatures/hambrio.webp", groundOffset: 24.6 },
+        umbrester: { id: "umbrester", name: "Umbrester", type: "Sombrio", stage: 2, minLevel: 14, image: "assets/echo-creatures/umbrester.webp", groundOffset: 4.4 },
+        canumi: { id: "canumi", name: "Canumi", type: "Normal", stage: 1, minLevel: 1, image: "assets/echo-creatures/canumi.webp", groundOffset: 32.2 },
+        fidelark: { id: "fidelark", name: "Fidelark", type: "Normal", stage: 2, minLevel: 9, image: "assets/echo-creatures/fidelark.webp", groundOffset: 5 },
         zumbel: { id: "zumbel", name: "Zumbel", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/zumbel.webp", flying: true },
         melsting: { id: "melsting", name: "Melsting", type: "Inseto", stage: 2, minLevel: 8, image: "assets/echo-creatures/melsting.webp", flying: true },
         rainhaxa: { id: "rainhaxa", name: "Rainhaxa", type: "Inseto/Veneno", stage: 3, minLevel: 15, image: "assets/echo-creatures/rainhaxa.webp", flying: true }
@@ -8827,7 +9295,7 @@
           maxStage: 2,
           scene: "assets/echo-scenes/clareira-3.webp",
           count: 8,
-          objective: "Sintonize os três ecos para abrir a passagem das ruínas.",
+          objective: "Encontre o desafio ancestral e restaure o Circuito das Raízes.",
           platforms: [
             [0, 1, .842],
             [0, .058, .65],
@@ -8850,9 +9318,13 @@
             id: "ecos-do-rio",
             x: .82,
             y: .842,
-            sequence: [0, 2, 1, 0],
-            title: "Ecos do Rio",
-            description: "A água repete apenas sons na ordem correta. Observe as runas e devolva a sequência."
+            target: [1, 3, 2],
+            color: "#68dfff",
+            glow: "#d6ff92",
+            marker: "Desafio ancestral",
+            title: "Circuito das Raízes",
+            description: "As raízes cristalinas perderam sua ligação com os selos da Galeria das Ruínas.",
+            goal: "Gire cada anel até que o ramo luminoso alcance o selo correspondente. As três conexões abrirão a passagem."
           }
         },
         {
@@ -8862,7 +9334,7 @@
           maxStage: 2,
           scene: "assets/echo-scenes/clareira-4.webp",
           count: 9,
-          objective: "Use a sintonia do seu inicial para libertar o Portão das Raízes.",
+          objective: "Resolva a Trama Crepuscular para libertar o Portão das Raízes.",
           platforms: [
             [0, 1, .84],
             [.03, .155, .656],
@@ -8885,17 +9357,21 @@
             x: .43,
             y: .84,
             lines: [
-              "O Portão das Raízes reconhece vínculos verdadeiros. Seu inicial deve conduzir as três energias sem quebrar a sequência.",
-              "Se errar, as runas se apagam e recomeçam. Não há punição: puzzles existem para serem compreendidos."
+              "O Portão das Raízes reconhece vínculos verdadeiros. Seu inicial deve conduzir as três correntes até os selos externos.",
+              "Observe a posição de cada selo antes de girar os anéis. Não há punição: puzzles existem para serem compreendidos."
             ]
           },
           puzzle: {
             id: "portao-das-raizes",
             x: .84,
             y: .84,
-            sequence: [2, 0, 1, 2, 1],
-            title: "Portão das Raízes",
-            description: "Seu inicial sente a ordem escondida nas raízes. Repita-a para libertar a passagem."
+            target: [3, 2, 1],
+            color: "#b786ff",
+            glow: "#ffe780",
+            marker: "Trama cristalina",
+            title: "Trama Crepuscular",
+            description: "O Portão das Raízes permanece preso por uma trama de energia fora de alinhamento.",
+            goal: "Reconecte os três anéis ao núcleo do seu inicial. Quando todos os ramos alcançarem seus selos, o portão será libertado."
           }
         },
         {
@@ -10728,7 +11204,9 @@
             level: Number(existing.level) || 5,
             experience: Number(existing.experience) || 24,
             experiencePercent: Number(existing.experiencePercent) || 42,
-            currentHp: Number(existing.currentHp) || 0,
+            currentHp: existing.currentHp == null
+              ? null
+              : Number(existing.currentHp),
             maxHp: Number(existing.maxHp) || 0
           },
           team: Array.isArray(currentPlayer.team) ? currentPlayer.team : [],
@@ -10747,7 +11225,14 @@
         }
         const starterMaxHp = 34 + currentPlayer.starter.level * 4 + form.stage * 6;
         currentPlayer.starter.maxHp = Math.max(currentPlayer.starter.maxHp, starterMaxHp);
-        if (!currentPlayer.starter.currentHp) currentPlayer.starter.currentHp = currentPlayer.starter.maxHp;
+        if (!Number.isFinite(currentPlayer.starter.currentHp)) {
+          currentPlayer.starter.currentHp = currentPlayer.starter.maxHp;
+        } else {
+          currentPlayer.starter.currentHp = Math.max(
+            0,
+            Math.min(currentPlayer.starter.maxHp, currentPlayer.starter.currentHp)
+          );
+        }
         [...currentPlayer.team, ...currentPlayer.storage].forEach((member) => {
           const memberForm = getMemberForm(member);
           member.uid ||= `${memberForm.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -10755,7 +11240,11 @@
             Number(member.maxHp) || 0,
             28 + (Number(member.level) || 1) * 4 + memberForm.stage * 6
           );
-          if (!Number(member.currentHp)) member.currentHp = member.maxHp;
+          if (!Number.isFinite(Number(member.currentHp))) {
+            member.currentHp = member.maxHp;
+          } else {
+            member.currentHp = Math.max(0, Math.min(member.maxHp, Number(member.currentHp)));
+          }
         });
         const rosterUids = [currentPlayer.starter, ...currentPlayer.team].map((member) => member.uid);
         if (!rosterUids.includes(currentPlayer.activeLeadUid)) {
@@ -10799,7 +11288,7 @@
         name.textContent = `${form.name} · Nv. ${member.level}`;
 
         const details = document.createElement("small");
-        details.textContent = `${form.type}${isLeader ? " · Líder da equipe" : ""}`;
+        details.textContent = `${form.type} · PV ${member.currentHp}/${member.maxHp}${isLeader ? " · Líder" : ""}`;
 
         const actions = document.createElement("div");
         actions.className = "echo-member-actions";
@@ -11065,13 +11554,19 @@
           echoNpcLayer.append(npc);
         }
 
-        if (area.puzzle) {
-          const gate = document.createElement("span");
-          gate.className = `echo-gate${isEchoPuzzleSolved() ? " open" : ""}`;
-          gate.dataset.echoGate = area.puzzle.id;
-          gate.style.left = `${area.puzzle.x * echoWorldWidth}px`;
-          gate.style.top = `${area.puzzle.y * echoWorldHeight}px`;
-          echoPuzzleLayer.append(gate);
+        if (area.puzzle && !isEchoPuzzleSolved()) {
+          const challenge = document.createElement("span");
+          const challengeTitle = document.createElement("strong");
+          const challengeHint = document.createElement("small");
+          challenge.className = "echo-challenge-marker";
+          challenge.dataset.echoChallenge = area.puzzle.id;
+          challenge.style.left = `${area.puzzle.x * echoWorldWidth}px`;
+          challenge.style.top = `${area.puzzle.y * echoWorldHeight}px`;
+          challenge.style.setProperty("--challenge-color", area.puzzle.color || "#75e6bd");
+          challengeTitle.textContent = area.puzzle.marker || "Desafio ancestral";
+          challengeHint.textContent = "E · Examinar";
+          challenge.append(challengeTitle, challengeHint);
+          echoPuzzleLayer.append(challenge);
         }
       };
 
@@ -11225,7 +11720,7 @@
           if (echoNearInteraction.type === "npc") {
             echoInteractText.textContent = `Conversar com ${echoNearInteraction.value.name}`;
           } else if (echoNearInteraction.type === "puzzle") {
-            echoInteractText.textContent = "Investigar as runas";
+            echoInteractText.textContent = `Examinar desafio: ${echoNearInteraction.value.title}`;
           } else {
             echoInteractText.textContent = echoNearInteraction.direction === "previous"
               ? "Retornar ao ambiente anterior"
@@ -11246,7 +11741,7 @@
         const passage = interaction.value;
         const blockedByPuzzle = direction === "next" && getEchoArea().puzzle && !isEchoPuzzleSolved();
         if (blockedByPuzzle) {
-          showToast("As runas ainda bloqueiam esta passagem.");
+          showToast("O desafio ancestral ainda bloqueia esta passagem.");
           return true;
         }
         if (passage.locked || (direction === "next" && echoAreaIndex >= ECHO_AREAS.length - 1)) {
@@ -11315,68 +11810,78 @@
         echoClearing.focus();
       };
 
-      const previewEchoPuzzle = async () => {
-        if (echoPuzzle.hidden) return;
-        echoPuzzleAccepting = false;
-        echoPuzzleInput = 0;
-        echoRunes.forEach((rune) => rune.classList.remove("preview", "correct", "wrong"));
-        echoPuzzleStatus.textContent = "Observe a sequência das runas...";
-        await forestPause(380);
-        for (const runeIndex of echoPuzzleSequence) {
-          if (echoPuzzle.hidden) return;
-          const rune = echoRunes[runeIndex];
-          rune.classList.add("preview");
-          playTone([523, 659, 784][runeIndex], 0, .17, "sine");
-          await forestPause(430);
-          rune.classList.remove("preview");
-          await forestPause(160);
-        }
+      const ECHO_RING_DIRECTIONS = ["→", "↓", "←", "↑"];
+
+      const updateEchoRootCircuit = () => {
+        const puzzle = ECHO_AREAS[echoPuzzleArea].puzzle;
+        echoRingVisuals.forEach((ring, index) => {
+          ring.style.setProperty("--ring-turn", echoPuzzleRotations[index]);
+          ring.classList.toggle("connected", echoPuzzleConnected[index]);
+        });
+        echoRingGoals.forEach((goal, index) => {
+          goal.style.setProperty("--goal-turn", puzzle.target[index]);
+        });
+        echoRingControls.forEach((control, index) => {
+          const connected = echoPuzzleConnected[index];
+          control.classList.toggle("connected", connected);
+          control.disabled = connected || !echoPuzzleAccepting;
+          echoRingOutputs[index].textContent = connected
+            ? "✓"
+            : ECHO_RING_DIRECTIONS[echoPuzzleRotations[index]];
+        });
+      };
+
+      const resetEchoRootCircuit = () => {
+        const puzzle = ECHO_AREAS[echoPuzzleArea].puzzle;
+        echoPuzzleRotations = puzzle.target.map((target, index) => (
+          (target + 2 + index % 2) % ECHO_RING_DIRECTIONS.length
+        ));
+        echoPuzzleConnected = [false, false, false];
         echoPuzzleAccepting = true;
-        echoPuzzleStatus.textContent = "Sua vez: repita a mesma ordem.";
-        echoRunes[0].focus();
+        echoCircuitBoard.classList.remove("complete");
+        echoPuzzleStatus.innerHTML = "<strong>Desafio iniciado.</strong> Observe os selos e conecte cada ramo.";
+        updateEchoRootCircuit();
+        echoRingControls[0].focus();
+      };
+
+      const startEchoRootCircuit = () => {
+        echoPuzzleBrief.hidden = true;
+        echoPuzzleBriefActions.hidden = true;
+        echoRootCircuit.hidden = false;
+        resetEchoRootCircuit();
+        playSequence([330, 440, 554, 659], .06);
       };
 
       const openEchoPuzzle = (puzzle) => {
         if (isEchoPuzzleSolved()) {
-          showToast("A passagem já está sintonizada.");
+          showToast("Este desafio já foi concluído.");
           return;
         }
+        resetEchoMovement();
         echoPuzzleArea = echoAreaIndex;
-        echoPuzzleSequence = puzzle.sequence.slice();
-        echoPuzzleInput = 0;
         echoPuzzleAccepting = false;
-        echoPuzzleEyebrow.textContent = `Puzzle da área ${echoAreaIndex + 1}`;
+        echoPuzzleEyebrow.textContent = `Desafio da área ${echoAreaIndex + 1}`;
         echoPuzzleTitle.textContent = puzzle.title;
         echoPuzzleDescription.textContent = puzzle.description;
-        echoPuzzleStatus.textContent = "Prepare-se para observar.";
-        echoRunes.forEach((rune) => rune.classList.remove("preview", "correct", "wrong"));
+        echoPuzzleGoal.textContent = puzzle.goal;
+        echoPuzzle.style.setProperty("--puzzle-color", puzzle.color || "#72e1bd");
+        echoPuzzle.style.setProperty("--puzzle-glow", puzzle.glow || "#d9ff82");
+        echoPuzzleCompanion.src = getMemberForm(getActiveEchoMember()).image;
+        echoPuzzleCompanion.alt = getMemberForm(getActiveEchoMember()).name;
+        echoPuzzleBrief.hidden = false;
+        echoPuzzleBriefActions.hidden = false;
+        echoRootCircuit.hidden = true;
+        echoCircuitBoard.classList.remove("complete");
         echoPuzzle.hidden = false;
-        void previewEchoPuzzle();
+        playSequence([392, 523, 659], .07);
+        echoPuzzleStart.focus();
       };
 
-      const activateEchoRune = async (runeIndex) => {
-        if (!echoPuzzleAccepting || echoPuzzle.hidden) return;
-        const rune = echoRunes[runeIndex];
-        const expected = echoPuzzleSequence[echoPuzzleInput];
-        if (runeIndex !== expected) {
-          echoPuzzleAccepting = false;
-          rune.classList.add("wrong");
-          echoPuzzleStatus.textContent = "A sintonia se desfez. Observe novamente.";
-          playSequence([330, 247, 196], .07);
-          await forestPause(620);
-          void previewEchoPuzzle();
-          return;
-        }
-
-        rune.classList.add("correct");
-        playTone([523, 659, 784][runeIndex], 0, .18, "triangle");
-        echoPuzzleInput += 1;
-        echoPuzzleStatus.textContent = echoPuzzleInput < echoPuzzleSequence.length
-          ? `Correto. Faltam ${echoPuzzleSequence.length - echoPuzzleInput} sinais.`
-          : "Sintonia completa! A passagem está se abrindo.";
-
-        if (echoPuzzleInput < echoPuzzleSequence.length) return;
+      const completeEchoRootCircuit = async () => {
         echoPuzzleAccepting = false;
+        updateEchoRootCircuit();
+        echoCircuitBoard.classList.add("complete");
+        echoPuzzleStatus.innerHTML = "<strong>Circuito restaurado!</strong> A energia alcançou a passagem.";
         const puzzle = ECHO_AREAS[echoPuzzleArea].puzzle;
         currentPlayer.echoProgress.puzzles[puzzle.id] = true;
         currentPlayer.activeMission = {
@@ -11385,11 +11890,36 @@
         };
         saveCurrentPlayer();
         playSequence([392, 523, 659, 784, 988], .08);
-        await forestPause(900);
+        await forestPause(1250);
         echoPuzzle.hidden = true;
+        echoRootCircuit.hidden = true;
         renderEchoStaticLayer();
         updateEchoHud();
-        showToast("Puzzle concluído: passagem liberada!");
+        showToast(`${puzzle.title} concluído: passagem liberada!`);
+        echoClearing.focus();
+      };
+
+      const rotateEchoRootRing = (ringIndex) => {
+        if (!echoPuzzleAccepting || echoPuzzle.hidden || echoPuzzleConnected[ringIndex]) return;
+        const puzzle = ECHO_AREAS[echoPuzzleArea].puzzle;
+        echoPuzzleRotations[ringIndex] = (
+          echoPuzzleRotations[ringIndex] + 1
+        ) % ECHO_RING_DIRECTIONS.length;
+        echoPuzzleConnected[ringIndex] = echoPuzzleRotations[ringIndex] === puzzle.target[ringIndex];
+        playTone([440, 554, 659][ringIndex], 0, .14, "triangle");
+        updateEchoRootCircuit();
+        const connectedCount = echoPuzzleConnected.filter(Boolean).length;
+        echoPuzzleStatus.innerHTML = echoPuzzleConnected[ringIndex]
+          ? `<strong>Anel conectado.</strong> ${3 - connectedCount} ligação${3 - connectedCount === 1 ? "" : "ões"} restante${3 - connectedCount === 1 ? "" : "s"}.`
+          : "<strong>O ramo se moveu.</strong> Continue girando até alcançar o selo luminoso.";
+        if (connectedCount === 3) void completeEchoRootCircuit();
+      };
+
+      const closeEchoPuzzle = () => {
+        echoPuzzle.hidden = true;
+        echoRootCircuit.hidden = true;
+        echoPuzzleAccepting = false;
+        echoCircuitBoard.classList.remove("complete");
         echoClearing.focus();
       };
 
@@ -11574,10 +12104,50 @@
         });
       };
 
+      const getEchoBattleMember = () => (
+        getEchoRoster().find((member) => member.uid === echoBattleMemberUid)
+        || getActiveEchoMember()
+      );
+
+      const findNextHealthyEchoMember = (currentUid) => {
+        const roster = getEchoRoster();
+        const currentIndex = Math.max(0, roster.findIndex((member) => member.uid === currentUid));
+        for (let step = 1; step <= roster.length; step += 1) {
+          const member = roster[(currentIndex + step) % roster.length];
+          if (Number(member.currentHp) > 0) return member;
+        }
+        return null;
+      };
+
+      const showEchoBattleMember = (member, animate = false) => {
+        const form = getMemberForm(member);
+        echoBattleMemberUid = member.uid;
+        currentPlayer.activeLeadUid = member.uid;
+        echoPlayerMaxHp = member.maxHp;
+        echoPlayerHpValue = Math.max(0, member.currentHp);
+        echoBattlePlayerImage.src = form.image;
+        echoBattlePlayerImage.alt = form.name;
+        echoBattlePlayerImage.parentElement.style.setProperty(
+          "--fighter-size",
+          `${170 + form.stage * 35}px`
+        );
+        echoBattlePlayerImage.parentElement.style.setProperty(
+          "--fighter-ground-offset",
+          getNaturionGroundOffset(form)
+        );
+        echoBattlePlayerName.textContent = form.name;
+        echoBattlePlayerLevel.textContent = `Nv. ${member.level}`;
+        echoElementalHint.textContent = `${form.type} · Poder ${11 + Math.floor(member.level / 4)}`;
+        echoPlayerFighter.classList.toggle("switching", animate);
+        if (animate) {
+          window.setTimeout(() => echoPlayerFighter.classList.remove("switching"), 720);
+        }
+      };
+
       const updateEchoBattleBars = () => {
         echoBattlePlayerHp.style.width = `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`;
         echoBattleWildHp.style.width = `${Math.max(0, echoWildHpValue / echoWildMaxHp * 100)}%`;
-        const member = getActiveEchoMember();
+        const member = getEchoBattleMember();
         member.currentHp = Math.max(0, echoPlayerHpValue);
         echoHudHpTrack.style.setProperty("--echo-hp", `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`);
       };
@@ -11589,19 +12159,20 @@
         resetEchoMovement();
         echoEncounter = wild;
         ensureEchoPlayerData();
-        const member = getActiveEchoMember();
-        const playerForm = getMemberForm(member);
-        echoPlayerMaxHp = member.maxHp;
-        echoPlayerHpValue = Math.max(1, member.currentHp);
+        let member = getActiveEchoMember();
+        if (Number(member.currentHp) <= 0) {
+          member = findNextHealthyEchoMember(member.uid);
+        }
+        if (!member) {
+          getEchoRoster().forEach((rosterMember) => {
+            rosterMember.currentHp = Math.max(1, Math.round(rosterMember.maxHp * .65));
+          });
+          member = getEchoRoster()[0];
+        }
+        showEchoBattleMember(member);
+        refreshEchoStarterUI();
         echoWildMaxHp = 20 + wild.level * 4 + wild.form.stage * 7;
         echoWildHpValue = echoWildMaxHp;
-        echoBattlePlayerImage.src = playerForm.image;
-        echoBattlePlayerImage.alt = playerForm.name;
-        echoBattlePlayerImage.parentElement.style.setProperty("--fighter-size", `${170 + playerForm.stage * 35}px`);
-        echoBattlePlayerImage.parentElement.style.setProperty(
-          "--fighter-ground-offset",
-          getNaturionGroundOffset(playerForm)
-        );
         echoBattleWildImage.src = wild.form.image;
         echoBattleWildImage.alt = wild.form.name;
         echoBattleWildImage.parentElement.style.setProperty("--fighter-size", `${165 + wild.form.stage * 38}px`);
@@ -11609,11 +12180,8 @@
           "--fighter-ground-offset",
           getNaturionGroundOffset(wild.form)
         );
-        echoBattlePlayerName.textContent = playerForm.name;
-        echoBattlePlayerLevel.textContent = `Nv. ${member.level}`;
         echoBattleWildName.textContent = wild.form.name;
         echoBattleWildLevel.textContent = `${wild.form.type} · Nv. ${wild.level}`;
-        echoElementalHint.textContent = `${playerForm.type} · Poder ${11 + Math.floor(member.level / 4)}`;
         echoBattleMessage.textContent = `${wild.form.name} selvagem apareceu! Escolha sua ação.`;
         echoBattleChoice.hidden = true;
         echoBattleActions.hidden = false;
@@ -11667,7 +12235,7 @@
         echoBattleMessage.textContent = `${echoEncounter.form.name} foi derrotado. Sua essência começa a se libertar...`;
         playSequence([392, 523, 659, 784, 988], .08);
         const gainedXp = 18 + echoEncounter.level * 5;
-        const activeMember = getActiveEchoMember();
+        const activeMember = getEchoBattleMember();
         grantEchoExperience(activeMember, gainedXp);
         getEchoRoster()
           .filter((member) => member !== activeMember)
@@ -11680,19 +12248,50 @@
         echoTryAbsorb.focus();
       };
 
-      const resolveEchoDefeat = async () => {
+      const resolveEchoPartyDefeat = async () => {
         echoBattleLocked = true;
         setEchoBattleControls(false);
-        const activeMember = getActiveEchoMember();
-        echoBattleMessage.textContent = `${getMemberForm(activeMember).name} ficou sem energia. O Relógio Cristalíneo conduziu o grupo para um ponto seguro.`;
+        echoBattleMessage.textContent = "Toda a equipe ficou sem energia. O Relógio Cristalíneo conduziu o grupo para um ponto seguro.";
         playSequence([330, 247, 196], .09);
         await forestPause(1150);
-        activeMember.currentHp = Math.max(1, Math.round(activeMember.maxHp * .65));
+        getEchoRoster().forEach((member) => {
+          member.currentHp = Math.max(1, Math.round(member.maxHp * .65));
+        });
+        currentPlayer.activeLeadUid = getEchoRoster()[0].uid;
+        echoBattleMemberUid = null;
+        saveCurrentPlayer();
         echoBattle.hidden = true;
         echoWildFighter.classList.remove("hit", "strike");
+        echoPlayerFighter.classList.remove("hit", "strike", "switching");
         echoEncounter = null;
         resetEchoMovement();
         await enterEchoArea(echoAreaIndex, "left");
+      };
+
+      const resolveEchoKnockout = async () => {
+        echoBattleLocked = true;
+        setEchoBattleControls(false);
+        const defeatedMember = getEchoBattleMember();
+        defeatedMember.currentHp = 0;
+        const defeatedForm = getMemberForm(defeatedMember);
+        const nextMember = findNextHealthyEchoMember(defeatedMember.uid);
+        if (!nextMember) {
+          await resolveEchoPartyDefeat();
+          return;
+        }
+        const nextForm = getMemberForm(nextMember);
+        echoBattleMessage.textContent = `${defeatedForm.name} ficou sem energia. ${nextForm.name} entra em seu lugar!`;
+        playSequence([247, 330, 440, 554], .075);
+        await forestPause(680);
+        showEchoBattleMember(nextMember, true);
+        updateEchoBattleBars();
+        refreshEchoStarterUI();
+        saveCurrentPlayer();
+        await forestPause(720);
+        echoBattleMessage.textContent = `${nextForm.name} está pronto. Escolha sua ação.`;
+        echoBattleLocked = false;
+        setEchoBattleControls(true);
+        echoBattleButtons[0].focus();
       };
 
       const runEchoBattleAction = async (action) => {
@@ -11712,6 +12311,7 @@
           echoBattleChoice.hidden = true;
           echoPlayerFighter.classList.remove("hit", "strike");
           echoWildFighter.classList.remove("hit", "strike");
+          echoBattleMemberUid = null;
           echoEncounter = null;
           resetEchoMovement();
           positionEchoWorld();
@@ -11721,7 +12321,7 @@
         }
         echoBattleLocked = true;
         setEchoBattleControls(false);
-        const member = getActiveEchoMember();
+        const member = getEchoBattleMember();
         const playerForm = getMemberForm(member);
         const defended = action === "defend";
         let damage = 0;
@@ -11764,7 +12364,7 @@
         echoWildFighter.classList.remove("strike");
         echoPlayerFighter.classList.remove("hit");
         if (echoPlayerHpValue <= 0) {
-          await resolveEchoDefeat();
+          await resolveEchoKnockout();
           return;
         }
 
@@ -11832,7 +12432,8 @@
         echoBattle.hidden = true;
         echoBattleChoice.hidden = true;
         echoWildFighter.classList.remove("hit", "strike");
-        echoPlayerFighter.classList.remove("hit", "strike");
+        echoPlayerFighter.classList.remove("hit", "strike", "switching");
+        echoBattleMemberUid = null;
         echoEncounter = null;
         updateEchoHud();
         showNextEchoEvolution();
@@ -11992,7 +12593,8 @@
           roster: getEchoRoster().map((member) => ({ ...member })),
           team: [...(currentPlayer?.team || [])],
           storage: [...(currentPlayer?.storage || [])],
-          activeLeadUid: currentPlayer?.activeLeadUid
+          activeLeadUid: currentPlayer?.activeLeadUid,
+          battleMemberUid: echoBattleMemberUid
         }),
         setPosition: (xRatio, yRatio) => {
           echoPlayerX = Number(xRatio) * echoWorldWidth;
@@ -12028,6 +12630,13 @@
           if (!wild) return false;
           startEchoBattle(wild);
           return true;
+        },
+        setActiveBattleHp: (value) => {
+          const member = getEchoBattleMember();
+          echoPlayerHpValue = Math.max(0, Math.min(member.maxHp, Number(value)));
+          member.currentHp = echoPlayerHpValue;
+          updateEchoBattleBars();
+          return echoPlayerHpValue;
         },
         solveCurrentPuzzle: () => {
           const puzzle = getEchoArea().puzzle;
@@ -12345,17 +12954,14 @@
         if (event.target === echoPassageConfirm) closeEchoPassageConfirmation();
       });
       echoDialogueNext.addEventListener("click", advanceEchoDialogue);
-      echoPuzzleReplay.addEventListener("click", () => void previewEchoPuzzle());
-      echoPuzzleClose.addEventListener("click", () => {
-        if (!echoPuzzleAccepting) return;
-        echoPuzzle.hidden = true;
-        echoPuzzleAccepting = false;
-        echoClearing.focus();
-      });
+      echoPuzzleStart.addEventListener("click", startEchoRootCircuit);
+      echoPuzzleRestart.addEventListener("click", resetEchoRootCircuit);
+      echoPuzzleClose.addEventListener("click", closeEchoPuzzle);
+      echoPuzzleCircuitClose.addEventListener("click", closeEchoPuzzle);
 
-      echoRunes.forEach((rune) => {
-        rune.addEventListener("click", () => {
-          void activateEchoRune(Number(rune.dataset.echoRune));
+      echoRingControls.forEach((control) => {
+        control.addEventListener("click", () => {
+          rotateEchoRootRing(Number(control.dataset.echoRingControl));
         });
       });
 
@@ -12503,7 +13109,7 @@
         if (forestScreen.hidden || echoClearing.hidden) return;
         if (!echoPuzzle.hidden && ["1", "2", "3"].includes(event.key)) {
           event.preventDefault();
-          void activateEchoRune(Number(event.key) - 1);
+          rotateEchoRootRing(Number(event.key) - 1);
           return;
         }
         if (
@@ -12558,8 +13164,8 @@
           closeOptions();
         } else if (!echoEntryConfirm.hidden) {
           closeEchoEntryConfirmation();
-        } else if (!echoPuzzle.hidden && echoPuzzleAccepting) {
-          echoPuzzleClose.click();
+        } else if (!echoPuzzle.hidden) {
+          closeEchoPuzzle();
         } else if (!echoClearing.hidden && echoDialogue.hidden && echoBattle.hidden && echoEvolution.hidden && echoAbsorption.hidden) {
           returnEchoToMap();
         } else if (!starterConfirmation.hidden) {
