@@ -23,39 +23,34 @@ jobs:
           ref: change/map-encounter-crystals
           fetch-depth: 0
 
-      - name: Extract and run the reviewed patch
+      - name: Apply and validate approved map change
         shell: bash
         run: |
+          python .github/apply_map_crystals.py
           python - <<'PY'
           from pathlib import Path
           import re
 
-          workflow_path = Path('.github/workflows/apply-map-encounter-crystals.yml')
-          workflow = workflow_path.read_text(encoding='utf-8')
-          blocks = re.findall(r"          python - <<'PY'\n(.*?)\n          PY", workflow, flags=re.S)
-          if len(blocks) < 2:
-              raise SystemExit(f'Expected patch and validation blocks, found {len(blocks)}')
-
-          def unwrap(block):
-              return "\n".join(
-                  line[10:] if line.startswith("          ") else line
-                  for line in block.splitlines()
-              ) + "\n"
-
-          Path('/tmp/apply-map-crystals.py').write_text(unwrap(blocks[0]), encoding='utf-8')
-          Path('/tmp/validate-map-crystals.py').write_text(unwrap(blocks[1]), encoding='utf-8')
+          text = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.S)
+          if not scripts:
+              raise SystemExit('No inline script found for syntax validation')
+          Path('/tmp/naturion-inline.js').write_text('\n'.join(scripts), encoding='utf-8')
           PY
-          python /tmp/apply-map-crystals.py
-          python /tmp/validate-map-crystals.py
           node --check /tmp/naturion-inline.js
           git diff --check
 
-      - name: Commit only the approved index change
+      - name: Commit only the approved game change
         shell: bash
         run: |
-          rm .github/workflows/apply-map-encounter-crystals.yml
+          rm -f \
+            .github/apply_map_crystals.py \
+            .github/workflows/apply-map-encounter-crystals.yml \
+            README_PATCH_TRIGGER.tmp \
+            README_PATCH_TRIGGER2.tmp \
+            README_PATCH_TRIGGER3.tmp
           git config user.name "Naturion Update Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html .github/workflows/apply-map-encounter-crystals.yml
+          git add -A
           git commit -m "feat: representar encontros do mapa com cristais"
           git push origin HEAD:change/map-encounter-crystals
