@@ -104,7 +104,7 @@ const handleInteraction = async () => {
 
 const openTeam = () => {
   const playerData = getPlayerSnapshot();
-  const team = playerData.team || [];
+  const team = [playerData.starter, ...(playerData.team || [])].filter(Boolean);
   teamGrid.replaceChildren();
   if (!team.length) {
     const empty = document.createElement("p");
