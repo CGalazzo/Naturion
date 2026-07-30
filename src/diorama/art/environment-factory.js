@@ -148,7 +148,8 @@ export const buildLayeredDioramaBase = ({ root, materials }) => {
   return base;
 };
 
-export const addPlateau = (parent, {
+export const addPlateau = ({
+  parent,
   x,
   z,
   width,
@@ -210,7 +211,8 @@ const sampleCatmull = (points, steps = 36) => {
   return curve.getPoints(steps);
 };
 
-export const addPathRibbon = (parent, {
+export const addPathRibbon = ({
+  parent,
   points,
   stage,
   materials,
