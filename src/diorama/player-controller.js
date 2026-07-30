@@ -1,5 +1,5 @@
 import { THREE } from "./engine.js";
-import { StorybookCharacterRig } from "./art/character-factory.js";
+import { VoxelCharacterRig } from "./art/character-factory.js";
 
 const damp = (current, target, smoothing, delta) => THREE.MathUtils.lerp(current, target, 1 - Math.exp(-smoothing * delta));
 
@@ -19,7 +19,7 @@ export class PlayerController {
     this.group.name = "DioramaPlayer";
     this.group.position.copy(this.lastSafe);
 
-    this.rig = new StorybookCharacterRig({ characterImage });
+    this.rig = new VoxelCharacterRig({ characterImage });
     this.group.add(this.rig.root);
     scene.add(this.group);
   }
