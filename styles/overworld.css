@@ -1,0 +1,360 @@
+/* Bosque Luminal — exploração superior em 3D pixel art. */
+.overworld-screen[hidden],
+.overworld-team-panel[hidden],
+.overworld-dialogue[hidden],
+.overworld-interaction[hidden] {
+  display: none !important;
+}
+
+.overworld-screen {
+  position: absolute;
+  z-index: 72;
+  inset: 0;
+  overflow: hidden;
+  color: #fff4bd;
+  background: #315f53;
+  outline: none;
+  image-rendering: pixelated;
+}
+
+.overworld-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(#426f61, #315f53);
+  outline: none;
+}
+
+.overworld-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.overworld-hud {
+  position: absolute;
+  z-index: 7;
+  top: 14px;
+  left: 16px;
+  display: grid;
+  width: min(360px, calc(100% - 32px));
+  gap: 3px;
+  padding: 8px 12px 9px;
+  border: 2px solid rgba(237, 197, 91, .88);
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(7, 38, 28, .88), rgba(8, 49, 36, .78));
+  box-shadow: inset 0 0 0 1px rgba(151, 226, 184, .16), 0 4px 0 rgba(52, 35, 13, .62);
+  pointer-events: none;
+}
+
+.overworld-hud small {
+  color: #8ee2bb;
+  font-size: .52rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.overworld-hud strong {
+  color: #ffe495;
+  font-size: clamp(.78rem, 1.15vw, .96rem);
+  letter-spacing: .04em;
+  text-shadow: 2px 2px 0 #3b2a17;
+}
+
+.overworld-hud em {
+  color: #daf0df;
+  font-size: .57rem;
+  font-style: normal;
+  line-height: 1.42;
+}
+
+.overworld-status {
+  position: absolute;
+  z-index: 8;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.overworld-status span,
+.overworld-tool {
+  min-height: 35px;
+  padding: 7px 10px;
+  border: 2px solid rgba(237, 197, 91, .82);
+  border-radius: 4px;
+  color: #ffe8a6;
+  background: linear-gradient(135deg, rgba(8, 39, 29, .92), rgba(10, 53, 38, .88));
+  box-shadow: 0 4px 0 rgba(55, 37, 12, .62);
+  font-size: .55rem;
+  font-weight: 900;
+  letter-spacing: .035em;
+}
+
+.overworld-tool {
+  cursor: pointer;
+}
+
+.overworld-tool:hover,
+.overworld-tool:focus-visible {
+  filter: brightness(1.14);
+  outline: 2px solid #a8ffd5;
+  outline-offset: 2px;
+  transform: translateY(-1px);
+}
+
+.overworld-controls-help {
+  position: absolute;
+  z-index: 6;
+  right: 16px;
+  bottom: 14px;
+  display: flex;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid rgba(142, 224, 184, .42);
+  border-radius: 4px;
+  color: rgba(227, 244, 231, .84);
+  background: rgba(5, 25, 18, .7);
+  font-size: .49rem;
+  pointer-events: none;
+}
+
+.overworld-interaction {
+  position: absolute;
+  z-index: 10;
+  bottom: 34px;
+  left: 50%;
+  min-width: 248px;
+  max-width: calc(100% - 32px);
+  padding: 9px 16px;
+  border: 2px solid #e7bd5b;
+  border-radius: 4px;
+  color: #fff0a8;
+  background: linear-gradient(135deg, rgba(6, 32, 24, .96), rgba(10, 48, 35, .94));
+  box-shadow: inset 0 0 0 1px rgba(113, 218, 170, .2), 0 4px 0 #3b2a12, 0 10px 18px rgba(0, 0, 0, .34);
+  font-size: .62rem;
+  font-weight: 1000;
+  letter-spacing: .035em;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: overworld-prompt-in .16s steps(3, end) both;
+}
+
+.overworld-team-panel,
+.overworld-dialogue {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 19, 13, .76);
+}
+
+.overworld-team-panel > article,
+.overworld-dialogue > article {
+  width: min(680px, 92vw);
+  max-height: 78vh;
+  overflow: auto;
+  padding: 17px;
+  border: 3px solid #e7bd5b;
+  border-radius: 5px;
+  background: #0a3025;
+  box-shadow: inset 0 0 0 3px rgba(124, 220, 171, .12), 0 8px 0 #3b2a12, 0 22px 48px rgba(0, 0, 0, .58);
+}
+
+.overworld-team-panel header,
+.overworld-dialogue header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.overworld-team-panel header span,
+.overworld-dialogue header span {
+  display: grid;
+  gap: 4px;
+}
+
+.overworld-team-panel header small,
+.overworld-dialogue header small {
+  color: #86d1ad;
+  font-size: .54rem;
+  text-transform: uppercase;
+}
+
+.overworld-team-panel header strong,
+.overworld-dialogue header strong {
+  color: #ffe49a;
+  font-size: 1rem;
+}
+
+.overworld-team-panel header button,
+.overworld-dialogue button {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 2px solid #e7bd5b;
+  color: #ffe8a6;
+  background: #173f2e;
+  cursor: pointer;
+}
+
+.overworld-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overworld-team-grid > article {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  align-items: center;
+  min-height: 92px;
+  padding: 10px;
+  border: 2px solid #6d8c68;
+  background: #123a29;
+}
+
+.overworld-team-grid img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.overworld-team-grid span {
+  display: grid;
+  gap: 6px;
+}
+
+.overworld-team-grid strong {
+  color: #ffe49a;
+  font-size: .68rem;
+}
+
+.overworld-team-grid small {
+  color: #b9dfc7;
+  font-size: .5rem;
+  line-height: 1.4;
+}
+
+.overworld-team-grid > p {
+  grid-column: 1 / -1;
+  color: #d6efde;
+  text-align: center;
+}
+
+.overworld-dialogue > article {
+  width: min(520px, 92vw);
+}
+
+.overworld-dialogue p {
+  margin: 0 0 16px;
+  color: #dcefe1;
+  font-size: .68rem;
+  line-height: 1.7;
+}
+
+.overworld-dialogue footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.overworld-mobile-controls {
+  position: absolute;
+  z-index: 12;
+  inset: auto 0 0;
+  display: none;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 18px;
+  pointer-events: none;
+}
+
+.overworld-joystick {
+  position: relative;
+  width: 118px;
+  height: 118px;
+  border: 3px solid rgba(255, 229, 145, .7);
+  border-radius: 50%;
+  background: rgba(8, 39, 29, .62);
+  box-shadow: inset 0 0 0 4px rgba(95, 190, 137, .14);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.overworld-joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 3px solid #e7bd5b;
+  border-radius: 50%;
+  background: #2f7650;
+  box-shadow: 0 4px 0 #23452f;
+  pointer-events: none;
+}
+
+.overworld-mobile-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 66px);
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.overworld-mobile-actions button {
+  min-height: 54px;
+  border: 2px solid #e7bd5b;
+  border-radius: 8px;
+  color: #fff0a8;
+  background: rgba(11, 61, 42, .9);
+  box-shadow: 0 4px 0 #3b2a12;
+  font-size: .55rem;
+  font-weight: 900;
+  touch-action: manipulation;
+}
+
+.echo-clearing.overworld-battle-only .echo-viewport,
+.echo-clearing.overworld-battle-only .echo-hud,
+.echo-clearing.overworld-battle-only .echo-mobile-controls,
+.echo-clearing.overworld-battle-only .echo-interact,
+.echo-clearing.overworld-battle-only .echo-team,
+.echo-clearing.overworld-battle-only .echo-passage-confirm,
+.echo-clearing.overworld-battle-only .echo-dialogue,
+.echo-clearing.overworld-battle-only .echo-puzzle {
+  display: none !important;
+}
+
+@keyframes overworld-prompt-in {
+  from { opacity: 0; transform: translate(-50%, 7px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (pointer: coarse), (max-width: 900px) {
+  .overworld-mobile-controls { display: flex; }
+  .overworld-controls-help { display: none; }
+  .overworld-status { top: auto; right: 14px; bottom: 150px; }
+  .overworld-status span { display: none; }
+  .overworld-status .overworld-tool { display: none; }
+  .overworld-interaction { bottom: 154px; }
+  .overworld-hud { width: min(340px, calc(100% - 28px)); top: 10px; left: 14px; }
+}
+
+@media (max-width: 700px) {
+  .overworld-team-grid { grid-template-columns: 1fr; }
+  .overworld-mobile-controls { padding: 12px; }
+  .overworld-joystick { width: 104px; height: 104px; }
+  .overworld-mobile-actions { grid-template-columns: repeat(2, 58px); gap: 8px; }
+  .overworld-mobile-actions button { min-height: 48px; font-size: .48rem; }
+}
