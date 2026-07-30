@@ -25,3 +25,13 @@ jobs:
 
       - name: Finalizar, testar e capturar a Clareira
         run: bash scripts/finalize-definitive-voxel-art.sh
+
+      - name: Exibir diagnóstico em caso de falha
+        if: failure()
+        run: |
+          for file in /tmp/chrome-*.log /tmp/chrome-shot-*.log /tmp/naturion-http-*.log /tmp/naturion-integration-http.log /tmp/integration-chrome.log /tmp/*-dom.html; do
+            if [ -f "$file" ]; then
+              echo "===== $file ====="
+              tail -n 160 "$file"
+            fi
+          done
