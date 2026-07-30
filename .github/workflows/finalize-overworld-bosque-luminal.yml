@@ -1,9 +1,6 @@
 name: Finalizar Bosque Luminal
 
 on:
-  push:
-    branches:
-      - feature/overworld-bosque-luminal
   pull_request:
     branches:
       - main
@@ -13,7 +10,6 @@ permissions:
 
 jobs:
   validate-and-finalize:
-    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, '[overworld-complete]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
