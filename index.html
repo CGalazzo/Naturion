@@ -7818,6 +7818,132 @@
         drop-shadow(0 4px 2px rgba(0, 0, 0, .52));
     }
 
+
+    /* Correção confirmada: interação curta, colisão mínima e enquadramento universal. */
+    .echo-npc {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .echo-npc-interact {
+      position: absolute;
+      z-index: 7;
+      top: calc(100% + 25px);
+      left: 50%;
+      display: block !important;
+      width: max-content;
+      padding: 4px 7px;
+      border: 1px solid rgba(255, 241, 163, .88);
+      border-radius: 3px;
+      color: #fff6b8;
+      background: rgba(7, 27, 17, .94);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, .55);
+      font-size: .48rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-shadow: 1px 1px 0 #000;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .echo-npc-interact[hidden] {
+      display: none !important;
+    }
+
+    .echo-fighter {
+      min-height: 0;
+      grid-template-rows: clamp(220px, 38vh, 310px) auto;
+      align-content: center;
+      gap: 8px;
+      padding-bottom: 0;
+    }
+
+    .echo-fighter::after {
+      display: none;
+    }
+
+    .echo-fighter-stage {
+      position: relative;
+      isolation: isolate;
+      width: min(370px, 94%);
+      height: clamp(220px, 38vh, 310px);
+      align-self: end;
+      overflow: visible;
+    }
+
+    .echo-fighter-stage::after {
+      position: absolute;
+      z-index: 0;
+      right: 4%;
+      bottom: 8px;
+      left: 4%;
+      height: 62px;
+      border: 2px solid rgba(225, 197, 81, .72);
+      border-radius: 50%;
+      content: "";
+      background: radial-gradient(ellipse, rgba(78, 128, 67, .72), rgba(13, 37, 24, .08) 72%);
+      box-shadow: inset 0 0 24px rgba(102, 217, 141, .25);
+    }
+
+    .echo-fighter-stage img {
+      position: absolute;
+      z-index: 2;
+      top: var(--fighter-fit-top, 8%);
+      left: var(--fighter-fit-left, 10%);
+      width: var(--fighter-fit-width, 80%) !important;
+      height: var(--fighter-fit-height, 80%) !important;
+      max-width: none;
+      max-height: none;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55));
+      transform: scaleX(var(--fighter-direction));
+      transform-origin: center bottom;
+      image-rendering: pixelated;
+    }
+
+    .echo-battle-status {
+      margin-top: 0;
+    }
+
+    @keyframes echo-circle-strike {
+      0%, 100% { transform: translateX(0) scaleX(var(--fighter-direction)); }
+      45% { transform: translateX(var(--fighter-strike-x)) scaleX(var(--fighter-direction)); }
+    }
+
+    @keyframes echo-circle-hit {
+      0%, 100% { transform: translateX(0) scaleX(var(--fighter-direction)); filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55)); }
+      35% { transform: translateX(var(--fighter-hit-x)) scaleX(var(--fighter-direction)); filter: brightness(1.65) drop-shadow(0 0 10px #fff); }
+    }
+
+    @keyframes echo-circle-entry {
+      0% { opacity: 0; transform: translateY(34px) scale(.72) scaleX(var(--fighter-direction)); }
+      100% { opacity: 1; transform: translateY(0) scale(1) scaleX(var(--fighter-direction)); }
+    }
+
+    .echo-fighter.strike .echo-fighter-stage img {
+      animation: echo-circle-strike .38s steps(4, end);
+    }
+
+    .echo-fighter.hit .echo-fighter-stage img {
+      animation: echo-circle-hit .34s steps(3, end);
+    }
+
+    .echo-fighter.switching .echo-fighter-stage img {
+      animation: echo-circle-entry .68s steps(8, end) both;
+    }
+
+    @media (max-width: 720px) {
+      .echo-fighter {
+        grid-template-rows: clamp(180px, 31vh, 245px) auto;
+      }
+
+      .echo-fighter-stage {
+        width: min(260px, 98%);
+        height: clamp(180px, 31vh, 245px);
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -8769,7 +8895,9 @@
         <p class="echo-battle-message" id="echoBattleMessage">Um Naturion selvagem apareceu!</p>
         <div class="echo-battle-field">
           <article class="echo-fighter player" id="echoPlayerFighter">
-            <img id="echoBattlePlayerImage" src="assets/story/axolume.webp" alt="">
+            <div class="echo-fighter-stage">
+              <img id="echoBattlePlayerImage" src="assets/story/axolume.webp" alt="">
+            </div>
             <div class="echo-battle-status">
               <header>
                 <span id="echoBattlePlayerName">Axolume</span>
@@ -8779,7 +8907,9 @@
             </div>
           </article>
           <article class="echo-fighter wild" id="echoWildFighter">
-            <img id="echoBattleWildImage" src="assets/echo-creatures/escaruli.webp" alt="">
+            <div class="echo-fighter-stage">
+              <img id="echoBattleWildImage" src="assets/echo-creatures/escaruli.webp" alt="">
+            </div>
             <div class="echo-battle-status">
               <header>
                 <span id="echoBattleWildName">Escaruli</span>
@@ -9403,7 +9533,12 @@
           count: 4,
           objective: "Converse com a Dra. Íris e siga pela trilha dos ecos.",
           platforms: [
-            [0, 1, .844],
+            [0, .18, .844],
+            [.22, .42, .844],
+            [.46, .58, .844],
+            [.62, .72, .844],
+            [.76, .88, .844],
+            [.92, 1, .844],
             [.09, .18, .616],
             [.225, .41, .66],
             [.455, .553, .665],
@@ -9436,7 +9571,12 @@
           count: 4,
           objective: "Atravesse as raízes antigas e localize os cristais instáveis.",
           platforms: [
-            [0, 1, .846],
+            [0, .18, .846],
+            [.22, .42, .846],
+            [.46, .58, .846],
+            [.62, .72, .846],
+            [.76, .88, .846],
+            [.92, 1, .846],
             [.045, .105, .737],
             [.09, .145, .52],
             [.115, .225, .522],
@@ -9478,7 +9618,12 @@
           count: 5,
           objective: "Encontre o desafio ancestral e restaure o Circuito das Raízes.",
           platforms: [
-            [0, 1, .842],
+            [0, .18, .842],
+            [.22, .42, .842],
+            [.46, .58, .842],
+            [.62, .72, .842],
+            [.76, .88, .842],
+            [.92, 1, .842],
             [0, .058, .65],
             [.13, .315, .695],
             [.258, .35, .515],
@@ -9517,7 +9662,12 @@
           count: 5,
           objective: "Resolva a Trama Crepuscular para libertar o Portão das Raízes.",
           platforms: [
-            [0, 1, .84],
+            [0, .18, .84],
+            [.22, .42, .84],
+            [.46, .58, .84],
+            [.62, .72, .84],
+            [.76, .88, .84],
+            [.92, 1, .84],
             [.03, .155, .656],
             [.05, .145, .501],
             [.27, .4, .659],
@@ -9564,7 +9714,12 @@
           count: 6,
           objective: "Explore o santuário e encontre a origem do chamado cristalino.",
           platforms: [
-            [0, 1, .84],
+            [0, .18, .84],
+            [.22, .42, .84],
+            [.46, .58, .84],
+            [.62, .72, .84],
+            [.76, .88, .84],
+            [.92, 1, .84],
             [.02, .08, .576],
             [.055, .2, .652],
             [.1, .27, .605],
@@ -11444,6 +11599,89 @@
         form?.flying ? "0%" : `${Number(form?.groundOffset) || 0}%`
       );
 
+
+      const echoBattleSpriteBoundsCache = new Map();
+
+      const fitEchoBattleSprite = (image) => {
+        const stage = image.closest(".echo-fighter-stage");
+        const fighter = image.closest(".echo-fighter");
+        if (!stage || !fighter) return;
+
+        const applyFit = () => {
+          const naturalWidth = image.naturalWidth || 1;
+          const naturalHeight = image.naturalHeight || 1;
+          const source = image.currentSrc || image.src;
+          let bounds = echoBattleSpriteBoundsCache.get(source);
+
+          if (!bounds) {
+            bounds = { minX: 0, minY: 0, maxX: naturalWidth - 1, maxY: naturalHeight - 1 };
+            try {
+              const ratio = Math.min(1, 512 / Math.max(naturalWidth, naturalHeight));
+              const width = Math.max(1, Math.round(naturalWidth * ratio));
+              const height = Math.max(1, Math.round(naturalHeight * ratio));
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const context = canvas.getContext("2d", { willReadFrequently: true });
+              context.drawImage(image, 0, 0, width, height);
+              const pixels = context.getImageData(0, 0, width, height).data;
+              let minX = width;
+              let minY = height;
+              let maxX = -1;
+              let maxY = -1;
+              for (let y = 0; y < height; y += 1) {
+                for (let x = 0; x < width; x += 1) {
+                  if (pixels[(y * width + x) * 4 + 3] < 18) continue;
+                  minX = Math.min(minX, x);
+                  minY = Math.min(minY, y);
+                  maxX = Math.max(maxX, x);
+                  maxY = Math.max(maxY, y);
+                }
+              }
+              if (maxX >= minX && maxY >= minY) {
+                bounds = {
+                  minX: minX / ratio,
+                  minY: minY / ratio,
+                  maxX: (maxX + 1) / ratio - 1,
+                  maxY: (maxY + 1) / ratio - 1
+                };
+              }
+            } catch {
+              /* Usa a imagem completa caso o navegador não permita ler os pixels. */
+            }
+            echoBattleSpriteBoundsCache.set(source, bounds);
+          }
+
+          const stageWidth = stage.clientWidth || 320;
+          const stageHeight = stage.clientHeight || 260;
+          const visibleWidth = Math.max(1, bounds.maxX - bounds.minX + 1);
+          const visibleHeight = Math.max(1, bounds.maxY - bounds.minY + 1);
+          const scale = Math.min(
+            stageWidth * .78 / visibleWidth,
+            stageHeight * .76 / visibleHeight
+          );
+          const fullWidth = naturalWidth * scale;
+          const fullHeight = naturalHeight * scale;
+          const direction = fighter.classList.contains("player") ? -1 : 1;
+          const visibleCenter = (bounds.minX + bounds.maxX + 1) / 2;
+          const directedCenter = direction < 0 ? naturalWidth - visibleCenter : visibleCenter;
+          const left = stageWidth / 2 - directedCenter * scale;
+          const baseline = stageHeight - 28;
+          const top = baseline - (bounds.maxY + 1) * scale;
+
+          image.style.setProperty("--fighter-fit-width", `${fullWidth}px`);
+          image.style.setProperty("--fighter-fit-height", `${fullHeight}px`);
+          image.style.setProperty("--fighter-fit-left", `${left}px`);
+          image.style.setProperty("--fighter-fit-top", `${top}px`);
+        };
+
+        if (image.complete && image.naturalWidth) {
+          requestAnimationFrame(applyFit);
+        } else {
+          image.addEventListener("load", () => requestAnimationFrame(applyFit), { once: true });
+        }
+      };
+
       const getEchoRoster = () => [
         currentPlayer.starter,
         ...(Array.isArray(currentPlayer.team) ? currentPlayer.team : [])
@@ -11630,7 +11868,7 @@
             y: y * echoWorldHeight,
             oneWay: index > 0
           }))
-          .filter((platform) => x >= platform.from - 18 && x <= platform.to + 18)
+          .filter((platform) => x >= platform.from - 2 && x <= platform.to + 2)
           .sort((a, b) => a.y - b.y);
         if (typeof previousY === "number" && typeof nextY === "number") {
           return platforms.find((platform) => (
@@ -11767,8 +12005,6 @@ if (wild) echoWilds.push(wild);
           const npc = document.createElement("span");
           npc.className = "echo-npc";
           npc.dataset.echoNpc = area.npc.id;
-          npc.setAttribute("role", "button");
-          npc.setAttribute("aria-label", `Conversar com ${area.npc.name}`);
           npc.style.left = `${area.npc.x * echoWorldWidth}px`;
           npc.style.top = `${area.npc.y * echoWorldHeight}px`;
           const image = document.createElement("img");
@@ -11777,21 +12013,11 @@ if (wild) echoWilds.push(wild);
           const label = document.createElement("small");
           label.className = "echo-npc-name";
           label.textContent = area.npc.name;
-          npc.append(image, label);
-          npc.addEventListener("click", (event) => {
-            event.stopPropagation();
-            if (
-              !echoActive
-              || !echoDialogue.hidden
-              || !echoPuzzle.hidden
-              || !echoBattle.hidden
-              || !echoEvolution.hidden
-              || !echoAbsorption.hidden
-              || !echoTeam.hidden
-              || !echoPassageConfirm.hidden
-            ) return;
-            showEchoDialogue(area.npc);
-          });
+          const interaction = document.createElement("small");
+          interaction.className = "echo-npc-interact";
+          interaction.textContent = "E · Conversar";
+          interaction.hidden = true;
+          npc.append(image, label, interaction);
           echoNpcLayer.append(npc);
         }
 
@@ -11917,7 +12143,9 @@ if (wild) echoWilds.push(wild);
           && Math.abs(echoPlayerY - target.y * echoWorldHeight) < vertical
         );
 
-        if (near(area.puzzle, 112, 86) && !isEchoPuzzleSolved()) {
+        if (near(area.npc, 58, 66)) {
+          echoNearInteraction = { type: "npc", value: area.npc };
+        } else if (near(area.puzzle, 112, 86) && !isEchoPuzzleSolved()) {
           echoNearInteraction = { type: "puzzle", value: area.puzzle };
         } else if (near(area.passages?.previous, 108, 92)) {
           echoNearInteraction = {
@@ -11932,6 +12160,9 @@ if (wild) echoWilds.push(wild);
             value: area.passages.next
           };
         }
+
+        const npcInteraction = echoNpcLayer.querySelector(".echo-npc-interact");
+        if (npcInteraction) npcInteraction.hidden = echoNearInteraction?.type !== "npc";
       };
       const closeEchoPassageConfirmation = () => {
         echoPassageConfirm.hidden = true;
@@ -12129,7 +12360,9 @@ if (wild) echoWilds.push(wild);
 
       const interactEchoWorld = () => {
         if (!echoActive || !echoNearInteraction || !echoDialogue.hidden || !echoPuzzle.hidden) return;
-        if (echoNearInteraction.type === "puzzle") {
+        if (echoNearInteraction.type === "npc") {
+          showEchoDialogue(echoNearInteraction.value);
+        } else if (echoNearInteraction.type === "puzzle") {
           openEchoPuzzle(echoNearInteraction.value);
         }
       };
@@ -12153,7 +12386,7 @@ if (wild) echoWilds.push(wild);
         if (echoGrounded && !getEchoGroundAt(echoPlayerX)) echoGrounded = false;
         echoVelocityY += 1650 * dt;
         const previousY = echoPlayerY;
-        const nextX = Math.max(34, Math.min(echoWorldWidth - 34, echoPlayerX + echoVelocityX * dt));
+        const nextX = Math.max(8, Math.min(echoWorldWidth - 8, echoPlayerX + echoVelocityX * dt));
         const nextY = echoPlayerY + echoVelocityY * dt;
         const landing = echoVelocityY >= 0 ? getEchoGroundAt(nextX, previousY, nextY) : null;
         echoPlayerX = nextX;
@@ -12179,7 +12412,7 @@ if (wild) echoWilds.push(wild);
         updateEchoWilds(dt, now);
         updateEchoInteraction();
 
-        echoPlayerX = Math.max(34, Math.min(echoWorldWidth - 34, echoPlayerX));
+        echoPlayerX = Math.max(8, Math.min(echoWorldWidth - 8, echoPlayerX));
 
         echoFrame = requestAnimationFrame(stepEchoExploration);
       };
@@ -12329,14 +12562,15 @@ if (wild) echoWilds.push(wild);
         echoPlayerHpValue = Math.max(0, member.currentHp);
         echoBattlePlayerImage.src = form.image;
         echoBattlePlayerImage.alt = form.name;
-        echoBattlePlayerImage.parentElement.style.setProperty(
+        echoPlayerFighter.style.setProperty(
           "--fighter-size",
           `${170 + form.stage * 35}px`
         );
-        echoBattlePlayerImage.parentElement.style.setProperty(
+        echoPlayerFighter.style.setProperty(
           "--fighter-ground-offset",
           getNaturionGroundOffset(form)
         );
+        fitEchoBattleSprite(echoBattlePlayerImage);
         echoBattlePlayerName.textContent = form.name;
         echoBattlePlayerLevel.textContent = `Nv. ${member.level}`;
         echoElementalHint.textContent = `${form.type} · Poder ${11 + Math.floor(member.level / 4)}`;
@@ -12377,11 +12611,12 @@ if (wild) echoWilds.push(wild);
         echoWildHpValue = echoWildMaxHp;
         echoBattleWildImage.src = wild.form.image;
         echoBattleWildImage.alt = wild.form.name;
-        echoBattleWildImage.parentElement.style.setProperty("--fighter-size", `${165 + wild.form.stage * 38}px`);
-        echoBattleWildImage.parentElement.style.setProperty(
+        echoWildFighter.style.setProperty("--fighter-size", `${165 + wild.form.stage * 38}px`);
+        echoWildFighter.style.setProperty(
           "--fighter-ground-offset",
           getNaturionGroundOffset(wild.form)
         );
+        fitEchoBattleSprite(echoBattleWildImage);
         echoBattleWildName.textContent = wild.form.name;
         echoBattleWildLevel.textContent = `${wild.form.type} · Nv. ${wild.level}`;
         echoBattleMessage.textContent = `${wild.form.name} selvagem apareceu! Escolha sua ação.`;
