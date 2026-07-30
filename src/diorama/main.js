@@ -14,6 +14,9 @@ const backButton = document.getElementById("dioramaBackMap");
 const teamButton = document.getElementById("dioramaTeamButton");
 const worldMap = document.getElementById("openForestMap");
 const destinationButton = document.getElementById("worldFirstDestination");
+const teamPanel = document.getElementById("dioramaTeamPanel");
+const teamGrid = document.getElementById("dioramaTeamGrid");
+const teamClose = document.getElementById("dioramaTeamClose");
 
 let engine = null;
 let player = null;
@@ -97,9 +100,32 @@ const handleInteraction = async () => {
 };
 
 const openTeam = () => {
-  const legacy = bridge();
-  if (legacy?.openTeam) legacy.openTeam();
-  else showToast("A equipe continua disponível pelo sistema atual do jogo.");
+  const playerData = getPlayerSnapshot();
+  const team = playerData.team || [];
+  teamGrid.replaceChildren();
+  if (!team.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "Nenhum Naturion está registrado na equipe.";
+    teamGrid.append(empty);
+  } else {
+    team.forEach((member) => {
+      const card = document.createElement("article");
+      const image = document.createElement("img");
+      const copy = document.createElement("span");
+      const name = document.createElement("strong");
+      const info = document.createElement("small");
+      image.src = member.image || window.__naturionEcho?.forms?.[member.formId]?.image || "";
+      image.alt = member.name || "Naturion";
+      name.textContent = member.name || member.formId || "Naturion";
+      info.textContent = `${member.type || "Elemento desconhecido"} · Nv. ${member.level || 1}`;
+      copy.append(name, info);
+      card.append(image, copy);
+      teamGrid.append(card);
+    });
+  }
+  input?.reset();
+  teamPanel.hidden = false;
+  teamClose.focus();
 };
 
 const savePosition = () => {
@@ -136,7 +162,7 @@ const createScene = () => {
   stageBuild = buildBosqueClareira({ scene: engine.scene, engine });
 
   input = new InputController({
-    isActive: () => active && !screen.hidden,
+    isActive: () => active && !screen.hidden && teamPanel.hidden,
     onInteract: handleInteraction,
     onMenu: openTeam,
     onEscape: returnToMap
@@ -179,6 +205,7 @@ const createScene = () => {
 
 const enterDiorama = async () => {
   if (active || !screen) return;
+  await bridge()?.requestStageEntry?.();
   bridge()?.prepareStageEntry?.();
   worldMap.hidden = true;
   screen.hidden = false;
@@ -200,5 +227,15 @@ const handleDestination = async (event) => {
 destinationButton?.addEventListener("click", handleDestination, true);
 backButton?.addEventListener("click", returnToMap);
 teamButton?.addEventListener("click", openTeam);
+teamClose?.addEventListener("click", () => {
+  teamPanel.hidden = true;
+  viewport.focus();
+});
+teamPanel?.addEventListener("click", (event) => {
+  if (event.target === teamPanel) {
+    teamPanel.hidden = true;
+    viewport.focus();
+  }
+});
 window.addEventListener("naturion:open-diorama", enterDiorama);
 window.addEventListener("beforeunload", savePosition);

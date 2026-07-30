@@ -165,10 +165,10 @@ export const buildBosqueClareira = ({ scene, engine }) => {
   ];
   pathSegments.forEach(([x, z, width, depth]) => addBox(root, x, stage.getHeightAt(x, z) + 0.03, z, width, 0.08, depth, stage.palette.path));
 
-  addBox(root, 17, 1.08, 12, 15, 1.05, 10, stage.palette.grassLight);
-  addBox(root, 27, 1.78, 20, 13, 1.75, 12, stage.palette.grassLight);
-  addBox(root, -24, 0.48, 16, 13, 0.45, 11, 0x5b9f4a);
-  addBox(root, 19, 0.42, 1, 13, 0.4, 11, 0x5caa52);
+  addBox(root, 17, 0.08, 12, 15, 1.05, 10, stage.palette.grassLight);
+  addBox(root, 27, 0.08, 20, 13, 1.75, 12, stage.palette.grassLight);
+  addBox(root, -24, 0.08, 16, 13, 0.45, 11, 0x5b9f4a);
+  addBox(root, 19, 0.08, 1, 13, 0.4, 11, 0x5caa52);
 
   const occluders = [];
   const trees = [

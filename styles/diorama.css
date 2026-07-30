@@ -179,3 +179,38 @@
     text-align: center;
   }
 }
+
+
+.diorama-team-panel[hidden] { display: none !important; }
+.diorama-team-panel {
+  position: absolute;
+  z-index: 18;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+  background: rgba(3, 19, 13, .78);
+  backdrop-filter: blur(3px);
+}
+.diorama-team-panel > article {
+  width: min(680px, 90vw);
+  max-height: 78vh;
+  overflow: auto;
+  padding: 18px;
+  border: 3px solid #e8c752;
+  border-radius: 4px;
+  background: #092b1f;
+  box-shadow: inset 0 0 0 3px rgba(124, 220, 171, .12), 0 8px 0 #3b2707, 0 22px 48px rgba(0, 0, 0, .58);
+}
+.diorama-team-panel header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.diorama-team-panel header span { display: grid; gap: 4px; }
+.diorama-team-panel header small { color: #7ed9b2; font-size: .54rem; text-transform: uppercase; }
+.diorama-team-panel header strong { color: #fff2a5; font-size: 1rem; }
+.diorama-team-panel header button { width: 38px; height: 38px; border: 2px solid #e8c752; color: #fff2a5; background: #173f2e; cursor: pointer; }
+.diorama-team-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.diorama-team-grid > article { display: grid; grid-template-columns: 72px 1fr; gap: 10px; align-items: center; min-height: 92px; padding: 10px; border: 2px solid #6d8c68; background: #123a29; }
+.diorama-team-grid img { width: 68px; height: 68px; object-fit: contain; image-rendering: pixelated; }
+.diorama-team-grid span { display: grid; gap: 6px; }
+.diorama-team-grid strong { color: #fff1a2; font-size: .68rem; }
+.diorama-team-grid small { color: #b9dfc7; font-size: .5rem; line-height: 1.4; }
+.diorama-team-grid > p { grid-column: 1 / -1; color: #d6efde; text-align: center; }
