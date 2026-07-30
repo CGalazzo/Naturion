@@ -7949,7 +7949,7 @@
     }
 
   </style>
-  <link rel="stylesheet" href="styles/diorama.css">
+  <link rel="stylesheet" href="styles/overworld.css">
 </head>
 <body>
   <main class="title-screen" id="titleScreen" aria-label="Tela inicial do Naturion">
@@ -8723,7 +8723,7 @@
             alt="Ruínas verdes e luminosas da Clareira dos Ecos"
           >
           <h2 id="echoEntryTitle">Entrar na Clareira dos Ecos?</h2>
-          <p>Esta região possui cinco áreas conectadas, Naturions selvagens, pesquisadores e puzzles antigos. Você poderá retornar ao mapa pela entrada.</p>
+          <p>O Bosque Luminal é uma área compacta de exploração com casas, NPCs, Naturions selvagens e um portão bloqueado. Você poderá retornar ao mapa a qualquer momento.</p>
           <div class="echo-entry-actions">
             <button class="echo-button" id="confirmEchoEntry" type="button">Entrar na clareira</button>
             <button class="echo-button secondary" id="cancelEchoEntry" type="button">Permanecer no mapa</button>
@@ -8733,46 +8733,39 @@
     </section>
 
     <section
-      class="diorama-screen"
-      id="dioramaScreen"
-      aria-label="Clareira dos Ecos em diorama 3D"
+      class="overworld-screen"
+      id="overworldScreen"
+      aria-label="Exploração superior do Bosque Luminal"
       tabindex="-1"
       hidden
     >
-      <div class="diorama-viewport" id="dioramaViewport" tabindex="0"></div>
-
-      <header class="diorama-hud">
-        <small>Clareira dos Ecos · Primeira fase de teste</small>
-        <strong>Explore o bosque em formato de diorama</strong>
-        <em id="dioramaObjective">Explore o bosque e alcance o portão de raízes.</em>
+      <div class="overworld-viewport" id="overworldViewport" tabindex="0"></div>
+      <header class="overworld-hud">
+        <small>Área de exploração</small>
+        <strong>Bosque Luminal</strong>
+        <em id="overworldObjective">Explore o bosque e descubra como abrir o portão de raízes.</em>
       </header>
-
-      <nav class="diorama-status" aria-label="Ferramentas da exploração">
-        <span id="dioramaMovementState">Parado</span>
-        <button class="diorama-tool" id="dioramaTeamButton" type="button">Equipe</button>
-        <button class="diorama-tool" id="dioramaBackMap" type="button">Mapa-múndi</button>
+      <nav class="overworld-status" aria-label="Ferramentas da exploração">
+        <span id="overworldMovementState">Parado</span>
+        <button class="overworld-tool" id="overworldTeamButton" type="button">Equipe</button>
+        <button class="overworld-tool" id="overworldBackMap" type="button">Mapa-múndi</button>
       </nav>
-
-      <aside class="diorama-controls-help" aria-label="Controles">
-        <span>WASD / Setas · Mover</span>
-        <span>Shift · Correr</span>
-        <span>E · Interagir</span>
-        <span>Esc · Voltar</span>
+      <aside class="overworld-controls-help" aria-label="Controles">
+        <span>WASD / Setas · Mover</span><span>Shift · Correr</span><span>E · Interagir</span><span>Esc · Voltar</span>
       </aside>
-
-      <div class="diorama-interaction" id="dioramaInteraction" hidden></div>
-
-      <section class="diorama-team-panel" id="dioramaTeamPanel" aria-label="Equipe atual" hidden>
-        <article>
-          <header>
-            <span>
-              <small>Relógio Cristalíneo</small>
-              <strong>Equipe atual</strong>
-            </span>
-            <button id="dioramaTeamClose" type="button" aria-label="Fechar equipe">×</button>
-          </header>
-          <div class="diorama-team-grid" id="dioramaTeamGrid"></div>
-        </article>
+      <div class="overworld-interaction" id="overworldInteraction" hidden></div>
+      <section class="overworld-mobile-controls" aria-label="Controles de toque">
+        <div class="overworld-joystick" id="overworldJoystick" aria-label="Direcional"><span class="overworld-joystick-knob" id="overworldJoystickKnob"></span></div>
+        <div class="overworld-mobile-actions">
+          <button id="overworldMobileRun" type="button">Correr</button><button id="overworldMobileInteract" type="button">Interagir</button>
+          <button id="overworldMobileTeam" type="button">Equipe</button><button id="overworldMobileMap" type="button">Mapa</button>
+        </div>
+      </section>
+      <section class="overworld-team-panel" id="overworldTeamPanel" aria-label="Equipe atual" hidden>
+        <article><header><span><small>Relógio Cristalíneo</small><strong>Equipe atual</strong></span><button id="overworldTeamClose" type="button" aria-label="Fechar equipe">×</button></header><div class="overworld-team-grid" id="overworldTeamGrid"></div></article>
+      </section>
+      <section class="overworld-dialogue" id="overworldDialogue" role="dialog" aria-modal="true" hidden>
+        <article><header><span><small>Bosque Luminal</small><strong id="overworldDialogueName">Exploração</strong></span></header><p id="overworldDialogueText"></p><footer><button id="overworldDialogueClose" type="button">Continuar</button></footer></article>
       </section>
     </section>
 
@@ -12410,7 +12403,7 @@ if (wild) echoWilds.push(wild);
         currentPlayer.lastCheckpoint = `clareira-dos-ecos-area-${echoAreaIndex + 1}`;
         currentPlayer.activeMission = {
           ...currentPlayer.activeMission,
-          location: "Clareira dos Ecos",
+          location: "Bosque Luminal",
           objective: area.objective,
           progress: `area-${echoAreaIndex + 1}`
         };
@@ -12636,12 +12629,12 @@ if (wild) echoWilds.push(wild);
         echoTryAbsorb.focus();
       };
 
-      let dioramaBattleContext = null;
+      let overworldBattleContext = null;
 
-      const finishDioramaLegacyBattle = (result = {}) => {
-        const context = dioramaBattleContext;
+      const finishOverworldLegacyBattle = (result = {}) => {
+        const context = overworldBattleContext;
         if (!context) return false;
-        dioramaBattleContext = null;
+        overworldBattleContext = null;
         echoActive = false;
         cancelAnimationFrame(echoFrame);
         resetEchoMovement();
@@ -12654,17 +12647,17 @@ if (wild) echoWilds.push(wild);
         echoBattleMemberUid = null;
         echoEncounter = null;
         echoClearing.hidden = true;
-        echoClearing.classList.remove("diorama-battle-only");
-        const dioramaScreen = document.getElementById("dioramaScreen");
-        if (dioramaScreen) dioramaScreen.hidden = false;
+        echoClearing.classList.remove("overworld-battle-only");
+        const overworldScreen = document.getElementById("overworldScreen");
+        if (overworldScreen) overworldScreen.hidden = false;
         const detail = { encounterId: context.encounterId, ...result };
         context.resolve(detail);
-        window.dispatchEvent(new CustomEvent("naturion:diorama-battle-finished", { detail }));
+        window.dispatchEvent(new CustomEvent("naturion:overworld-battle-finished", { detail }));
         return true;
       };
 
-      const startDioramaLegacyBattle = (payload) => {
-        if (dioramaBattleContext) return Promise.resolve({ outcome: "busy" });
+      const startOverworldLegacyBattle = (payload) => {
+        if (overworldBattleContext) return Promise.resolve({ outcome: "busy" });
         const form = NATURION_FORMS[payload?.formId];
         if (!form) return Promise.resolve({ outcome: "invalid" });
         const chain = getEvolutionChain(form.id) || [form.id];
@@ -12679,17 +12672,17 @@ if (wild) echoWilds.push(wild);
           element: null
         };
         return new Promise((resolve) => {
-          dioramaBattleContext = {
+          overworldBattleContext = {
             resolve,
             encounterId: encounter.instanceId,
             stageId: payload.stageId || "bosque-clareira-diorama",
             result: { outcome: "victory", captured: false }
           };
-          const dioramaScreen = document.getElementById("dioramaScreen");
-          if (dioramaScreen) dioramaScreen.hidden = true;
+          const overworldScreen = document.getElementById("overworldScreen");
+          if (overworldScreen) overworldScreen.hidden = true;
           openForestMap.hidden = true;
           echoClearing.hidden = false;
-          echoClearing.classList.add("diorama-battle-only");
+          echoClearing.classList.add("overworld-battle-only");
           echoBattle.hidden = true;
           echoBattleChoice.hidden = true;
           echoAbsorption.hidden = true;
@@ -12717,7 +12710,7 @@ if (wild) echoWilds.push(wild);
         echoPlayerFighter.classList.remove("hit", "strike", "switching");
         echoEncounter = null;
         resetEchoMovement();
-        if (finishDioramaLegacyBattle({ outcome: "defeat" })) return;
+        if (finishOverworldLegacyBattle({ outcome: "defeat" })) return;
         await enterEchoArea(echoAreaIndex, "left");
       };
 
@@ -12760,8 +12753,8 @@ if (wild) echoWilds.push(wild);
             Math.min(echoWorldWidth - 46, echoPlayerX + (echoPlayerX <= wildX ? -115 : 115))
           );
           await forestPause(620);
-          if (dioramaBattleContext) {
-            finishDioramaLegacyBattle({ outcome: "fled" });
+          if (overworldBattleContext) {
+            finishOverworldLegacyBattle({ outcome: "fled" });
             return;
           }
           echoBattle.hidden = true;
@@ -12853,8 +12846,8 @@ if (wild) echoWilds.push(wild);
         if (!echoEvolutionQueue.length) {
           echoEvolution.classList.remove("active", "complete");
           echoEvolutionParticles.replaceChildren();
-          if (dioramaBattleContext) {
-            finishDioramaLegacyBattle(dioramaBattleContext.result || { outcome: "victory" });
+          if (overworldBattleContext) {
+            finishOverworldLegacyBattle(overworldBattleContext.result || { outcome: "victory" });
             return;
           }
           startEchoLoop();
@@ -12896,13 +12889,13 @@ if (wild) echoWilds.push(wild);
         echoPlayerFighter.classList.remove("hit", "strike", "switching");
         echoBattleMemberUid = null;
         echoEncounter = null;
-        if (!dioramaBattleContext) updateEchoHud();
+        if (!overworldBattleContext) updateEchoHud();
         showNextEchoEvolution();
       };
 
       const releaseEchoWild = () => {
         if (!echoEncounter) return;
-        if (dioramaBattleContext) dioramaBattleContext.result = { outcome: "victory", captured: false };
+        if (overworldBattleContext) overworldBattleContext.result = { outcome: "victory", captured: false };
         echoBattleChoice.hidden = true;
         echoBattleMessage.textContent = `A essência de ${echoEncounter.form.name} retornou ao cristal, agora estabilizado.`;
         playSequence([659, 523, 392], .06);
@@ -12953,7 +12946,7 @@ if (wild) echoWilds.push(wild);
           experience: 0,
           experiencePercent: 0,
           capturedAt: new Date().toISOString(),
-          capturedIn: dioramaBattleContext?.stageId || getEchoArea().id,
+          capturedIn: overworldBattleContext?.stageId || getEchoArea().id,
           maxHp: 28 + wild.level * 4 + form.stage * 6,
           currentHp: 28 + wild.level * 4 + form.stage * 6
         };
@@ -12986,7 +12979,7 @@ if (wild) echoWilds.push(wild);
           await forestPause(2850);
           if (success) {
             echoAbsorption.dataset.lastResult = "success";
-            if (dioramaBattleContext) dioramaBattleContext.result = { outcome: "victory", captured: true };
+            if (overworldBattleContext) overworldBattleContext.result = { outcome: "victory", captured: true };
             const capture = addCapturedNaturion(wild);
             echoAbsorbMessage.textContent = capture.destination === "team"
               ? `Essência absorvida! ${wild.form.name} entrou para sua equipe.`
@@ -13002,7 +12995,7 @@ if (wild) echoWilds.push(wild);
             await forestPause(1050);
           } else {
             echoAbsorption.dataset.lastResult = "failed";
-            if (dioramaBattleContext) dioramaBattleContext.result = { outcome: "victory", captured: false };
+            if (overworldBattleContext) overworldBattleContext.result = { outcome: "victory", captured: false };
             echoAbsorbMessage.textContent = "A sintonia se desfez. A essência está retornando...";
             echoAbsorption.classList.remove("active");
             createEchoAbsorptionParticles(style);
@@ -13024,29 +13017,29 @@ if (wild) echoWilds.push(wild);
         }
       };
 
-      window.NaturionDioramaBridge = {
+      window.NaturionOverworldBridge = {
         getPlayer: () => JSON.parse(JSON.stringify(currentPlayer || {})),
-        requestStageEntry: async () => {
+        requestMapEntry: async () => {
           if (!firstWorldDestinationReached) await travelToFirstWorldDestination();
           echoEntryConfirm.hidden = true;
           openMapExploring = false;
           return true;
         },
-        prepareStageEntry: () => {
+        prepareMapEntry: () => {
           ensureEchoPlayerData();
           currentPlayer = {
             ...currentPlayer,
-            lastCheckpoint: "clareira-dos-ecos-diorama",
+            lastCheckpoint: "bosque-luminal-overworld",
             storyFlags: {
               ...(currentPlayer.storyFlags || {}),
               firstWorldDestinationReached: true,
-              echoDioramaUnlocked: true
+              overworldUnlocked: true
             },
             activeMission: {
               ...(currentPlayer.activeMission || {}),
-              location: "Clareira dos Ecos",
-              objective: "Explore o bosque e alcance o portão de raízes.",
-              progress: "diorama-em-exploracao"
+              location: "Bosque Luminal",
+              objective: "Explore o bosque e descubra como abrir o portão de raízes.",
+              progress: "overworld-em-exploracao"
             }
           };
           saveCurrentPlayer();
@@ -13054,25 +13047,25 @@ if (wild) echoWilds.push(wild);
         saveState: (state) => {
           currentPlayer = {
             ...currentPlayer,
-            dioramaProgress: {
-              ...(currentPlayer.dioramaProgress || {}),
+            overworldProgress: {
+              ...(currentPlayer.overworldProgress || {}),
               ...state,
               savedAt: new Date().toISOString()
             },
-            lastCheckpoint: "clareira-dos-ecos-diorama"
+            lastCheckpoint: "bosque-luminal-overworld"
           };
           saveCurrentPlayer();
-          return currentPlayer.dioramaProgress;
+          return currentPlayer.overworldProgress;
         },
         returnToWorldMap: () => {
           openForestMap.hidden = false;
           worldMapObjective.textContent = "Destino alcançado: Clareira dos Ecos";
-          worldMapGuideText.textContent = "A Clareira dos Ecos agora possui uma primeira fase em diorama 3D.";
-          forestObjective.textContent = "Explore a Clareira dos Ecos";
+          worldMapGuideText.textContent = "A Clareira dos Ecos conduz ao novo mapa de exploração do Bosque Luminal.";
+          forestObjective.textContent = "Explore o Bosque Luminal";
           currentPlayer.lastCheckpoint = "mundo-naturion-clareira-dos-ecos";
           saveCurrentPlayer();
         },
-        startBattle: startDioramaLegacyBattle
+        startBattle: startOverworldLegacyBattle
       };
 
       window.__naturionEcho = {
@@ -13728,6 +13721,6 @@ if (wild) echoWilds.push(wild);
       updateFormState();
     })();
   </script>
-  <script type="module" src="src/diorama/main.js"></script>
+  <script type="module" src="src/overworld/main.js"></script>
 </body>
 </html>
