@@ -12662,7 +12662,7 @@ if (wild) echoWilds.push(wild);
         if (!form) return Promise.resolve({ outcome: "invalid" });
         const chain = getEvolutionChain(form.id) || [form.id];
         const encounter = {
-          instanceId: payload.encounterId || `diorama-${form.id}-${Date.now()}`,
+          instanceId: payload.encounterId || `overworld-${form.id}-${Date.now()}`,
           chain,
           form,
           level: Math.max(1, Number(payload.level) || form.minLevel || 1),
@@ -12675,7 +12675,7 @@ if (wild) echoWilds.push(wild);
           overworldBattleContext = {
             resolve,
             encounterId: encounter.instanceId,
-            stageId: payload.stageId || "bosque-clareira-diorama",
+            stageId: payload.stageId || "bosque-luminal-overworld",
             result: { outcome: "victory", captured: false }
           };
           const overworldScreen = document.getElementById("overworldScreen");
