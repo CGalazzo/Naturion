@@ -1,4 +1,5 @@
 import { THREE } from "./engine.js";
+import { ART_DIRECTION } from "./art/art-direction.js";
 import { createPixelShadowTexture } from "./art/environment-factory.js";
 
 export class EntitySystem {
@@ -21,17 +22,61 @@ export class EntitySystem {
     texture.magFilter = THREE.NearestFilter;
     texture.minFilter = THREE.NearestFilter;
     texture.generateMipmaps = false;
-    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, alphaTest: 0.06, depthWrite: true });
+
+    const root = new THREE.Group();
+    root.name = `Naturion-${form.name}`;
+    const visual = new THREE.Group();
+    root.add(visual);
+
+    const outlineMaterial = new THREE.SpriteMaterial({
+      map: texture,
+      color: ART_DIRECTION.palette.outline,
+      transparent: true,
+      alphaTest: 0.06,
+      depthWrite: false,
+      fog: false
+    });
+    const outline = new THREE.Sprite(outlineMaterial);
+    outline.center.set(0.5, definition.flying ? 0.42 : 0.055);
+    outline.scale.set(1.075, 1.075, 1);
+    outline.position.z = 0.018;
+    outline.renderOrder = 2;
+    visual.add(outline);
+
+    const rimMaterial = new THREE.SpriteMaterial({
+      map: texture,
+      color: ART_DIRECTION.palette.sunHighlight,
+      transparent: true,
+      opacity: 0.22,
+      alphaTest: 0.08,
+      depthWrite: false,
+      fog: false
+    });
+    const rim = new THREE.Sprite(rimMaterial);
+    rim.center.set(0.5, definition.flying ? 0.42 : 0.055);
+    rim.scale.set(1.03, 1.03, 1);
+    rim.position.set(-0.035, 0.045, 0.012);
+    rim.renderOrder = 3;
+    visual.add(rim);
+
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      alphaTest: 0.06,
+      depthWrite: true,
+      fog: false
+    });
     const sprite = new THREE.Sprite(material);
     sprite.center.set(0.5, definition.flying ? 0.42 : 0.055);
+    sprite.renderOrder = 4;
+    visual.add(sprite);
+
     const scale = definition.scale || (form.stage === 1 ? 2.75 : 3.35);
-    sprite.scale.set(scale, scale, 1);
+    visual.scale.set(scale, scale, 1);
     const groundY = this.stage.getHeightAt(definition.position.x, definition.position.z);
     const y = groundY + (definition.flying ? definition.altitude || 3.2 : 0.035);
-    sprite.position.set(definition.position.x, y, definition.position.z);
-    sprite.name = form.name;
-    sprite.renderOrder = 3;
-    this.scene.add(sprite);
+    root.position.set(definition.position.x, y, definition.position.z);
+    this.scene.add(root);
 
     const shadowMaterial = new THREE.MeshBasicMaterial({
       map: this.shadowTexture,
@@ -49,7 +94,13 @@ export class EntitySystem {
       form,
       texture,
       material,
-      object: sprite,
+      outlineMaterial,
+      rimMaterial,
+      object: root,
+      visual,
+      sprite,
+      outline,
+      rim,
       shadow,
       shadowMaterial,
       baseScale: scale,
@@ -79,20 +130,30 @@ export class EntitySystem {
 
       if (entity.flying) {
         const flap = Math.sin(entity.elapsed * 8.2);
-        entity.object.position.y = groundY + (entity.altitude || 3.2) + Math.sin(entity.elapsed * 2.2) * 0.28;
-        entity.object.material.rotation = Math.sin(entity.elapsed * 4.6) * 0.028;
-        entity.object.scale.y = entity.baseScale * (1 + Math.abs(flap) * 0.035);
-        entity.object.scale.x = Math.abs(entity.baseScale * (1 - Math.abs(flap) * 0.02)) * (entity.direction.x >= 0 ? 1 : -1);
+        entity.object.position.y = groundY + (entity.altitude || 3.2) + Math.round(Math.sin(entity.elapsed * 2.2) * 7) / 25;
+        entity.visual.rotation.z = Math.sin(entity.elapsed * 4.6) * 0.025;
+        const sign = entity.direction.x >= 0 ? 1 : -1;
+        entity.visual.scale.set(
+          sign * entity.baseScale * (1 - Math.abs(flap) * 0.018),
+          entity.baseScale * (1 + Math.abs(flap) * 0.034),
+          1
+        );
+        entity.rim.material.opacity = 0.16 + Math.abs(flap) * 0.12;
         entity.shadow.position.set(entity.object.position.x, groundY + 0.025, entity.object.position.z);
         const altitudeFade = Math.max(0.52, 1 - (entity.altitude || 3.2) * 0.07);
         entity.shadow.scale.setScalar(altitudeFade + Math.sin(entity.elapsed * 2.2) * 0.025);
       } else {
         const moving = entity.behavior === "wander" || entity.behavior === "patrol";
         const gait = Math.sin(entity.elapsed * (moving ? 7 : 2));
-        entity.object.position.y = groundY + Math.abs(gait) * (moving ? 0.065 : 0.025) + 0.035;
-        entity.object.material.rotation = moving ? gait * 0.032 : Math.sin(entity.elapsed * 1.5) * 0.012;
-        entity.object.scale.y = entity.baseScale * (1 + Math.abs(gait) * 0.018);
-        entity.object.scale.x = Math.abs(entity.baseScale * (1 - Math.abs(gait) * 0.01)) * (entity.direction.x >= 0 ? 1 : -1);
+        entity.object.position.y = groundY + Math.round(Math.abs(gait) * (moving ? 5 : 2)) / 80 + 0.035;
+        entity.visual.rotation.z = moving ? gait * 0.028 : Math.sin(entity.elapsed * 1.5) * 0.01;
+        const sign = entity.direction.x >= 0 ? 1 : -1;
+        entity.visual.scale.set(
+          sign * entity.baseScale * (1 - Math.abs(gait) * 0.012),
+          entity.baseScale * (1 + Math.abs(gait) * 0.02),
+          1
+        );
+        entity.rim.material.opacity = moving ? 0.2 + Math.abs(gait) * 0.06 : 0.18;
         entity.shadow.position.set(entity.object.position.x, groundY + 0.025, entity.object.position.z);
         entity.shadow.scale.setScalar(0.96 + Math.abs(gait) * 0.045);
       }
@@ -181,6 +242,8 @@ export class EntitySystem {
     this.entities.forEach((entity) => {
       entity.texture.dispose();
       entity.material.dispose();
+      entity.outlineMaterial.dispose();
+      entity.rimMaterial.dispose();
       entity.shadow.geometry.dispose();
       entity.shadowMaterial.dispose();
       entity.object.removeFromParent();
