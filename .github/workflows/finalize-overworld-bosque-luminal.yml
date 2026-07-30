@@ -68,7 +68,7 @@ jobs:
             }
           }
           NODE
-          if grep -RniE 'placeholder|TODO|molde temporário|teste visual' src/overworld styles/overworld.css; then exit 1; fi
+          if grep -RniE 'placeholder|(^|[^[:alnum:]_])TODO([^[:alnum:]_]|$)|molde temporário|teste visual' src/overworld styles/overworld.css; then exit 1; fi
           git diff --check
 
       - name: Testar no Chrome
