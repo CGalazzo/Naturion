@@ -258,6 +258,14 @@
       --edge: #102948;
     }
 
+    .pixel-button.continue {
+      --top: #f1d85c;
+      --mid: #b88721;
+      --bottom: #65430c;
+      --edge: #3f2908;
+      color: #fffbd2;
+    }
+
     .pixel-button:hover,
     .pixel-button:focus-visible {
       filter: brightness(1.13) saturate(1.08);
@@ -5051,6 +5059,70 @@
       height: 44px;
     }
 
+    .world-map-tools {
+      position: absolute;
+      z-index: 24;
+      top: max(88px, calc(env(safe-area-inset-top) + 72px));
+      right: max(14px, env(safe-area-inset-right));
+      display: flex;
+      gap: 9px;
+    }
+
+    .world-map-tool {
+      position: relative;
+      display: grid;
+      width: clamp(46px, 4.4vw, 58px);
+      aspect-ratio: 1;
+      place-items: center;
+      padding: 8px;
+      border: 3px solid #18281e;
+      border-radius: 4px;
+      outline: 2px solid #e2c356;
+      outline-offset: -6px;
+      color: #fff4a9;
+      background: linear-gradient(180deg, #3b8664 0 18%, #17533e 19% 76%, #0b3025 77%);
+      box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, .22),
+        inset 0 -4px 0 rgba(0, 0, 0, .3),
+        0 5px 0 #071b14,
+        0 9px 18px rgba(0, 0, 0, .42);
+      cursor: pointer;
+      image-rendering: pixelated;
+      transition: transform .12s steps(2, end), filter .12s ease, box-shadow .12s ease;
+    }
+
+    .world-map-tool svg {
+      width: 72%;
+      height: 72%;
+      overflow: visible;
+      fill: currentColor;
+      filter: drop-shadow(2px 2px 0 #17331f);
+      shape-rendering: crispEdges;
+    }
+
+    .world-map-tool:hover,
+    .world-map-tool:focus-visible {
+      filter: brightness(1.16);
+      outline-color: #fff2a0;
+      transform: translateY(-2px);
+    }
+
+    .world-map-tool:active {
+      box-shadow:
+        inset 0 3px 5px rgba(0, 0, 0, .35),
+        0 1px 0 #071b14;
+      transform: translateY(4px);
+    }
+
+    .world-map-tool.save {
+      color: #d9fbff;
+      background: linear-gradient(180deg, #4188a0 0 18%, #1d5f7b 19% 76%, #12384e 77%);
+    }
+
+    .world-map-tool.saved {
+      animation: world-save-confirm .58s steps(5, end);
+    }
+
     .world-door-transition {
       position: absolute;
       z-index: 70;
@@ -5108,6 +5180,11 @@
     @keyframes world-map-reveal {
       from { opacity: 0; filter: brightness(1.6) blur(3px); transform: scale(1.035); }
       to { opacity: 1; filter: none; transform: none; }
+    }
+
+    @keyframes world-save-confirm {
+      0%, 100% { filter: brightness(1); transform: none; }
+      42% { filter: brightness(1.75) drop-shadow(0 0 9px #9df7ff); transform: translateY(-3px) scale(1.08); }
     }
 
     @keyframes world-node-ready {
@@ -5375,6 +5452,17 @@
 
       .world-map-guide em {
         font-size: .62rem;
+      }
+
+      .world-map-tools {
+        top: max(82px, calc(env(safe-area-inset-top) + 74px));
+        right: max(8px, env(safe-area-inset-right));
+        gap: 7px;
+      }
+
+      .world-map-tool {
+        width: 43px;
+        padding: 7px;
       }
 
       .enter-world-button {
@@ -6649,6 +6737,7 @@
       </header>
 
       <nav class="menu" aria-label="Menu principal">
+        <button class="pixel-button continue" id="continueJourney" type="button" hidden>Continuar Jornada</button>
         <button class="pixel-button" id="newJourney" type="button">Nova Jornada</button>
         <button class="pixel-button secondary" id="optionsButton" type="button">Opções</button>
       </nav>
@@ -7265,6 +7354,33 @@
           <em class="world-map-objective" id="worldMapObjective">Escolha seu primeiro destino</em>
         </header>
 
+        <nav class="world-map-tools" aria-label="Ferramentas do mapa">
+          <button
+            class="world-map-tool"
+            id="worldOptionsButton"
+            type="button"
+            aria-label="Abrir opções"
+            title="Opções"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 1h4l1 4 3-2 3 3-2 3 4 1v4l-4 1 2 3-3 3-3-2-1 4h-4l-1-4-3 2-3-3 2-3-4-1v-4l4-1-2-3 3-3 3 2 1-4z"></path>
+              <circle cx="12" cy="12" r="4" fill="#184533"></circle>
+            </svg>
+          </button>
+          <button
+            class="world-map-tool save"
+            id="worldSaveButton"
+            type="button"
+            aria-label="Salvar jogo"
+            title="Salvar jogo"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 2h13l3 3v17H4V2zm3 2v6h9V4H7zm0 9v7h10v-7H7z"></path>
+              <rect x="9" y="14" width="6" height="5" fill="#17445a"></rect>
+            </svg>
+          </button>
+        </nav>
+
         <div class="world-destination world-start current" aria-label="Local atual: Passagem Antiga">
           <span class="world-destination-marker" aria-hidden="true"></span>
           <span class="world-destination-label">Passagem Antiga</span>
@@ -7621,6 +7737,7 @@
       const modal = document.getElementById("optionsModal");
       const optionsButton = document.getElementById("optionsButton");
       const closeButton = document.getElementById("closeOptions");
+      const continueJourneyButton = document.getElementById("continueJourney");
       const newJourneyButton = document.getElementById("newJourney");
       const backButton = document.getElementById("backToTitle");
       const characterCards = [...document.querySelectorAll(".character-card")];
@@ -7737,6 +7854,8 @@
       const worldMapObjective = document.getElementById("worldMapObjective");
       const worldMapGuideText = document.getElementById("worldMapGuideText");
       const journeyUnlocked = document.getElementById("journeyUnlocked");
+      const worldOptionsButton = document.getElementById("worldOptionsButton");
+      const worldSaveButton = document.getElementById("worldSaveButton");
       const echoEntryConfirm = document.getElementById("echoEntryConfirm");
       const confirmEchoEntry = document.getElementById("confirmEchoEntry");
       const cancelEchoEntry = document.getElementById("cancelEchoEntry");
@@ -8287,6 +8406,116 @@
 
       const saveCurrentPlayer = () => {
         if (currentPlayer) localStorage.setItem(PLAYER_KEY, JSON.stringify(currentPlayer));
+      };
+
+      const readSavedPlayer = () => {
+        try {
+          return JSON.parse(localStorage.getItem(PLAYER_KEY) || "null");
+        } catch {
+          return null;
+        }
+      };
+
+      const isContinuableSave = (player) => {
+        const starterId = player?.starter?.baseId || player?.starter?.id;
+        return Boolean(
+          player?.manualSave?.savedAt
+          && player?.journeyStarted
+          && typeof player?.name === "string"
+          && ["male", "female"].includes(player?.character)
+          && STARTERS[starterId]
+        );
+      };
+
+      const refreshContinueJourneyButton = () => {
+        const savedPlayer = readSavedPlayer();
+        continueJourneyButton.hidden = !isContinuableSave(savedPlayer);
+      };
+
+      const saveWorldGame = () => {
+        if (!currentPlayer || openForestMap.hidden) return;
+        const savedAt = new Date().toISOString();
+        currentPlayer = {
+          ...currentPlayer,
+          savedAt,
+          manualSave: {
+            version: 1,
+            savedAt,
+            checkpoint: currentPlayer.lastCheckpoint || "mundo-naturion-liberado",
+            firstWorldDestinationReached,
+            mapPosition: { ...openMapPosition }
+          }
+        };
+        saveCurrentPlayer();
+        refreshContinueJourneyButton();
+        worldSaveButton.classList.remove("saved");
+        void worldSaveButton.offsetWidth;
+        worldSaveButton.classList.add("saved");
+        window.setTimeout(() => worldSaveButton.classList.remove("saved"), 700);
+        playSequence([392, 523, 659, 784], .07);
+        showToast("Jogo salvo com sucesso!");
+        window.dispatchEvent(new CustomEvent("naturion:game-saved", {
+          detail: currentPlayer
+        }));
+      };
+
+      const continueSavedJourney = () => {
+        const savedPlayer = readSavedPlayer();
+        if (!isContinuableSave(savedPlayer)) {
+          refreshContinueJourneyButton();
+          showToast("Nenhum progresso salvo foi encontrado.");
+          return;
+        }
+
+        currentPlayer = savedPlayer;
+        selectedCharacter = currentPlayer.character;
+        selectedStarter = currentPlayer.starter.baseId || currentPlayer.starter.id;
+        echoActive = false;
+        forestExploring = false;
+        puzzleActive = false;
+        cancelAnimationFrame(echoFrame);
+        [
+          forestIntro,
+          forestExploration,
+          forestBattle,
+          absorptionLesson,
+          sealBriefing,
+          sealPuzzle,
+          openForestMap,
+          echoClearing,
+          forestComplete
+        ].forEach((section) => {
+          if (section) section.hidden = true;
+        });
+        worldDoorTransition.hidden = true;
+        selectionScreen.hidden = true;
+        storyScreen.hidden = true;
+        forestScreen.hidden = false;
+        modal.hidden = true;
+        openFirstMissionMap(true);
+
+        const savedForm = NATURION_FORMS[currentPlayer.starter.formId];
+        if (savedForm) {
+          openMapStarter.src = savedForm.image;
+          openMapStarter.alt = savedForm.name;
+        }
+
+        const duration = prefersLessMotion() ? 0 : 430;
+        if (duration) {
+          titleScreen.classList.add("screen-leaving");
+          window.setTimeout(() => {
+            titleScreen.hidden = true;
+            titleScreen.classList.remove("screen-leaving");
+          }, duration);
+        } else {
+          titleScreen.hidden = true;
+        }
+        playSequence([330, 440, 554, 659, 784], .07);
+        showToast(`Bem-vindo de volta, ${currentPlayer.name}!`);
+        window.dispatchEvent(new CustomEvent("naturion:journey-continued", {
+          detail: currentPlayer
+        }));
+        openForestMap.focus();
       };
 
       const writeDialogue = (message, buttonLabel) => {
@@ -9592,8 +9821,11 @@
         playTone(165, 0, .03, "triangle");
       };
 
-      const openFirstMissionMap = () => {
+      const openFirstMissionMap = (preserveSavedProgress = false) => {
         const starter = STARTERS[selectedStarter];
+        const savedMission = currentPlayer.activeMission;
+        const savedCheckpoint = currentPlayer.lastCheckpoint;
+        const savedMapPosition = currentPlayer.manualSave?.mapPosition;
         forestComplete.hidden = true;
         sealPuzzle.hidden = true;
         puzzleComplete.hidden = true;
@@ -9604,14 +9836,18 @@
           ? "assets/selection/hero-female.webp"
           : "assets/selection/hero-male.webp";
         openMapHero.alt = currentPlayer.name;
-        openMapStarter.src = starter.image;
-        openMapStarter.alt = starter.name;
+        openMapStarter.src = currentPlayer.starter?.image || starter.image;
+        openMapStarter.alt = currentPlayer.starter?.name || starter.name;
         firstWorldDestinationReached = Boolean(
           currentPlayer.storyFlags?.firstWorldDestinationReached
         );
-        openMapPosition = firstWorldDestinationReached
-          ? { x: 29.3, y: 60.4 }
-          : { x: 19.5, y: 82.4 };
+        openMapPosition = preserveSavedProgress
+          && Number.isFinite(savedMapPosition?.x)
+          && Number.isFinite(savedMapPosition?.y)
+          ? { x: savedMapPosition.x, y: savedMapPosition.y }
+          : firstWorldDestinationReached
+            ? { x: 29.3, y: 60.4 }
+            : { x: 19.5, y: 82.4 };
         positionOpenMapParty();
         openMapParty.classList.remove("is-moving");
         worldMapTravelling = false;
@@ -9630,22 +9866,26 @@
 
         currentPlayer = {
           ...currentPlayer,
-          lastCheckpoint: firstWorldDestinationReached
-            ? "mundo-naturion-clareira-dos-ecos"
-            : "mundo-naturion-liberado",
+          lastCheckpoint: preserveSavedProgress && savedCheckpoint
+            ? savedCheckpoint
+            : firstWorldDestinationReached
+              ? "mundo-naturion-clareira-dos-ecos"
+              : "mundo-naturion-liberado",
           savedAt: new Date().toISOString(),
           storyFlags: {
             ...(currentPlayer.storyFlags || {}),
             openForestUnlocked: true
           },
-          activeMission: {
-            ...currentPlayer.activeMission,
-            status: "active",
-            objective: "Viaje até a Clareira dos Ecos",
-            progress: firstWorldDestinationReached
-              ? "clareira-dos-ecos-alcancada"
-              : "mapa-mundi-liberado"
-          }
+          activeMission: preserveSavedProgress && savedMission
+            ? savedMission
+            : {
+                ...currentPlayer.activeMission,
+                status: "active",
+                objective: "Viaje até a Clareira dos Ecos",
+                progress: firstWorldDestinationReached
+                  ? "clareira-dos-ecos-alcancada"
+                  : "mapa-mundi-liberado"
+              }
         };
         saveCurrentPlayer();
         playSequence([330, 440, 554, 659, 784], .07);
@@ -10705,6 +10945,8 @@
         transitionScreens(titleScreen, selectionScreen, characterCards[0]);
       });
 
+      continueJourneyButton.addEventListener("click", continueSavedJourney);
+
       backButton.addEventListener("click", () => {
         playSequence([360, 270], .06);
         transitionScreens(selectionScreen, titleScreen, newJourneyButton);
@@ -10742,6 +10984,7 @@
         };
 
         localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+        refreshContinueJourneyButton();
         playerName.value = normalizedName;
         updateFormState();
         confirmCharacter.textContent = "Jornada pronta!";
@@ -11019,6 +11262,8 @@
       });
 
       optionsButton.addEventListener("click", openOptions);
+      worldOptionsButton.addEventListener("click", openOptions);
+      worldSaveButton.addEventListener("click", saveWorldGame);
       closeButton.addEventListener("click", closeOptions);
 
       modal.addEventListener("click", (event) => {
@@ -11206,6 +11451,7 @@
         titleScreen.style.setProperty("--scene-y", "0px");
       });
 
+      refreshContinueJourneyButton();
       updateFormState();
     })();
   </script>
