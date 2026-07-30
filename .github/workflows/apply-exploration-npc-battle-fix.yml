@@ -22,6 +22,23 @@ jobs:
       - name: Aplicar e validar somente o jogo
         shell: bash
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/apply_exploration_npc_battle_fix.py')
+          source = path.read_text(encoding='utf-8')
+          old = '''areas_start = text.index("      const ECHO_AREAS = [")
+          areas_end = text.index("      const ECHO_WILD_CHAINS", areas_start)
+          areas = text[areas_start:areas_end]'''
+          new = '''areas_match = re.search(r"      const ECHO_AREAS = \\[(.*?)\\n      \\];", text, flags=re.S)
+          if not areas_match:
+              raise SystemExit("bloco ECHO_AREAS não encontrado")
+          areas_start, areas_end = areas_match.span()
+          areas = areas_match.group(0)'''
+          if old not in source:
+              raise SystemExit('Localizador antigo não encontrado no script')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+
           python3 .github/apply_exploration_npc_battle_fix.py
 
           python3 - <<'PY'
@@ -43,7 +60,8 @@ jobs:
         run: |
           rm -f \
             .github/apply_exploration_npc_battle_fix.py \
-            .github/workflows/apply-exploration-npc-battle-fix.yml
+            .github/workflows/apply-exploration-npc-battle-fix.yml \
+            README_FIX_TRIGGER.tmp
           git config user.name "Naturion Update Bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
