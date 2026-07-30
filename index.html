@@ -9533,12 +9533,7 @@
           count: 4,
           objective: "Converse com a Dra. Íris e siga pela trilha dos ecos.",
           platforms: [
-            [0, .18, .844],
-            [.22, .42, .844],
-            [.46, .58, .844],
-            [.62, .72, .844],
-            [.76, .88, .844],
-            [.92, 1, .844],
+            [0, 1, .844],
             [.09, .18, .616],
             [.225, .41, .66],
             [.455, .553, .665],
@@ -9571,12 +9566,7 @@
           count: 4,
           objective: "Atravesse as raízes antigas e localize os cristais instáveis.",
           platforms: [
-            [0, .18, .846],
-            [.22, .42, .846],
-            [.46, .58, .846],
-            [.62, .72, .846],
-            [.76, .88, .846],
-            [.92, 1, .846],
+            [0, 1, .846],
             [.045, .105, .737],
             [.09, .145, .52],
             [.115, .225, .522],
@@ -9618,12 +9608,7 @@
           count: 5,
           objective: "Encontre o desafio ancestral e restaure o Circuito das Raízes.",
           platforms: [
-            [0, .18, .842],
-            [.22, .42, .842],
-            [.46, .58, .842],
-            [.62, .72, .842],
-            [.76, .88, .842],
-            [.92, 1, .842],
+            [0, 1, .842],
             [0, .058, .65],
             [.13, .315, .695],
             [.258, .35, .515],
@@ -9662,12 +9647,7 @@
           count: 5,
           objective: "Resolva a Trama Crepuscular para libertar o Portão das Raízes.",
           platforms: [
-            [0, .18, .84],
-            [.22, .42, .84],
-            [.46, .58, .84],
-            [.62, .72, .84],
-            [.76, .88, .84],
-            [.92, 1, .84],
+            [0, 1, .84],
             [.03, .155, .656],
             [.05, .145, .501],
             [.27, .4, .659],
@@ -9714,12 +9694,7 @@
           count: 6,
           objective: "Explore o santuário e encontre a origem do chamado cristalino.",
           platforms: [
-            [0, .18, .84],
-            [.22, .42, .84],
-            [.46, .58, .84],
-            [.62, .72, .84],
-            [.76, .88, .84],
-            [.92, 1, .84],
+            [0, 1, .84],
             [.02, .08, .576],
             [.055, .2, .652],
             [.1, .27, .605],
@@ -12375,6 +12350,9 @@ if (wild) echoWilds.push(wild);
         jumpEchoPlayer();
       };
 
+      let echoLastSafeX = 150;
+      let echoLastSafeY = 0;
+
       const stepEchoExploration = (now) => {
         if (!echoActive) return;
         const dt = Math.min(.034, Math.max(.001, (now - (echoLastFrame || now)) / 1000));
@@ -12394,17 +12372,22 @@ if (wild) echoWilds.push(wild);
           echoPlayerY = landing.y;
           echoVelocityY = 0;
           echoGrounded = true;
+          echoLastSafeX = echoPlayerX;
+          echoLastSafeY = echoPlayerY;
           echoPlayer.classList.remove("jumping");
         } else {
           echoPlayerY = Math.min(echoWorldHeight + 120, nextY);
           echoGrounded = false;
         }
 
-        if (echoPlayerY > echoWorldHeight + 80) {
-          echoPlayerX = echoAreaIndex ? 120 : 150;
-          echoPlayerY = getEchoArea().platforms[0][2] * echoWorldHeight;
+        const echoBottomSafetyLine = getEchoArea().platforms[0][2] * echoWorldHeight + 36;
+        if (echoPlayerY > echoBottomSafetyLine) {
+          echoPlayerX = Math.max(8, Math.min(echoWorldWidth - 8, echoLastSafeX));
+          echoPlayerY = echoLastSafeY || getEchoArea().platforms[0][2] * echoWorldHeight;
+          echoVelocityX = 0;
           echoVelocityY = 0;
           echoGrounded = true;
+          echoPlayer.classList.remove("jumping");
           showToast("Seu inicial ajudou você a voltar para a trilha.");
         }
 
@@ -12446,6 +12429,8 @@ if (wild) echoWilds.push(wild);
         syncEchoMetrics();
         echoPlayerX = entrySide === "right" ? echoWorldWidth - 125 : 125;
         echoPlayerY = area.platforms[0][2] * echoWorldHeight;
+        echoLastSafeX = echoPlayerX;
+        echoLastSafeY = echoPlayerY;
         echoPlayer.classList.toggle("facing-right", entrySide !== "right");
         echoVelocityX = 0;
         echoVelocityY = 0;
