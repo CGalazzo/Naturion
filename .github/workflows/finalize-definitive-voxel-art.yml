@@ -1,0 +1,23 @@
+name: Finalizar arte voxel da Clareira
+
+on:
+  push:
+    branches:
+      - change/definitive-voxel-art-pass
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-capture:
+    if: ${{ !contains(github.event.head_commit.message, '[art-pass-complete]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Finalizar, testar e capturar a Clareira
+        run: bash scripts/finalize-definitive-voxel-art.sh
