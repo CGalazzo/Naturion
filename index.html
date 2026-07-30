@@ -5746,12 +5746,13 @@
 
     .echo-world {
       position: absolute;
-      top: 0;
+      top: auto;
+      bottom: 0;
       left: 0;
-      width: max(2172px, 300vw);
-      height: 100%;
+      width: 2172px;
+      height: 724px;
       transform: translate3d(var(--echo-camera, 0px), 0, 0);
-      transform-origin: left center;
+      transform-origin: left bottom;
       will-change: transform;
     }
 
@@ -5760,8 +5761,9 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: fill;
-      filter: saturate(1.04) contrast(1.02);
+      object-fit: contain;
+      filter: saturate(1.08) contrast(1.055) brightness(1.015);
+      image-rendering: pixelated;
       pointer-events: none;
       user-select: none;
     }
@@ -5770,9 +5772,7 @@
       position: absolute;
       inset: 0;
       content: "";
-      background:
-        linear-gradient(180deg, rgba(0, 18, 13, .12), transparent 22% 72%, rgba(0, 13, 9, .2)),
-        repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 4px);
+      background: linear-gradient(180deg, rgba(0, 18, 13, .08), transparent 22% 74%, rgba(0, 13, 9, .14));
       pointer-events: none;
     }
 
@@ -5806,17 +5806,43 @@
       transform: translateX(-50%);
     }
 
-    .echo-player img {
+    .echo-player-rig {
+      position: absolute;
+      inset: 0;
+      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .55));
+      transform: scaleX(var(--echo-hero-direction));
+      transform-origin: center bottom;
+    }
+
+    .echo-player-rig img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: contain;
       object-position: center bottom;
-      filter: drop-shadow(0 4px 2px rgba(0, 0, 0, .55));
-      transform: scaleX(var(--echo-hero-direction));
-      transform-origin: center bottom;
       image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .echo-player-torso {
+      z-index: 3;
+      clip-path: polygon(0 0, 100% 0, 100% 69%, 72% 69%, 72% 62%, 0 62%);
+    }
+
+    .echo-player-leg {
+      z-index: 2;
+      transform-origin: var(--echo-leg-origin-x) 57%;
+    }
+
+    .echo-player-leg.left {
+      --echo-leg-origin-x: 35%;
+      clip-path: polygon(5% 54%, 55% 54%, 59% 100%, 3% 100%);
+    }
+
+    .echo-player-leg.right {
+      --echo-leg-origin-x: 67%;
+      clip-path: polygon(43% 54%, 96% 54%, 97% 100%, 40% 100%);
     }
 
     .echo-player[data-character="male"] {
@@ -5835,12 +5861,32 @@
       --echo-hero-direction: 1;
     }
 
-    .echo-player.walking img {
-      animation: echo-hero-walk .38s cubic-bezier(.45, .05, .55, .95) infinite;
+    .echo-player.walking .echo-player-torso {
+      animation: tutorial-body-step .3s ease-in-out infinite;
     }
 
-    .echo-player.jumping img {
+    .echo-player.walking .echo-player-leg.left {
+      animation: tutorial-leg-left .3s ease-in-out infinite alternate;
+    }
+
+    .echo-player.walking .echo-player-leg.right {
+      animation: tutorial-leg-right .3s ease-in-out infinite alternate;
+    }
+
+    .echo-player.jumping .echo-player-rig {
       filter: drop-shadow(0 7px 3px rgba(0, 0, 0, .42));
+    }
+
+    .echo-player.jumping .echo-player-torso {
+      animation: tutorial-jump-pose .38s ease-in-out infinite alternate;
+    }
+
+    .echo-player.jumping .echo-player-leg.left {
+      transform: rotate(3deg) translateY(-2px);
+    }
+
+    .echo-player.jumping .echo-player-leg.right {
+      transform: rotate(-4deg) translateY(-4px);
     }
 
     .echo-starter-follower {
@@ -6104,7 +6150,8 @@
       background: #69d873;
     }
 
-    .echo-back-map {
+    .echo-back-map,
+    .echo-team-button {
       position: absolute;
       z-index: 33;
       top: max(84px, calc(env(safe-area-inset-top) + 76px));
@@ -6119,6 +6166,27 @@
       font-size: .56rem;
       font-weight: 900;
       cursor: pointer;
+    }
+
+    .echo-team-button {
+      top: max(126px, calc(env(safe-area-inset-top) + 118px));
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border-color: #73c9aa;
+      color: #f6ffe9;
+    }
+
+    .echo-team-button b {
+      display: grid;
+      min-width: 22px;
+      height: 20px;
+      place-items: center;
+      border: 1px solid #d9ed7a;
+      border-radius: 2px;
+      color: #15261a;
+      background: #d8c75b;
+      font-size: .52rem;
     }
 
     .echo-controls {
@@ -6170,7 +6238,9 @@
     .echo-puzzle,
     .echo-battle,
     .echo-absorption,
-    .echo-evolution {
+    .echo-evolution,
+    .echo-team,
+    .echo-passage-confirm {
       position: absolute;
       z-index: 65;
       inset: 0;
@@ -6179,6 +6249,148 @@
       padding: 18px;
       background: rgba(1, 13, 9, .68);
       backdrop-filter: blur(3px);
+    }
+
+    .echo-team,
+    .echo-passage-confirm {
+      z-index: 74;
+    }
+
+    .echo-passage-confirm .echo-entry-card {
+      width: min(520px, 94vw);
+    }
+
+    .echo-team-panel {
+      width: min(900px, 96vw);
+      max-height: min(720px, 92vh);
+      overflow: auto;
+      padding: 20px;
+    }
+
+    .echo-team-heading {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .echo-team-heading h2 {
+      margin: 4px 0 0;
+      color: #fff0a2;
+      font-size: clamp(.9rem, 2vw, 1.2rem);
+      text-transform: uppercase;
+    }
+
+    .echo-roster-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 16px 0 8px;
+      color: #bdeed4;
+      font-size: .63rem;
+      text-transform: uppercase;
+    }
+
+    .echo-roster,
+    .echo-storage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .echo-storage-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .echo-member-card,
+    .echo-empty-slot {
+      position: relative;
+      display: grid;
+      min-height: 172px;
+      align-content: start;
+      justify-items: center;
+      gap: 5px;
+      padding: 10px;
+      border: 2px solid #7f9f68;
+      border-radius: 3px;
+      color: #eff9dd;
+      background:
+        linear-gradient(145deg, rgba(55, 102, 72, .7), rgba(8, 30, 21, .96) 56%),
+        #092319;
+      box-shadow:
+        inset 0 0 0 2px rgba(229, 248, 166, .08),
+        0 4px 0 #1d2b12;
+      text-align: center;
+    }
+
+    .echo-member-card.leader {
+      border-color: #f0d35f;
+      box-shadow:
+        inset 0 0 18px rgba(240, 211, 95, .15),
+        0 4px 0 #553d0b;
+    }
+
+    .echo-member-card img {
+      width: 78px;
+      height: 78px;
+      object-fit: contain;
+      object-position: center bottom;
+      image-rendering: pixelated;
+    }
+
+    .echo-member-card strong {
+      color: #fff4ae;
+      font-size: .62rem;
+    }
+
+    .echo-member-card small {
+      color: #a9e4c4;
+      font-size: .48rem;
+      line-height: 1.35;
+    }
+
+    .echo-member-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 3px;
+    }
+
+    .echo-member-actions button {
+      min-height: 28px;
+      padding: 5px 7px;
+      border: 1px solid #e5cd61;
+      border-radius: 2px;
+      color: #fff9c8;
+      background: #234b37;
+      box-shadow: 0 2px 0 #171d0b;
+      font-size: .43rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .echo-member-actions button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .echo-empty-slot {
+      place-content: center;
+      border-style: dashed;
+      color: #88b29b;
+      font-size: .55rem;
+    }
+
+    .echo-storage-empty {
+      grid-column: 1 / -1;
+      padding: 22px;
+      border: 1px dashed #668a72;
+      color: #9fcab2;
+      font-size: .58rem;
+      text-align: center;
     }
 
     .echo-dialogue {
@@ -6332,12 +6544,13 @@
       min-height: 310px;
       align-content: end;
       justify-items: center;
+      padding-bottom: 28px;
     }
 
     .echo-fighter::after {
       position: absolute;
       z-index: -1;
-      bottom: 63px;
+      bottom: 99px;
       width: min(360px, 82%);
       height: 62px;
       border: 2px solid rgba(225, 197, 81, .68);
@@ -6356,7 +6569,7 @@
       object-position: center bottom;
       filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55));
       transform:
-        translateY(var(--fighter-ground-offset))
+        translateY(calc(var(--fighter-ground-offset) - 36px))
         scaleX(var(--fighter-direction));
       transform-origin: center bottom;
       image-rendering: pixelated;
@@ -6380,7 +6593,7 @@
       position: relative;
       z-index: 3;
       width: min(330px, 92%);
-      margin-top: -8px;
+      margin-top: 7px;
       padding: 9px 11px;
       border: 2px solid #dcc158;
       border-radius: 3px;
@@ -6444,9 +6657,9 @@
       right: 18px;
       bottom: max(16px, env(safe-area-inset-bottom));
       display: grid;
-      grid-template-columns: repeat(3, minmax(132px, 1fr));
+      grid-template-columns: repeat(4, minmax(118px, 1fr));
       gap: 8px;
-      width: min(660px, calc(100% - 36px));
+      width: min(820px, calc(100% - 36px));
     }
 
     .echo-battle-actions .echo-button {
@@ -6865,12 +7078,12 @@
     @keyframes echo-strike {
       0%, 100% {
         transform:
-          translate(0, var(--fighter-ground-offset))
+          translate(0, calc(var(--fighter-ground-offset) - 36px))
           scaleX(var(--fighter-direction));
       }
       45% {
         transform:
-          translate(var(--fighter-strike-x), var(--fighter-ground-offset))
+          translate(var(--fighter-strike-x), calc(var(--fighter-ground-offset) - 36px))
           scaleX(var(--fighter-direction))
           scale(1.05);
       }
@@ -6880,13 +7093,13 @@
       0%, 100% {
         filter: drop-shadow(0 7px 4px rgba(0, 0, 0, .55));
         transform:
-          translate(0, var(--fighter-ground-offset))
+          translate(0, calc(var(--fighter-ground-offset) - 36px))
           scaleX(var(--fighter-direction));
       }
       40% {
         filter: brightness(2) drop-shadow(0 0 13px #fff);
         transform:
-          translate(var(--fighter-hit-x), var(--fighter-ground-offset))
+          translate(var(--fighter-hit-x), calc(var(--fighter-ground-offset) - 36px))
           scaleX(var(--fighter-direction));
       }
     }
@@ -6911,6 +7124,10 @@
         top: 108px;
       }
 
+      .echo-team-button {
+        top: 150px;
+      }
+
       .echo-controls {
         grid-template-columns: repeat(3, 42px);
       }
@@ -6930,7 +7147,7 @@
 
       .echo-battle-field {
         gap: 0;
-        padding: 78px 8px 160px;
+        padding: 78px 8px 225px;
       }
 
       .echo-fighter {
@@ -6954,6 +7171,11 @@
 
       .echo-rune {
         min-height: 95px;
+      }
+
+      .echo-roster,
+      .echo-storage-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .echo-absorb-stage {
@@ -7809,7 +8031,26 @@
           <div class="echo-wild-layer" id="echoWildLayer"></div>
 
           <div class="echo-player" id="echoPlayer" aria-label="Seu personagem">
-            <img id="echoPlayerImage" src="assets/selection/hero-male.webp" alt="">
+            <span class="echo-player-rig" aria-hidden="true">
+              <img
+                class="echo-player-torso"
+                id="echoPlayerImage"
+                src="assets/selection/hero-male.webp"
+                alt=""
+              >
+              <img
+                class="echo-player-leg left"
+                id="echoPlayerLeftLeg"
+                src="assets/selection/hero-male.webp"
+                alt=""
+              >
+              <img
+                class="echo-player-leg right"
+                id="echoPlayerRightLeg"
+                src="assets/selection/hero-male.webp"
+                alt=""
+              >
+            </span>
           </div>
           <img
             class="echo-starter-follower"
@@ -7836,9 +8077,13 @@
       </header>
 
       <button class="echo-back-map" id="echoBackMap" type="button">Voltar ao mapa</button>
+      <button class="echo-team-button" id="echoTeamButton" type="button">
+        Equipe
+        <b id="echoTeamCount">1/3</b>
+      </button>
 
       <div class="echo-interact" id="echoInteract" hidden>
-        <kbd>E</kbd>
+        <kbd id="echoInteractKey">E</kbd>
         <span id="echoInteractText">Interagir</span>
       </div>
 
@@ -7906,6 +8151,7 @@
           <button class="echo-button" type="button" data-echo-battle="basic">Ataque básico<small>Golpe seguro</small></button>
           <button class="echo-button" type="button" data-echo-battle="elemental">Ataque elemental<small id="echoElementalHint">Poder 12</small></button>
           <button class="echo-button secondary" type="button" data-echo-battle="defend">Defender<small>Reduz o próximo dano</small></button>
+          <button class="echo-button secondary" type="button" data-echo-battle="flee">Fugir<small>Voltar à exploração</small></button>
         </nav>
         <section class="echo-entry-confirm" id="echoBattleChoice" aria-labelledby="echoBattleChoiceTitle" hidden>
           <article class="echo-entry-card">
@@ -7960,6 +8206,40 @@
             </button>
           </article>
         </div>
+      </section>
+
+      <section class="echo-passage-confirm" id="echoPassageConfirm" aria-labelledby="echoPassageTitle" hidden>
+        <article class="echo-entry-card">
+          <small id="echoPassageEyebrow">Passagem encontrada</small>
+          <h2 id="echoPassageTitle">Entrar no próximo ambiente?</h2>
+          <p id="echoPassageText">Os Naturions deste ambiente serão renovados quando você retornar.</p>
+          <div class="echo-entry-actions">
+            <button class="echo-button" id="echoPassageYes" type="button">Sim</button>
+            <button class="echo-button secondary" id="echoPassageNo" type="button">Não</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="echo-team" id="echoTeam" aria-labelledby="echoTeamTitle" hidden>
+        <article class="echo-panel echo-team-panel">
+          <header class="echo-team-heading">
+            <span>
+              <small>Relógio Cristalíneo</small>
+              <h2 id="echoTeamTitle">Equipe e Depósito</h2>
+            </span>
+            <button class="echo-button secondary" id="echoTeamClose" type="button">Fechar</button>
+          </header>
+          <div class="echo-roster-label">
+            <strong>Equipe ativa</strong>
+            <span>Máximo de 3 Naturions</span>
+          </div>
+          <div class="echo-roster" id="echoRoster"></div>
+          <div class="echo-roster-label">
+            <strong>Depósito cristalino</strong>
+            <span id="echoStorageCount">0 armazenados</span>
+          </div>
+          <div class="echo-storage-grid" id="echoStorageGrid"></div>
+        </article>
       </section>
 
       <div class="echo-area-transition" id="echoAreaTransition" aria-hidden="true"></div>
@@ -8184,6 +8464,8 @@
       const echoWildLayer = document.getElementById("echoWildLayer");
       const echoPlayer = document.getElementById("echoPlayer");
       const echoPlayerImage = document.getElementById("echoPlayerImage");
+      const echoPlayerLeftLeg = document.getElementById("echoPlayerLeftLeg");
+      const echoPlayerRightLeg = document.getElementById("echoPlayerRightLeg");
       const echoStarterFollower = document.getElementById("echoStarterFollower");
       const echoAreaName = document.getElementById("echoAreaName");
       const echoAreaLevel = document.getElementById("echoAreaLevel");
@@ -8192,7 +8474,10 @@
       const echoHudStarterName = document.getElementById("echoHudStarterName");
       const echoHudHpTrack = document.getElementById("echoHudHpTrack");
       const echoBackMap = document.getElementById("echoBackMap");
+      const echoTeamButton = document.getElementById("echoTeamButton");
+      const echoTeamCount = document.getElementById("echoTeamCount");
       const echoInteract = document.getElementById("echoInteract");
+      const echoInteractKey = document.getElementById("echoInteractKey");
       const echoInteractText = document.getElementById("echoInteractText");
       const echoMoveButtons = [...document.querySelectorAll("[data-echo-move]")];
       const echoJumpButton = document.getElementById("echoJumpButton");
@@ -8240,6 +8525,17 @@
       const echoEvolutionParticles = document.getElementById("echoEvolutionParticles");
       const echoEvolutionText = document.getElementById("echoEvolutionText");
       const echoEvolutionContinue = document.getElementById("echoEvolutionContinue");
+      const echoPassageConfirm = document.getElementById("echoPassageConfirm");
+      const echoPassageEyebrow = document.getElementById("echoPassageEyebrow");
+      const echoPassageTitle = document.getElementById("echoPassageTitle");
+      const echoPassageText = document.getElementById("echoPassageText");
+      const echoPassageYes = document.getElementById("echoPassageYes");
+      const echoPassageNo = document.getElementById("echoPassageNo");
+      const echoTeam = document.getElementById("echoTeam");
+      const echoTeamClose = document.getElementById("echoTeamClose");
+      const echoRoster = document.getElementById("echoRoster");
+      const echoStorageGrid = document.getElementById("echoStorageGrid");
+      const echoStorageCount = document.getElementById("echoStorageCount");
       const echoAreaTransition = document.getElementById("echoAreaTransition");
       const forestComplete = document.getElementById("forestComplete");
       const forestCompleteEyebrow = document.getElementById("forestCompleteEyebrow");
@@ -8325,6 +8621,7 @@
       let echoPuzzleInput = 0;
       let echoPuzzleAccepting = false;
       let echoPuzzleArea = 0;
+      let echoPendingPassage = null;
       let echoEvolutionQueue = [];
       let echoEvolutionTimer = 0;
       const echoInput = { left: false, right: false };
@@ -8451,13 +8748,24 @@
           scene: "assets/echo-scenes/clareira-1.webp",
           count: 6,
           objective: "Converse com a Dra. Íris e siga pela trilha dos ecos.",
-          platforms: [[0, 1, .82], [.22, .41, .66], [.45, .56, .66], [.6, .69, .72], [.76, .94, .73]],
+          platforms: [
+            [0, 1, .844],
+            [.09, .18, .616],
+            [.225, .41, .66],
+            [.455, .553, .665],
+            [.605, .69, .715],
+            [.755, .815, .69],
+            [.82, .87, .65]
+          ],
+          passages: {
+            next: { x: .955, y: .844, label: "Porta das Ruínas" }
+          },
           npc: {
             id: "iris",
             name: "Dra. Íris",
             image: "assets/story/dr-iris.webp",
             x: .14,
-            y: .82,
+            y: .844,
             lines: [
               "Esta é a Clareira dos Ecos. Os Naturions daqui reagem ao som das ruínas e cada espécie se comporta de uma maneira.",
               "Alguns se aproximam, outros fogem e alguns apenas observam. Ao encostar em um deles, a batalha começa.",
@@ -8473,13 +8781,34 @@
           scene: "assets/echo-scenes/clareira-2.webp",
           count: 7,
           objective: "Atravesse as raízes antigas e observe o comportamento dos Naturions.",
-          platforms: [[0, 1, .83], [.17, .31, .67], [.42, .55, .72], [.68, .82, .62]],
+          platforms: [
+            [0, 1, .846],
+            [.045, .105, .737],
+            [.09, .145, .52],
+            [.115, .225, .522],
+            [.17, .315, .67],
+            [.25, .37, .665],
+            [.285, .37, .495],
+            [.3, .36, .35],
+            [.39, .52, .66],
+            [.43, .54, .735],
+            [.575, .69, .735],
+            [.61, .705, .67],
+            [.65, .75, .432],
+            [.68, .82, .735],
+            [.82, .92, .718],
+            [.91, .99, .7]
+          ],
+          passages: {
+            previous: { x: .025, y: .846, label: "Trilha para a Entrada Luminal" },
+            next: { x: .955, y: .846, label: "Arco das Raízes" }
+          },
           npc: {
             id: "cael",
             name: "Explorador Cael",
             image: "assets/selection/hero-male.webp",
             x: .47,
-            y: .83,
+            y: .846,
             lines: [
               "A Clareira muda sempre que alguém atravessa uma passagem. Por isso os encontros nunca aparecem exatamente no mesmo lugar.",
               "Naturions que correm em sua direção costumam ser territoriais. Os que recuam só querem manter distância."
@@ -8494,11 +8823,28 @@
           scene: "assets/echo-scenes/clareira-3.webp",
           count: 8,
           objective: "Sintonize os três ecos para abrir a passagem das ruínas.",
-          platforms: [[0, 1, .82], [.12, .27, .7], [.38, .51, .63], [.64, .76, .69]],
+          platforms: [
+            [0, 1, .842],
+            [0, .058, .65],
+            [.13, .315, .695],
+            [.258, .35, .515],
+            [.39, .435, .7],
+            [.47, .5, .7],
+            [.54, .57, .7],
+            [.65, .83, .79],
+            [.73, .83, .7],
+            [.765, .87, .595],
+            [.8, .92, .49],
+            [.86, .97, .3]
+          ],
+          passages: {
+            previous: { x: .025, y: .842, label: "Caminho para o Bosque das Raízes" },
+            next: { x: .91, y: .842, label: "Galeria das Ruínas" }
+          },
           puzzle: {
             id: "ecos-do-rio",
             x: .82,
-            y: .82,
+            y: .842,
             sequence: [0, 2, 1, 0],
             title: "Ecos do Rio",
             description: "A água repete apenas sons na ordem correta. Observe as runas e devolva a sequência."
@@ -8512,13 +8858,27 @@
           scene: "assets/echo-scenes/clareira-4.webp",
           count: 9,
           objective: "Use a sintonia do seu inicial para libertar o Portão das Raízes.",
-          platforms: [[0, 1, .83], [.15, .3, .66], [.42, .58, .7], [.68, .81, .61]],
+          platforms: [
+            [0, 1, .84],
+            [.03, .155, .656],
+            [.05, .145, .501],
+            [.27, .4, .659],
+            [.3, .39, .503],
+            [.4, .6, .684],
+            [.57, .7, .659],
+            [.75, .83, .63],
+            [.87, .95, .5]
+          ],
+          passages: {
+            previous: { x: .025, y: .84, label: "Retorno às Ruínas do Rio" },
+            next: { x: .9, y: .84, label: "Portão das Raízes" }
+          },
           npc: {
             id: "lira",
             name: "Pesquisadora Lira",
             image: "assets/selection/hero-female.webp",
             x: .43,
-            y: .83,
+            y: .84,
             lines: [
               "O Portão das Raízes reconhece vínculos verdadeiros. Seu inicial deve conduzir as três energias sem quebrar a sequência.",
               "Se errar, as runas se apagam e recomeçam. Não há punição: puzzles existem para serem compreendidos."
@@ -8527,7 +8887,7 @@
           puzzle: {
             id: "portao-das-raizes",
             x: .84,
-            y: .83,
+            y: .84,
             sequence: [2, 0, 1, 2, 1],
             title: "Portão das Raízes",
             description: "Seu inicial sente a ordem escondida nas raízes. Repita-a para libertar a passagem."
@@ -8541,13 +8901,27 @@
           scene: "assets/echo-scenes/clareira-5.webp",
           count: 10,
           objective: "Explore o santuário e encontre a origem do chamado cristalino.",
-          platforms: [[0, 1, .83], [.18, .32, .68], [.43, .57, .59], [.69, .84, .67]],
+          platforms: [
+            [0, 1, .84],
+            [.02, .08, .576],
+            [.055, .2, .652],
+            [.1, .27, .605],
+            [.29, .47, .58],
+            [.32, .42, .624],
+            [.52, .63, .66],
+            [.69, .78, .68],
+            [.78, .9, .662]
+          ],
+          passages: {
+            previous: { x: .025, y: .84, label: "Retorno à Trilha Crepuscular" },
+            next: { x: .91, y: .84, label: "Portal do Santuário", locked: true }
+          },
           npc: {
             id: "orun",
             name: "Guardião Orun",
             image: "assets/selection/hero-male.webp",
             x: .62,
-            y: .83,
+            y: .84,
             lines: [
               "Você chegou ao coração desta região. Os ecos reconhecem quem atravessou as ruínas sem ferir seu equilíbrio.",
               "A origem do chamado está além do santuário. Este será o próximo capítulo da missão."
@@ -10339,6 +10713,7 @@
           ...currentPlayer,
           starter: {
             ...existing,
+            uid: existing.uid || `starter-${baseStarter.id}`,
             id: baseStarter.id,
             baseId: baseStarter.id,
             formId: form.id,
@@ -10352,6 +10727,7 @@
             maxHp: Number(existing.maxHp) || 0
           },
           team: Array.isArray(currentPlayer.team) ? currentPlayer.team : [],
+          storage: Array.isArray(currentPlayer.storage) ? currentPlayer.storage : [],
           echoProgress: {
             unlockedArea: 0,
             currentArea: 0,
@@ -10360,9 +10736,26 @@
             ...(currentPlayer.echoProgress || {})
           }
         };
+        if (currentPlayer.team.length > 2) {
+          currentPlayer.storage.push(...currentPlayer.team.slice(2));
+          currentPlayer.team = currentPlayer.team.slice(0, 2);
+        }
         const starterMaxHp = 34 + currentPlayer.starter.level * 4 + form.stage * 6;
         currentPlayer.starter.maxHp = Math.max(currentPlayer.starter.maxHp, starterMaxHp);
         if (!currentPlayer.starter.currentHp) currentPlayer.starter.currentHp = currentPlayer.starter.maxHp;
+        [...currentPlayer.team, ...currentPlayer.storage].forEach((member) => {
+          const memberForm = getMemberForm(member);
+          member.uid ||= `${memberForm.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+          member.maxHp = Math.max(
+            Number(member.maxHp) || 0,
+            28 + (Number(member.level) || 1) * 4 + memberForm.stage * 6
+          );
+          if (!Number(member.currentHp)) member.currentHp = member.maxHp;
+        });
+        const rosterUids = [currentPlayer.starter, ...currentPlayer.team].map((member) => member.uid);
+        if (!rosterUids.includes(currentPlayer.activeLeadUid)) {
+          currentPlayer.activeLeadUid = currentPlayer.starter.uid;
+        }
         saveCurrentPlayer();
         return currentPlayer.starter;
       };
@@ -10376,8 +10769,143 @@
         form?.flying ? "0%" : `${Number(form?.groundOffset) || 0}%`
       );
 
+      const getEchoRoster = () => [
+        currentPlayer.starter,
+        ...(Array.isArray(currentPlayer.team) ? currentPlayer.team : [])
+      ].filter(Boolean);
+
+      const getActiveEchoMember = () => (
+        getEchoRoster().find((member) => member.uid === currentPlayer.activeLeadUid)
+        || currentPlayer.starter
+      );
+
+      const createEchoMemberCard = (member, location) => {
+        const form = getMemberForm(member);
+        const card = document.createElement("article");
+        const isLeader = location === "team" && member.uid === currentPlayer.activeLeadUid;
+        card.className = `echo-member-card${isLeader ? " leader" : ""}`;
+        card.dataset.memberUid = member.uid;
+
+        const image = document.createElement("img");
+        image.src = form.image;
+        image.alt = form.name;
+
+        const name = document.createElement("strong");
+        name.textContent = `${form.name} · Nv. ${member.level}`;
+
+        const details = document.createElement("small");
+        details.textContent = `${form.type}${isLeader ? " · Líder da equipe" : ""}`;
+
+        const actions = document.createElement("div");
+        actions.className = "echo-member-actions";
+
+        if (location === "team") {
+          const lead = document.createElement("button");
+          lead.type = "button";
+          lead.dataset.echoMemberAction = "lead";
+          lead.textContent = isLeader ? "Líder atual" : "Tornar líder";
+          lead.disabled = isLeader;
+          actions.append(lead);
+
+          if (member !== currentPlayer.starter) {
+            const deposit = document.createElement("button");
+            deposit.type = "button";
+            deposit.dataset.echoMemberAction = "deposit";
+            deposit.textContent = "Enviar ao depósito";
+            actions.append(deposit);
+          }
+        } else {
+          const add = document.createElement("button");
+          add.type = "button";
+          add.dataset.echoMemberAction = "team";
+          add.textContent = getEchoRoster().length >= 3 ? "Equipe cheia" : "Adicionar à equipe";
+          add.disabled = getEchoRoster().length >= 3;
+          actions.append(add);
+        }
+
+        card.append(image, name, details, actions);
+        return card;
+      };
+
+      const renderEchoTeam = () => {
+        const roster = getEchoRoster();
+        echoRoster.replaceChildren(...roster.map((member) => createEchoMemberCard(member, "team")));
+        for (let index = roster.length; index < 3; index += 1) {
+          const empty = document.createElement("span");
+          empty.className = "echo-empty-slot";
+          empty.textContent = "Espaço livre";
+          echoRoster.append(empty);
+        }
+
+        const storage = Array.isArray(currentPlayer.storage) ? currentPlayer.storage : [];
+        echoStorageGrid.replaceChildren();
+        if (storage.length) {
+          echoStorageGrid.append(...storage.map((member) => createEchoMemberCard(member, "storage")));
+        } else {
+          const empty = document.createElement("p");
+          empty.className = "echo-storage-empty";
+          empty.textContent = "O depósito está vazio. Naturions excedentes aparecerão aqui.";
+          echoStorageGrid.append(empty);
+        }
+        echoTeamCount.textContent = `${roster.length}/3`;
+        echoStorageCount.textContent = `${storage.length} armazenado${storage.length === 1 ? "" : "s"}`;
+      };
+
+      const setActiveEchoMember = (uid) => {
+        const member = getEchoRoster().find((item) => item.uid === uid);
+        if (!member) return;
+        currentPlayer.activeLeadUid = member.uid;
+        saveCurrentPlayer();
+        refreshEchoStarterUI();
+        renderEchoTeam();
+        showToast(`${getMemberForm(member).name} agora lidera a equipe.`);
+      };
+
+      const moveEchoMemberToStorage = (uid) => {
+        const index = currentPlayer.team.findIndex((member) => member.uid === uid);
+        if (index < 0) return;
+        const [member] = currentPlayer.team.splice(index, 1);
+        currentPlayer.storage.push(member);
+        if (currentPlayer.activeLeadUid === uid) {
+          currentPlayer.activeLeadUid = currentPlayer.starter.uid;
+        }
+        saveCurrentPlayer();
+        refreshEchoStarterUI();
+        renderEchoTeam();
+        showToast(`${getMemberForm(member).name} foi enviado ao depósito.`);
+      };
+
+      const moveEchoMemberToTeam = (uid) => {
+        if (getEchoRoster().length >= 3) {
+          showToast("Sua equipe já possui três Naturions.");
+          return;
+        }
+        const index = currentPlayer.storage.findIndex((member) => member.uid === uid);
+        if (index < 0) return;
+        const [member] = currentPlayer.storage.splice(index, 1);
+        currentPlayer.team.push(member);
+        saveCurrentPlayer();
+        refreshEchoStarterUI();
+        renderEchoTeam();
+        showToast(`${getMemberForm(member).name} entrou para a equipe.`);
+      };
+
+      const openEchoTeam = () => {
+        if (!echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+        resetEchoMovement();
+        renderEchoTeam();
+        echoTeam.hidden = false;
+        echoTeamClose.focus();
+      };
+
+      const closeEchoTeam = () => {
+        echoTeam.hidden = true;
+        echoClearing.focus();
+      };
+
       const refreshEchoStarterUI = () => {
-        const member = ensureEchoPlayerData();
+        ensureEchoPlayerData();
+        const member = getActiveEchoMember();
         const form = getMemberForm(member);
         echoStarterFollower.src = form.image;
         echoStarterFollower.alt = form.name;
@@ -10390,6 +10918,7 @@
         echoHudStarterName.textContent = `${form.name} · Nv. ${member.level}`;
         const hpPercent = Math.max(0, Math.min(100, member.currentHp / member.maxHp * 100));
         echoHudHpTrack.style.setProperty("--echo-hp", `${hpPercent}%`);
+        echoTeamCount.textContent = `${getEchoRoster().length}/3`;
       };
 
       const getEchoTypeStyle = (type) => {
@@ -10412,8 +10941,8 @@
       };
 
       const syncEchoMetrics = () => {
-        echoWorldWidth = echoWorld.offsetWidth || Math.max(2172, innerWidth * 3);
-        echoWorldHeight = echoWorld.offsetHeight || innerHeight || 724;
+        echoWorldWidth = echoWorld.offsetWidth || 2172;
+        echoWorldHeight = echoWorld.offsetHeight || 724;
       };
 
       const getEchoArea = () => ECHO_AREAS[echoAreaIndex];
@@ -10453,11 +10982,13 @@
         const platform = Math.random() < .58 && platforms.length
           ? platforms[echoRandom(0, platforms.length - 1)]
           : area.platforms[0];
-        const margin = .04;
-        const xRatio = Math.max(
-          .15,
-          Math.min(.85, platform[0] + .04 + Math.random() * Math.max(.04, platform[1] - platform[0] - .08))
-        );
+        const platformWidth = Math.max(.012, platform[1] - platform[0]);
+        const inset = platform === area.platforms[0]
+          ? .09
+          : Math.min(.025, platformWidth * .2);
+        const minRatio = platform[0] + inset;
+        const maxRatio = platform[1] - inset;
+        const xRatio = minRatio + Math.random() * Math.max(.004, maxRatio - minRatio);
         const behaviors = form.flying
           ? ["wander", "flee", "idle"]
           : ["wander", "flee", "chase", "idle"];
@@ -10469,8 +11000,8 @@
           behavior: behaviors[echoRandom(0, behaviors.length - 1)],
           x: xRatio * echoWorldWidth,
           y: (platform[2] - (form.flying ? echoRandom(8, 17) / 100 : 0)) * echoWorldHeight,
-          minX: (platform[0] + .025) * echoWorldWidth,
-          maxX: (platform[1] - .025) * echoWorldWidth,
+          minX: minRatio * echoWorldWidth,
+          maxX: maxRatio * echoWorldWidth,
           direction: Math.random() > .5 ? 1 : -1,
           speed: form.flying ? echoRandom(30, 48) : echoRandom(20, 42),
           size: getWildSize(form),
@@ -10579,7 +11110,16 @@
       };
 
       const setEchoMovement = (direction, active) => {
-        if (!echoActive || !echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+        if (
+          !echoActive
+          || !echoBattle.hidden
+          || !echoDialogue.hidden
+          || !echoPuzzle.hidden
+          || !echoTeam.hidden
+          || !echoPassageConfirm.hidden
+          || !echoEvolution.hidden
+          || !echoAbsorption.hidden
+        ) return;
         echoInput[direction] = active;
         echoPlayer.classList.toggle("walking", echoInput.left || echoInput.right);
         echoStarterFollower.classList.toggle("walking", echoInput.left || echoInput.right);
@@ -10589,7 +11129,15 @@
       };
 
       const jumpEchoPlayer = () => {
-        if (!echoActive || !echoGrounded || !echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+        if (
+          !echoActive
+          || !echoGrounded
+          || !echoBattle.hidden
+          || !echoDialogue.hidden
+          || !echoPuzzle.hidden
+          || !echoTeam.hidden
+          || !echoPassageConfirm.hidden
+        ) return;
         echoVelocityY = -700;
         echoGrounded = false;
         echoPlayer.classList.add("jumping");
@@ -10630,6 +11178,8 @@
             && echoBattle.hidden
             && echoEvolution.hidden
             && echoAbsorption.hidden
+            && echoTeam.hidden
+            && echoPassageConfirm.hidden
             && Math.abs(echoPlayerX - wild.x) < Math.max(42, wild.size * .43)
             && Math.abs(echoPlayerY - wild.y) < Math.max(72, wild.size * .55)
           ) {
@@ -10641,17 +11191,88 @@
       const updateEchoInteraction = () => {
         const area = getEchoArea();
         echoNearInteraction = null;
-        if (area.npc && Math.abs(echoPlayerX - area.npc.x * echoWorldWidth) < 105) {
+        const near = (target, horizontal = 92, vertical = 74) => (
+          target
+          && Math.abs(echoPlayerX - target.x * echoWorldWidth) < horizontal
+          && Math.abs(echoPlayerY - target.y * echoWorldHeight) < vertical
+        );
+        if (near(area.npc)) {
           echoNearInteraction = { type: "npc", value: area.npc };
-        } else if (area.puzzle && Math.abs(echoPlayerX - area.puzzle.x * echoWorldWidth) < 125) {
+        } else if (near(area.puzzle, 112, 86) && !isEchoPuzzleSolved()) {
           echoNearInteraction = { type: "puzzle", value: area.puzzle };
+        } else if (near(area.passages?.previous, 108, 92)) {
+          echoNearInteraction = {
+            type: "passage",
+            direction: "previous",
+            value: area.passages.previous
+          };
+        } else if (near(area.passages?.next, 108, 92)) {
+          echoNearInteraction = {
+            type: "passage",
+            direction: "next",
+            value: area.passages.next
+          };
         }
         echoInteract.hidden = !echoNearInteraction;
         if (echoNearInteraction) {
-          echoInteractText.textContent = echoNearInteraction.type === "npc"
-            ? `Conversar com ${echoNearInteraction.value.name}`
-            : isEchoPuzzleSolved() ? "Examinar passagem aberta" : "Investigar as runas";
+          const isPassage = echoNearInteraction.type === "passage";
+          echoInteractKey.textContent = isPassage ? "W" : "E";
+          if (echoNearInteraction.type === "npc") {
+            echoInteractText.textContent = `Conversar com ${echoNearInteraction.value.name}`;
+          } else if (echoNearInteraction.type === "puzzle") {
+            echoInteractText.textContent = "Investigar as runas";
+          } else {
+            echoInteractText.textContent = echoNearInteraction.direction === "previous"
+              ? "Retornar ao ambiente anterior"
+              : "Entrar no próximo ambiente";
+          }
         }
+      };
+
+      const closeEchoPassageConfirmation = () => {
+        echoPassageConfirm.hidden = true;
+        echoPendingPassage = null;
+        echoClearing.focus();
+      };
+
+      const openEchoPassageConfirmation = (interaction) => {
+        if (!interaction || interaction.type !== "passage") return false;
+        const direction = interaction.direction;
+        const passage = interaction.value;
+        const blockedByPuzzle = direction === "next" && getEchoArea().puzzle && !isEchoPuzzleSolved();
+        if (blockedByPuzzle) {
+          showToast("As runas ainda bloqueiam esta passagem.");
+          return true;
+        }
+        if (passage.locked || (direction === "next" && echoAreaIndex >= ECHO_AREAS.length - 1)) {
+          showToast("Esta passagem será aberta no próximo capítulo.");
+          return true;
+        }
+        resetEchoMovement();
+        echoPendingPassage = {
+          direction,
+          areaIndex: direction === "next" ? echoAreaIndex + 1 : echoAreaIndex - 1,
+          entrySide: direction === "next" ? "left" : "right"
+        };
+        echoPassageEyebrow.textContent = passage.label;
+        echoPassageTitle.textContent = direction === "next"
+          ? "Entrar no próximo ambiente?"
+          : "Retornar ao ambiente anterior?";
+        echoPassageText.textContent = direction === "next"
+          ? "Ao entrar, os Naturions desta área continuarão livres pela clareira."
+          : "Ao retornar, novos Naturions poderão aparecer em posições diferentes.";
+        echoPassageConfirm.hidden = false;
+        playSequence([392, 523, 659], .06);
+        echoPassageYes.focus();
+        return true;
+      };
+
+      const confirmEchoPassage = async () => {
+        if (!echoPendingPassage) return;
+        const passage = echoPendingPassage;
+        echoPassageConfirm.hidden = true;
+        echoPendingPassage = null;
+        await enterEchoArea(passage.areaIndex, passage.entrySide);
       };
 
       const showEchoDialogue = (npc, callback = null) => {
@@ -10664,9 +11285,7 @@
         echoDialogueText.textContent = echoDialogueLines[0] || "";
         echoDialogueNext.textContent = echoDialogueLines.length > 1 ? "Continuar" : "Concluir";
         echoDialogue.hidden = false;
-        echoInput.left = false;
-        echoInput.right = false;
-        echoPlayer.classList.remove("walking");
+        resetEchoMovement();
         playSequence([330, 392, 440], .06);
         echoDialogueNext.focus();
       };
@@ -10773,9 +11392,17 @@
         if (!echoActive || !echoNearInteraction || !echoDialogue.hidden || !echoPuzzle.hidden) return;
         if (echoNearInteraction.type === "npc") {
           showEchoDialogue(echoNearInteraction.value);
-        } else {
+        } else if (echoNearInteraction.type === "puzzle") {
           openEchoPuzzle(echoNearInteraction.value);
         }
+      };
+
+      const triggerEchoJumpOrPassage = () => {
+        if (echoNearInteraction?.type === "passage") {
+          openEchoPassageConfirmation(echoNearInteraction);
+          return;
+        }
+        jumpEchoPlayer();
       };
 
       const stepEchoExploration = (now) => {
@@ -10815,22 +11442,7 @@
         updateEchoWilds(dt, now);
         updateEchoInteraction();
 
-        const blockedByPuzzle = getEchoArea().puzzle && !isEchoPuzzleSolved();
-        if (echoPlayerX > echoWorldWidth - 58) {
-          if (blockedByPuzzle) {
-            echoPlayerX = echoWorldWidth - 70;
-            showToast("As runas ainda bloqueiam esta passagem.");
-          } else if (echoAreaIndex < ECHO_AREAS.length - 1) {
-            void enterEchoArea(echoAreaIndex + 1, "left");
-            return;
-          } else {
-            echoPlayerX = echoWorldWidth - 70;
-            showToast("O caminho além do santuário será aberto no próximo capítulo.");
-          }
-        } else if (echoPlayerX < 44 && echoAreaIndex > 0) {
-          void enterEchoArea(echoAreaIndex - 1, "right");
-          return;
-        }
+        echoPlayerX = Math.max(34, Math.min(echoWorldWidth - 34, echoPlayerX));
 
         echoFrame = requestAnimationFrame(stepEchoExploration);
       };
@@ -10900,6 +11512,8 @@
         echoPlayerImage.src = currentPlayer.character === "female"
           ? "assets/selection/hero-female.webp"
           : "assets/selection/hero-male.webp";
+        echoPlayerLeftLeg.src = echoPlayerImage.src;
+        echoPlayerRightLeg.src = echoPlayerImage.src;
         echoPlayerImage.alt = currentPlayer.name;
         echoPlayer.dataset.character = currentPlayer.character;
         refreshEchoStarterUI();
@@ -10935,6 +11549,9 @@
         echoBattle.hidden = true;
         echoAbsorption.hidden = true;
         echoEvolution.hidden = true;
+        echoTeam.hidden = true;
+        echoPassageConfirm.hidden = true;
+        echoPendingPassage = null;
         openForestMap.hidden = false;
         openMapPosition = { x: 29.3, y: 60.4 };
         positionOpenMapParty();
@@ -10955,7 +11572,7 @@
       const updateEchoBattleBars = () => {
         echoBattlePlayerHp.style.width = `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`;
         echoBattleWildHp.style.width = `${Math.max(0, echoWildHpValue / echoWildMaxHp * 100)}%`;
-        const member = currentPlayer.starter;
+        const member = getActiveEchoMember();
         member.currentHp = Math.max(0, echoPlayerHpValue);
         echoHudHpTrack.style.setProperty("--echo-hp", `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`);
       };
@@ -10966,7 +11583,8 @@
         cancelAnimationFrame(echoFrame);
         resetEchoMovement();
         echoEncounter = wild;
-        const member = ensureEchoPlayerData();
+        ensureEchoPlayerData();
+        const member = getActiveEchoMember();
         const playerForm = getMemberForm(member);
         echoPlayerMaxHp = member.maxHp;
         echoPlayerHpValue = Math.max(1, member.currentHp);
@@ -11021,10 +11639,8 @@
         member.name = nextForm.name;
         member.type = nextForm.type;
         member.image = nextForm.image;
-        if (member === currentPlayer.starter) {
-          member.maxHp += (nextForm.stage - currentForm.stage) * 12;
-          member.currentHp = member.maxHp;
-        }
+        member.maxHp = (Number(member.maxHp) || 0) + (nextForm.stage - currentForm.stage) * 12;
+        member.currentHp = member.maxHp;
       };
 
       const grantEchoExperience = (member, amount) => {
@@ -11046,12 +11662,15 @@
         echoBattleMessage.textContent = `${echoEncounter.form.name} foi derrotado. Sua essência começa a se libertar...`;
         playSequence([392, 523, 659, 784, 988], .08);
         const gainedXp = 18 + echoEncounter.level * 5;
-        grantEchoExperience(currentPlayer.starter, gainedXp);
-        currentPlayer.team.forEach((member) => grantEchoExperience(member, Math.max(8, Math.floor(gainedXp * .55))));
+        const activeMember = getActiveEchoMember();
+        grantEchoExperience(activeMember, gainedXp);
+        getEchoRoster()
+          .filter((member) => member !== activeMember)
+          .forEach((member) => grantEchoExperience(member, Math.max(8, Math.floor(gainedXp * .55))));
         removeEchoEncounter();
         saveCurrentPlayer();
         await forestPause(720);
-        echoBattleChoiceText.textContent = `${currentPlayer.starter.name} recebeu +${gainedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
+        echoBattleChoiceText.textContent = `${getMemberForm(activeMember).name} recebeu +${gainedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
         echoBattleChoice.hidden = false;
         echoTryAbsorb.focus();
       };
@@ -11059,10 +11678,11 @@
       const resolveEchoDefeat = async () => {
         echoBattleLocked = true;
         setEchoBattleControls(false);
-        echoBattleMessage.textContent = `${currentPlayer.starter.name} ficou sem energia. O Relógio Cristalíneo conduziu o grupo para um ponto seguro.`;
+        const activeMember = getActiveEchoMember();
+        echoBattleMessage.textContent = `${getMemberForm(activeMember).name} ficou sem energia. O Relógio Cristalíneo conduziu o grupo para um ponto seguro.`;
         playSequence([330, 247, 196], .09);
         await forestPause(1150);
-        currentPlayer.starter.currentHp = Math.max(1, Math.round(currentPlayer.starter.maxHp * .65));
+        activeMember.currentHp = Math.max(1, Math.round(activeMember.maxHp * .65));
         echoBattle.hidden = true;
         echoWildFighter.classList.remove("hit", "strike");
         echoEncounter = null;
@@ -11072,9 +11692,31 @@
 
       const runEchoBattleAction = async (action) => {
         if (echoBattleLocked || !echoEncounter) return;
+        if (action === "flee") {
+          echoBattleLocked = true;
+          setEchoBattleControls(false);
+          echoBattleMessage.textContent = "Você recua com segurança e retorna à exploração.";
+          playSequence([659, 523, 392], .065);
+          const wildX = echoEncounter.x;
+          echoPlayerX = Math.max(
+            46,
+            Math.min(echoWorldWidth - 46, echoPlayerX + (echoPlayerX <= wildX ? -115 : 115))
+          );
+          await forestPause(620);
+          echoBattle.hidden = true;
+          echoBattleChoice.hidden = true;
+          echoPlayerFighter.classList.remove("hit", "strike");
+          echoWildFighter.classList.remove("hit", "strike");
+          echoEncounter = null;
+          resetEchoMovement();
+          positionEchoWorld();
+          startEchoLoop();
+          echoClearing.focus();
+          return;
+        }
         echoBattleLocked = true;
         setEchoBattleControls(false);
-        const member = currentPlayer.starter;
+        const member = getActiveEchoMember();
         const playerForm = getMemberForm(member);
         const defended = action === "defend";
         let damage = 0;
@@ -11231,7 +11873,7 @@
       const addCapturedNaturion = (wild) => {
         const form = wild.form;
         const chain = wild.chain;
-        currentPlayer.team.push({
+        const member = {
           uid: `${form.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
           id: chain[0],
           baseId: chain[0],
@@ -11243,8 +11885,13 @@
           experience: 0,
           experiencePercent: 0,
           capturedAt: new Date().toISOString(),
-          capturedIn: getEchoArea().id
-        });
+          capturedIn: getEchoArea().id,
+          maxHp: 28 + wild.level * 4 + form.stage * 6,
+          currentHp: 28 + wild.level * 4 + form.stage * 6
+        };
+        const destination = getEchoRoster().length < 3 ? "team" : "storage";
+        currentPlayer[destination].push(member);
+        return { member, destination };
       };
 
       const tryEchoAbsorption = async () => {
@@ -11271,8 +11918,13 @@
           await forestPause(2850);
           if (success) {
             echoAbsorption.dataset.lastResult = "success";
-            addCapturedNaturion(wild);
-            echoAbsorbMessage.textContent = `Essência absorvida! ${wild.form.name} agora faz parte do seu time.`;
+            const capture = addCapturedNaturion(wild);
+            echoAbsorbMessage.textContent = capture.destination === "team"
+              ? `Essência absorvida! ${wild.form.name} entrou para sua equipe.`
+              : `Essência absorvida! A equipe está cheia e ${wild.form.name} foi enviado ao Depósito Cristalino.`;
+            if (capture.destination === "storage") {
+              showToast(`${wild.form.name} foi enviado ao depósito: sua equipe já possui três Naturions.`);
+            }
             playSequence([523, 659, 784, 988, 1175], .075);
             currentPlayer.activeMission = {
               ...currentPlayer.activeMission,
@@ -11312,10 +11964,18 @@
           areaIndex: echoAreaIndex,
           playerX: echoPlayerX,
           playerY: echoPlayerY,
+          worldWidth: echoWorldWidth,
+          worldHeight: echoWorldHeight,
           followerY: Number.parseFloat(echoStarterFollower.style.top) || echoPlayerY,
           moving: echoPlayer.classList.contains("walking"),
           velocityX: echoVelocityX,
           facingRight: echoPlayer.classList.contains("facing-right"),
+          interaction: echoNearInteraction
+            ? {
+                type: echoNearInteraction.type,
+                direction: echoNearInteraction.direction || null
+              }
+            : null,
           wilds: echoWilds.map((wild) => ({
             id: wild.form.id,
             name: wild.form.name,
@@ -11324,8 +11984,30 @@
             behavior: wild.behavior
           })),
           puzzles: { ...(currentPlayer?.echoProgress?.puzzles || {}) },
-          team: [...(currentPlayer?.team || [])]
+          roster: getEchoRoster().map((member) => ({ ...member })),
+          team: [...(currentPlayer?.team || [])],
+          storage: [...(currentPlayer?.storage || [])],
+          activeLeadUid: currentPlayer?.activeLeadUid
         }),
+        setPosition: (xRatio, yRatio) => {
+          echoPlayerX = Number(xRatio) * echoWorldWidth;
+          echoPlayerY = Number(yRatio) * echoWorldHeight;
+          echoVelocityX = 0;
+          echoVelocityY = 0;
+          echoGrounded = true;
+          positionEchoWorld();
+          updateEchoInteraction();
+          return {
+            x: echoPlayerX,
+            y: echoPlayerY,
+            interaction: echoNearInteraction?.type || null
+          };
+        },
+        triggerPrimary: triggerEchoJumpOrPassage,
+        captureWild: (wildIndex = 0) => {
+          const wild = echoWilds[wildIndex];
+          return wild ? addCapturedNaturion(wild) : null;
+        },
         probeGround: (xRatio, previousYRatio, nextYRatio) => {
           const ground = getEchoGroundAt(
             Number(xRatio) * echoWorldWidth,
@@ -11637,6 +12319,26 @@
       });
 
       echoBackMap.addEventListener("click", returnEchoToMap);
+      echoTeamButton.addEventListener("click", openEchoTeam);
+      echoTeamClose.addEventListener("click", closeEchoTeam);
+      echoTeam.addEventListener("click", (event) => {
+        if (event.target === echoTeam) {
+          closeEchoTeam();
+          return;
+        }
+        const action = event.target.closest("[data-echo-member-action]");
+        const card = action?.closest("[data-member-uid]");
+        if (!action || !card) return;
+        const uid = card.dataset.memberUid;
+        if (action.dataset.echoMemberAction === "lead") setActiveEchoMember(uid);
+        if (action.dataset.echoMemberAction === "deposit") moveEchoMemberToStorage(uid);
+        if (action.dataset.echoMemberAction === "team") moveEchoMemberToTeam(uid);
+      });
+      echoPassageYes.addEventListener("click", () => void confirmEchoPassage());
+      echoPassageNo.addEventListener("click", closeEchoPassageConfirmation);
+      echoPassageConfirm.addEventListener("click", (event) => {
+        if (event.target === echoPassageConfirm) closeEchoPassageConfirmation();
+      });
       echoDialogueNext.addEventListener("click", advanceEchoDialogue);
       echoPuzzleReplay.addEventListener("click", () => void previewEchoPuzzle());
       echoPuzzleClose.addEventListener("click", () => {
@@ -11689,7 +12391,7 @@
         });
       });
 
-      echoJumpButton.addEventListener("click", jumpEchoPlayer);
+      echoJumpButton.addEventListener("click", triggerEchoJumpOrPassage);
 
       openMapMovementButtons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -11799,7 +12501,15 @@
           void activateEchoRune(Number(event.key) - 1);
           return;
         }
-        if (!echoDialogue.hidden || !echoPuzzle.hidden || !echoBattle.hidden || !echoEvolution.hidden || !echoAbsorption.hidden) return;
+        if (
+          !echoDialogue.hidden
+          || !echoPuzzle.hidden
+          || !echoBattle.hidden
+          || !echoEvolution.hidden
+          || !echoAbsorption.hidden
+          || !echoTeam.hidden
+          || !echoPassageConfirm.hidden
+        ) return;
         const direction = {
           ArrowLeft: "left",
           a: "left",
@@ -11815,7 +12525,7 @@
         }
         if (["w", "W", "ArrowUp", " "].includes(event.key)) {
           event.preventDefault();
-          if (!event.repeat) jumpEchoPlayer();
+          if (!event.repeat) triggerEchoJumpOrPassage();
           return;
         }
         if (["e", "E", "Enter"].includes(event.key)) {
