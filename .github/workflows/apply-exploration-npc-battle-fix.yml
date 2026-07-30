@@ -24,8 +24,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('.github/apply_exploration_npc_battle_fix.py')
-          source = path.read_text(encoding='utf-8')
+          source = Path('.github/apply_exploration_npc_battle_fix.py').read_text(encoding='utf-8')
           old = '''areas_start = text.index("      const ECHO_AREAS = [")
           areas_end = text.index("      const ECHO_WILD_CHAINS", areas_start)
           areas = text[areas_start:areas_end]'''
@@ -36,10 +35,10 @@ jobs:
           areas = areas_match.group(0)'''
           if old not in source:
               raise SystemExit('Localizador antigo não encontrado no script')
-          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          Path('/tmp/apply-exploration-fix.py').write_text(source.replace(old, new, 1), encoding='utf-8')
           PY
 
-          python3 .github/apply_exploration_npc_battle_fix.py
+          python3 /tmp/apply-exploration-fix.py
 
           python3 - <<'PY'
           from pathlib import Path
