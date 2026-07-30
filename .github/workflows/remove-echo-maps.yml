@@ -49,10 +49,11 @@ jobs:
           print('Destino visível e inativo; cinco mapas antigos removidos das definições.')
           PY
 
-      - name: Confirmar que somente index.html ficou alterado
+      - name: Confirmar escopo final
         run: |
-          changed="$(git status --short | awk '{print $2}')"
-          test "$changed" = "index.html"
+          changed="$(git status --short | awk '{print $2}' | sort)"
+          expected="$(printf '%s\n' '.github/scripts/remove_echo_maps.py' '.github/workflows/remove-echo-maps.yml' 'index.html' | sort)"
+          test "$changed" = "$expected"
 
       - name: Gravar correção na branch
         run: |
