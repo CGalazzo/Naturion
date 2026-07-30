@@ -1,4 +1,5 @@
 import { THREE } from "./engine.js";
+import { createPixelShadowTexture } from "./art/environment-factory.js";
 
 export class EntitySystem {
   constructor({ scene, stage, forms, onEncounter }) {
@@ -9,6 +10,7 @@ export class EntitySystem {
     this.entities = [];
     this.nearest = null;
     this.loader = new THREE.TextureLoader();
+    this.shadowTexture = createPixelShadowTexture();
   }
 
   createSpriteEntity(definition) {
@@ -21,13 +23,26 @@ export class EntitySystem {
     texture.generateMipmaps = false;
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true, alphaTest: 0.06, depthWrite: true });
     const sprite = new THREE.Sprite(material);
-    sprite.center.set(0.5, definition.flying ? 0.45 : 0.05);
+    sprite.center.set(0.5, definition.flying ? 0.42 : 0.055);
     const scale = definition.scale || (form.stage === 1 ? 2.75 : 3.35);
     sprite.scale.set(scale, scale, 1);
-    const y = this.stage.getHeightAt(definition.position.x, definition.position.z) + (definition.flying ? definition.altitude || 3.2 : 0.04);
+    const groundY = this.stage.getHeightAt(definition.position.x, definition.position.z);
+    const y = groundY + (definition.flying ? definition.altitude || 3.2 : 0.035);
     sprite.position.set(definition.position.x, y, definition.position.z);
     sprite.name = form.name;
+    sprite.renderOrder = 3;
     this.scene.add(sprite);
+
+    const shadowMaterial = new THREE.MeshBasicMaterial({
+      map: this.shadowTexture,
+      transparent: true,
+      depthWrite: false,
+      opacity: definition.flying ? 0.22 : 0.34
+    });
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(scale * 0.82, scale * 0.38), shadowMaterial);
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.set(definition.position.x, groundY + 0.028, definition.position.z);
+    this.scene.add(shadow);
 
     const entity = {
       ...definition,
@@ -35,6 +50,9 @@ export class EntitySystem {
       texture,
       material,
       object: sprite,
+      shadow,
+      shadowMaterial,
+      baseScale: scale,
       origin: new THREE.Vector3(definition.position.x, y, definition.position.z),
       direction: new THREE.Vector3(1, 0, 0),
       patrolIndex: 0,
@@ -57,13 +75,28 @@ export class EntitySystem {
       entity.elapsed += delta;
       if (entity.behavior === "wander") this.updateWander(entity, delta);
       if (entity.behavior === "patrol") this.updatePatrol(entity, delta);
+      const groundY = this.stage.getHeightAt(entity.object.position.x, entity.object.position.z);
+
       if (entity.flying) {
-        entity.object.position.y = entity.origin.y + Math.sin(entity.elapsed * 2.2) * 0.32;
-        entity.object.material.rotation = Math.sin(entity.elapsed * 5.2) * 0.035;
+        const flap = Math.sin(entity.elapsed * 8.2);
+        entity.object.position.y = groundY + (entity.altitude || 3.2) + Math.sin(entity.elapsed * 2.2) * 0.28;
+        entity.object.material.rotation = Math.sin(entity.elapsed * 4.6) * 0.028;
+        entity.object.scale.y = entity.baseScale * (1 + Math.abs(flap) * 0.035);
+        entity.object.scale.x = Math.abs(entity.baseScale * (1 - Math.abs(flap) * 0.02)) * (entity.direction.x >= 0 ? 1 : -1);
+        entity.shadow.position.set(entity.object.position.x, groundY + 0.025, entity.object.position.z);
+        const altitudeFade = Math.max(0.52, 1 - (entity.altitude || 3.2) * 0.07);
+        entity.shadow.scale.setScalar(altitudeFade + Math.sin(entity.elapsed * 2.2) * 0.025);
       } else {
-        entity.object.position.y = this.stage.getHeightAt(entity.object.position.x, entity.object.position.z) + Math.abs(Math.sin(entity.elapsed * 6.1)) * 0.055;
+        const moving = entity.behavior === "wander" || entity.behavior === "patrol";
+        const gait = Math.sin(entity.elapsed * (moving ? 7 : 2));
+        entity.object.position.y = groundY + Math.abs(gait) * (moving ? 0.065 : 0.025) + 0.035;
+        entity.object.material.rotation = moving ? gait * 0.032 : Math.sin(entity.elapsed * 1.5) * 0.012;
+        entity.object.scale.y = entity.baseScale * (1 + Math.abs(gait) * 0.018);
+        entity.object.scale.x = Math.abs(entity.baseScale * (1 - Math.abs(gait) * 0.01)) * (entity.direction.x >= 0 ? 1 : -1);
+        entity.shadow.position.set(entity.object.position.x, groundY + 0.025, entity.object.position.z);
+        entity.shadow.scale.setScalar(0.96 + Math.abs(gait) * 0.045);
       }
-      if (Math.abs(entity.direction.x) > 0.05) entity.object.scale.x = Math.abs(entity.object.scale.x) * (entity.direction.x >= 0 ? 1 : -1);
+
       const horizontalDistance = Math.hypot(playerPosition.x - entity.object.position.x, playerPosition.z - entity.object.position.z);
       if (horizontalDistance < nearestDistance) {
         nearestDistance = horizontalDistance;
@@ -109,11 +142,17 @@ export class EntitySystem {
       return;
     }
     direction.normalize();
-    entity.direction.copy(direction);
-    entity.object.position.x += direction.x * (entity.speed || 1.2) * delta;
-    entity.object.position.z += direction.z * (entity.speed || 1.2) * delta;
-    entity.origin.x = entity.object.position.x;
-    entity.origin.z = entity.object.position.z;
+    const nextX = entity.object.position.x + direction.x * (entity.speed || 1.2) * delta;
+    const nextZ = entity.object.position.z + direction.z * (entity.speed || 1.2) * delta;
+    if (entity.flying || (this.stage.isWalkable(nextX, nextZ, 0.35) && !this.stage.collides(nextX, nextZ, 0.35))) {
+      entity.object.position.x = nextX;
+      entity.object.position.z = nextZ;
+      entity.direction.copy(direction);
+      entity.origin.x = entity.object.position.x;
+      entity.origin.z = entity.object.position.z;
+    } else {
+      entity.patrolIndex = (entity.patrolIndex + 1) % entity.path.length;
+    }
   }
 
   async interact() {
@@ -123,6 +162,7 @@ export class EntitySystem {
     if (result?.outcome === "victory") {
       entity.defeated = true;
       entity.object.visible = false;
+      entity.shadow.visible = false;
     }
     return true;
   }
@@ -141,8 +181,12 @@ export class EntitySystem {
     this.entities.forEach((entity) => {
       entity.texture.dispose();
       entity.material.dispose();
+      entity.shadow.geometry.dispose();
+      entity.shadowMaterial.dispose();
       entity.object.removeFromParent();
+      entity.shadow.removeFromParent();
     });
+    this.shadowTexture.dispose();
     this.entities.length = 0;
   }
 }
