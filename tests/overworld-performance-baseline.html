@@ -1,35 +1,6 @@
-<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><base href="/"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Benchmark overworld</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#173d33}#viewport{width:1280px;height:720px}#result{position:fixed;left:8px;top:8px;z-index:10;background:#fff;color:#111;padding:10px;white-space:pre;font:13px monospace}canvas{image-rendering:pixelated}</style></head>
-<body data-test-status="running"><div id="viewport"></div><pre id="result">running</pre>
-<script type="module">
-import { OverworldEngine } from './src/overworld/engine.js';
-import { OverworldCamera } from './src/overworld/camera.js';
-import { OverworldPlayer } from './src/overworld/player.js';
-import { OverworldEntities } from './src/overworld/entities.js';
-import { bosqueLuminalMap, buildBosqueLuminal, bosqueLuminalNpcs, bosqueLuminalNaturions } from './src/overworld/maps/bosque-luminal.js';
-const result=document.getElementById('result');
-const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
-const pixel='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL5WQAAAABJRU5ErkJggg==';
-try{
- const engine=new OverworldEngine({container:document.getElementById('viewport'),map:bosqueLuminalMap});
- const world=buildBosqueLuminal({scene:engine.scene,engine});
- const camera=new OverworldCamera({engine,map:bosqueLuminalMap});
- const movement={x:0,z:-1,running:false};
- const player=new OverworldPlayer({scene:engine.scene,collision:world.collision,input:{getMovement:()=>movement},characterImage:'assets/selection/hero-male.webp',startPosition:bosqueLuminalMap.startPosition});
- camera.setPlayerObject(player.group);
- const forms={escaruli:{name:'Escaruli',image:pixel},zumbel:{name:'Zumbel',image:pixel},failino:{name:'Failino',image:pixel}};
- const entities=new OverworldEntities({scene:engine.scene,collision:world.collision,forms,onEncounter:async()=>({outcome:'fled'}),onDialogue:()=>{}});
- entities.spawn({naturions:bosqueLuminalNaturions,npcs:bosqueLuminalNpcs});
- engine.addUpdater((delta,elapsed)=>{const move=player.update(delta,elapsed);camera.update(delta,move.velocity);entities.update(delta,elapsed,player.group.position);});
- engine.start();
- await wait(900);
- let frames=0; const start=performance.now();
- await new Promise(resolve=>{const sample=()=>{frames++; if(frames>=60) resolve(); else requestAnimationFrame(sample)}; requestAnimationFrame(sample)});
- const elapsed=Math.max(1,performance.now()-start);
- engine.renderer.render(engine.scene,camera.camera);
- const info=engine.renderer.info;
- const all=engine.scene.children.flatMap(function walk(o){return [o,...o.children.flatMap(walk)]});
- const metrics={fps:Number((frames/(elapsed/1000)).toFixed(2)),frameMs:Number((elapsed/frames).toFixed(3)),drawCalls:info.render.calls,textures:info.memory.textures,geometries:info.memory.geometries,triangles:info.render.triangles,sceneObjects:all.length,foregroundStrips:all.filter(o=>String(o.name).startsWith('BosqueForegroundStrip-')).length,heapMB:performance.memory?Number((performance.memory.usedJSHeapSize/1048576).toFixed(2)):null,resolution:`${engine.renderResolution.width}x${engine.renderResolution.height}`};
- document.body.dataset.testStatus='passed'; result.textContent=JSON.stringify(metrics,null,2); window.__METRICS__=metrics; console.log('NATURION_METRICS '+JSON.stringify(metrics)); engine.stop();
-}catch(error){document.body.dataset.testStatus='failed';result.textContent=error.stack||error.message;console.error(error)}
-</script></body></html>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><base href="/"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Benchmark overworld</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#173d33}#viewport{width:1280px;height:720px}#result{position:fixed;left:8px;top:8px;z-index:10;background:#fff;color:#111;padding:10px;white-space:pre;font:13px monospace}canvas{image-rendering:pixelated}</style></head><body data-test-status="running"><div id="viewport"></div><pre id="result">running</pre><script type="module">
+import { OverworldEngine } from './src/overworld/engine.js';import { OverworldCamera } from './src/overworld/camera.js';import { OverworldPlayer } from './src/overworld/player.js';import { OverworldEntities } from './src/overworld/entities.js';import { bosqueLuminalMap,buildBosqueLuminal,bosqueLuminalNpcs,bosqueLuminalNaturions } from './src/overworld/maps/bosque-luminal.js';
+const result=document.getElementById('result');const pixel='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL5WQAAAABJRU5ErkJggg==';
+try{const engine=new OverworldEngine({container:document.getElementById('viewport'),map:bosqueLuminalMap});const world=buildBosqueLuminal({scene:engine.scene,engine});const camera=new OverworldCamera({engine,map:bosqueLuminalMap});const movement={x:0,z:-1,running:false};const player=new OverworldPlayer({scene:engine.scene,collision:world.collision,input:{getMovement:()=>movement},characterImage:'assets/selection/hero-male.webp',startPosition:bosqueLuminalMap.startPosition});camera.setPlayerObject(player.group);const forms={escaruli:{name:'Escaruli',image:pixel},zumbel:{name:'Zumbel',image:pixel},failino:{name:'Failino',image:pixel}};const entities=new OverworldEntities({scene:engine.scene,collision:world.collision,forms,onEncounter:async()=>({outcome:'fled'}),onDialogue:()=>{}});entities.spawn({naturions:bosqueLuminalNaturions,npcs:bosqueLuminalNpcs});
+for(let i=0;i<30;i++){const move=player.update(1/60,i/60);camera.update(1/60,move.velocity);entities.update(1/60,i/60,player.group.position);engine.renderer.render(engine.scene,camera.camera)}
+const frames=180,start=performance.now();for(let i=0;i<frames;i++){const elapsed=i/60;const move=player.update(1/60,elapsed);camera.update(1/60,move.velocity);entities.update(1/60,elapsed,player.group.position);engine.renderer.render(engine.scene,camera.camera)}const total=performance.now()-start;const info=engine.renderer.info;const all=engine.scene.children.flatMap(function walk(o){return[o,...o.children.flatMap(walk)]});const metrics={syntheticFps:Number((frames/(total/1000)).toFixed(2)),frameMs:Number((total/frames).toFixed(3)),drawCalls:info.render.calls,textures:info.memory.textures,geometries:info.memory.geometries,triangles:info.render.triangles,sceneObjects:all.length,foregroundStrips:all.filter(o=>String(o.name).startsWith('BosqueForegroundStrip-')).length,heapMB:performance.memory?Number((performance.memory.usedJSHeapSize/1048576).toFixed(2)):null,resolution:`${engine.renderResolution.width}x${engine.renderResolution.height}`};document.body.dataset.testStatus='passed';result.textContent=JSON.stringify(metrics,null,2);console.log('NATURION_METRICS '+JSON.stringify(metrics));}catch(error){document.body.dataset.testStatus='failed';result.textContent=error.stack||error.message;console.error(error)}</script></body></html>
