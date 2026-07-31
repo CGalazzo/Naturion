@@ -18,6 +18,21 @@ export class OverworldEntities {
     this.touchTarget = null;
     this.encounterLocked = false;
     this.loader = new THREE.TextureLoader();
+    this.textureCache = new Map();
+    this.scratchDirection = new THREE.Vector3();
+  }
+
+  getNaturionTexture(url) {
+    if (this.textureCache.has(url)) return this.textureCache.get(url);
+    const texture = this.loader.load(url);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+    texture.generateMipmaps = false;
+    texture.anisotropy = 1;
+    texture.needsUpdate = true;
+    this.textureCache.set(url, texture);
+    return texture;
   }
 
   spawn({ naturions = [], npcs = [] }) {
@@ -28,11 +43,7 @@ export class OverworldEntities {
   createNaturion(definition) {
     const form = this.forms[definition.formId];
     if (!form) return null;
-    const texture = this.loader.load(form.image);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.generateMipmaps = false;
+    const texture = this.getNaturionTexture(form.image);
 
     const root = new THREE.Group();
     root.name = `OverworldNaturion-${form.name}`;
@@ -40,16 +51,18 @@ export class OverworldEntities {
     const visual = new THREE.Group();
     root.add(visual);
 
-    const outlineMaterial = createSpriteMaterial(texture, { depthWrite: false, color: 0x17332d, fog: true });
+    const outlineMaterial = createSpriteMaterial(texture, { depthWrite: false, color: 0x17332d });
     const outline = new THREE.Sprite(outlineMaterial);
     outline.center.set(.5, definition.flying ? .42 : .055);
     outline.scale.set(1.075, 1.075, 1);
     outline.position.z = -.025;
+    outline.frustumCulled = true;
     visual.add(outline);
 
-    const material = createSpriteMaterial(texture, { depthWrite: true, fog: true });
+    const material = createSpriteMaterial(texture, { depthWrite: false });
     const sprite = new THREE.Sprite(material);
     sprite.center.set(.5, definition.flying ? .42 : .055);
+    sprite.frustumCulled = true;
     visual.add(sprite);
 
     const scale = definition.scale || 2.7;
@@ -62,7 +75,6 @@ export class OverworldEntities {
       ...definition,
       kind: "naturion",
       form,
-      texture,
       root,
       visual,
       sprite,
@@ -92,7 +104,17 @@ export class OverworldEntities {
     shadow.mesh.position.y = .025;
     root.add(shadow.mesh);
     this.scene.add(root);
-    const npc = { ...definition, kind: "npc", root, sprite: visual.sprite, material: visual.material, shadow: shadow.mesh, shadowMaterial: shadow.material, phase: hashText(definition.id) * .17 };
+    const npc = {
+      ...definition,
+      kind: "npc",
+      root,
+      sprite: visual.sprite,
+      material: visual.material,
+      texture: visual.texture,
+      shadow: shadow.mesh,
+      shadowMaterial: shadow.material,
+      phase: hashText(definition.id) * .17
+    };
     this.npcs.push(npc);
     return npc;
   }
@@ -123,6 +145,7 @@ export class OverworldEntities {
         entity.root.position.y = .04 + Math.round(Math.abs(gait) * 4) / 64;
         entity.visual.scale.set((entity.direction.x < 0 ? -1 : 1) * entity.scale, entity.scale * (1 + Math.abs(gait) * .016), 1);
       }
+
       entity.shadow.position.set(entity.root.position.x, .025, entity.root.position.z);
       entity.outline.renderOrder = depthOrderForZ(entity.root.position.z, 16);
       entity.sprite.renderOrder = depthOrderForZ(entity.root.position.z, 18);
@@ -155,7 +178,11 @@ export class OverworldEntities {
     const distance = radius * (.58 + .24 * Math.sin(elapsed * .37 + entity.phase));
     const targetX = entity.origin.x + Math.cos(targetAngle) * distance;
     const targetZ = entity.origin.z + Math.sin(targetAngle * .83) * distance;
-    const direction = new THREE.Vector3(targetX - entity.root.position.x, 0, targetZ - entity.root.position.z);
+    const direction = this.scratchDirection.set(
+      targetX - entity.root.position.x,
+      0,
+      targetZ - entity.root.position.z
+    );
     if (direction.lengthSq() < .08) return;
     direction.normalize();
     const speed = entity.speed || .85;
@@ -173,8 +200,12 @@ export class OverworldEntities {
   updatePatrol(entity, delta) {
     if (!entity.path?.length) return;
     const point = entity.path[entity.patrolIndex];
-    const direction = new THREE.Vector3(point.x - entity.root.position.x, 0, point.z - entity.root.position.z);
-    if (direction.length() < .28) {
+    const direction = this.scratchDirection.set(
+      point.x - entity.root.position.x,
+      0,
+      point.z - entity.root.position.z
+    );
+    if (direction.lengthSq() < .0784) {
       entity.patrolIndex = (entity.patrolIndex + 1) % entity.path.length;
       return;
     }
@@ -228,23 +259,22 @@ export class OverworldEntities {
 
   dispose() {
     this.naturions.forEach((entity) => {
-      entity.texture.dispose();
       entity.material.dispose();
       entity.outlineMaterial.dispose();
       entity.shadow.geometry.dispose();
-      entity.shadowMaterial.userData.ownedTexture?.dispose?.();
       entity.shadowMaterial.dispose();
       entity.root.removeFromParent();
       entity.shadow.removeFromParent();
     });
     this.npcs.forEach((npc) => {
-      npc.material.map?.dispose?.();
+      npc.texture?.dispose?.();
       npc.material.dispose();
       npc.shadow.geometry.dispose();
-      npc.shadowMaterial.userData.ownedTexture?.dispose?.();
       npc.shadowMaterial.dispose();
       npc.root.removeFromParent();
     });
+    this.textureCache.forEach((texture) => texture.dispose());
+    this.textureCache.clear();
     this.naturions.length = 0;
     this.npcs.length = 0;
   }
