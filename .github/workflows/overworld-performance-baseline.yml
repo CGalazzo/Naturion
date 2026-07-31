@@ -1,0 +1,38 @@
+name: Overworld performance baseline
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Executar benchmark WebGL
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for attempt in {1..30}; do curl -fsS http://127.0.0.1:4173/tests/overworld-performance-baseline.html >/dev/null && break; sleep 1; done
+          CHROME="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless=new --no-sandbox --disable-dev-shm-usage --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist --enable-precise-memory-info --window-size=1280,720 --virtual-time-budget=15000 --run-all-compositor-stages-before-draw --screenshot=/tmp/baseline.png --dump-dom http://127.0.0.1:4173/tests/overworld-performance-baseline.html >/tmp/dom.html 2>/tmp/chrome.log
+          cat /tmp/dom.html
+          cat /tmp/chrome.log
+          grep -q 'data-test-status="passed"' /tmp/dom.html
+          grep -q 'NATURION_METRICS' /tmp/chrome.log || true
+          test -s /tmp/baseline.png
+      - name: Salvar métricas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: overworld-performance-baseline
+          path: |
+            /tmp/baseline.png
+            /tmp/dom.html
+            /tmp/chrome.log
+          if-no-files-found: warn
