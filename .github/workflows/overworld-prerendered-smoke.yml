@@ -1,0 +1,82 @@
+name: Overworld prerendered smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar sintaxe e arquivos
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in src/overworld/depth.js src/overworld/entities.js src/overworld/environment.js src/overworld/sprites.js src/overworld/textures.js; do
+            node --check "$file"
+          done
+          test ! -e assets/overworld/bosque-luminal/effects.webp.b64-test
+          for file in \
+            assets/overworld/bosque-luminal/ground.webp \
+            assets/overworld/bosque-luminal/foreground.webp \
+            assets/overworld/bosque-luminal/shadows.webp \
+            assets/overworld/bosque-luminal/collision-mask.png \
+            assets/overworld/bosque-luminal/depth-mask.png \
+            assets/overworld/bosque-luminal/water-frames.webp \
+            assets/overworld/bosque-luminal/grass-frames.webp \
+            assets/overworld/bosque-luminal/effects.webp \
+            assets/overworld/characters/hero-male/hero-male-sheet.png \
+            assets/overworld/characters/hero-female/hero-female-sheet.png \
+            assets/overworld/characters/npcs/npc-sheet.png; do
+            test -s "$file"
+          done
+
+      - name: Executar Chrome WebGL
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/naturion-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for attempt in {1..30}; do
+            curl -fsS http://127.0.0.1:4173/tests/overworld-prerendered-smoke.html >/dev/null && break
+            sleep 1
+          done
+          CHROME="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-dev-shm-usage \
+            --use-angle=swiftshader \
+            --enable-unsafe-swiftshader \
+            --ignore-gpu-blocklist \
+            --window-size=1280,720 \
+            --virtual-time-budget=10000 \
+            --run-all-compositor-stages-before-draw \
+            --screenshot=/tmp/bosque-prerendered.png \
+            --dump-dom \
+            http://127.0.0.1:4173/tests/overworld-prerendered-smoke.html \
+            >/tmp/bosque-dom.html 2>/tmp/bosque-chrome.log
+          cat /tmp/bosque-dom.html
+          cat /tmp/bosque-chrome.log
+          grep -q 'data-test-status="passed"' /tmp/bosque-dom.html
+          test -s /tmp/bosque-prerendered.png
+
+      - name: Salvar captura do smoke test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bosque-prerendered-smoke
+          path: |
+            /tmp/bosque-prerendered.png
+            /tmp/bosque-dom.html
+            /tmp/bosque-chrome.log
+          if-no-files-found: warn
