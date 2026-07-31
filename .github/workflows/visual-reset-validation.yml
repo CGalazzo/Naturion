@@ -20,21 +20,59 @@ jobs:
           git diff --exit-code HEAD^1 HEAD^2 -- src/overworld/player.js src/overworld/camera.js src/overworld/collision.js src/overworld/input.js src/overworld/main.js src/overworld/battle-bridge.js src/overworld/maps/bosque-luminal.js
           test "$(grep -R 'BosqueForegroundStrip' -n src/overworld | wc -l)" -eq 0
           test "$(grep -R 'shadowMap.enabled = true' -n src/overworld | wc -l)" -eq 0
-      - name: Executar Chrome WebGL e benchmark
+      - name: Executar Chrome WebGL e benchmark real
         shell: bash
         run: |
           set -euo pipefail
+          python3 -m pip install --quiet selenium
           python3 -m http.server 4173 >/tmp/http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
           for attempt in {1..30}; do curl -fsS http://127.0.0.1:4173/tests/visual-reset-validation.html >/dev/null && break; sleep 1; done
-          CHROME="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || true)"
-          test -n "$CHROME"
-          "$CHROME" --headless=new --no-sandbox --disable-dev-shm-usage --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist --enable-precise-memory-info --window-size=1280,720 --virtual-time-budget=12000 --run-all-compositor-stages-before-draw --screenshot=/tmp/visual-reset-validation.png --dump-dom http://127.0.0.1:4173/tests/visual-reset-validation.html >/tmp/dom.html 2>/tmp/chrome.log
-          cat /tmp/dom.html
+          python3 - <<'PY'
+          import json
+          from selenium import webdriver
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.support.ui import WebDriverWait
+
+          options = Options()
+          options.add_argument('--headless=new')
+          options.add_argument('--no-sandbox')
+          options.add_argument('--disable-dev-shm-usage')
+          options.add_argument('--use-angle=swiftshader')
+          options.add_argument('--enable-unsafe-swiftshader')
+          options.add_argument('--ignore-gpu-blocklist')
+          options.add_argument('--enable-precise-memory-info')
+          options.add_argument('--window-size=1280,720')
+          options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
+
+          driver = webdriver.Chrome(options=options)
+          try:
+              driver.get('http://127.0.0.1:4173/tests/visual-reset-validation.html')
+              WebDriverWait(driver, 40).until(
+                  lambda current: current.find_element('tag name', 'body').get_attribute('data-test-status') in ('passed', 'failed')
+              )
+              status = driver.find_element('tag name', 'body').get_attribute('data-test-status')
+              metrics = driver.execute_script('return window.__NATURION_METRICS__ || null')
+              with open('/tmp/dom.html', 'w', encoding='utf-8') as output:
+                  output.write(driver.page_source)
+              with open('/tmp/metrics.json', 'w', encoding='utf-8') as output:
+                  json.dump(metrics, output, indent=2, ensure_ascii=False)
+              with open('/tmp/chrome.log', 'w', encoding='utf-8') as output:
+                  for entry in driver.get_log('browser'):
+                      output.write(json.dumps(entry, ensure_ascii=False) + '\n')
+              driver.save_screenshot('/tmp/visual-reset-validation.png')
+              print(json.dumps(metrics, indent=2, ensure_ascii=False))
+              assert status == 'passed', driver.find_element('id', 'result').text
+              assert metrics and metrics['foregroundStrips'] == 0
+              assert metrics['drawCalls'] < 60
+              assert metrics['textures'] > 0
+              assert metrics['frameMs'] > 0
+          finally:
+              driver.quit()
+          PY
+          cat /tmp/metrics.json
           cat /tmp/chrome.log
-          grep -q 'data-test-status="passed"' /tmp/dom.html
-          grep -q '"foregroundStrips": 0' /tmp/dom.html
           test -s /tmp/visual-reset-validation.png
       - name: Salvar captura e métricas
         if: always()
@@ -44,5 +82,6 @@ jobs:
           path: |
             /tmp/visual-reset-validation.png
             /tmp/dom.html
+            /tmp/metrics.json
             /tmp/chrome.log
           if-no-files-found: warn
