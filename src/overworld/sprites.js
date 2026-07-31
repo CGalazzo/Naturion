@@ -7,6 +7,8 @@ const HERO_ROWS = 8;
 const NPC_COLUMNS = 4;
 const NPC_ROWS = 12;
 const textureLoader = new THREE.TextureLoader();
+const sheetBaseCache = new Map();
+let sharedShadowTexture = null;
 
 const DIRECTIONS = Object.freeze([
   "front",
@@ -26,8 +28,7 @@ const NPC_ROWS_BY_ROLE = Object.freeze({
   merchant: 0
 });
 
-const prepareSheet = (url, name) => {
-  const texture = textureLoader.load(url);
+const configureSheet = (texture, name) => {
   texture.name = name;
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.magFilter = THREE.NearestFilter;
@@ -35,7 +36,21 @@ const prepareSheet = (url, name) => {
   texture.generateMipmaps = false;
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.anisotropy = 1;
   texture.needsUpdate = true;
+  return texture;
+};
+
+const getSheetBase = (url) => {
+  if (sheetBaseCache.has(url)) return sheetBaseCache.get(url);
+  const texture = configureSheet(textureLoader.load(url), `base:${url}`);
+  sheetBaseCache.set(url, texture);
+  return texture;
+};
+
+const createSheetInstance = (url, name) => {
+  const texture = getSheetBase(url).clone();
+  configureSheet(texture, name);
   return texture;
 };
 
@@ -55,7 +70,8 @@ const setHeroFrame = (texture, direction, column) => {
   });
 };
 
-const createPixelShadowTexture = () => {
+const getPixelShadowTexture = () => {
+  if (sharedShadowTexture) return sharedShadowTexture;
   const canvas = document.createElement("canvas");
   canvas.width = 32;
   canvas.height = 16;
@@ -68,20 +84,21 @@ const createPixelShadowTexture = () => {
   context.fillRect(7, 4, 18, 9);
   context.fillStyle = "rgba(5, 17, 16, .38)";
   context.fillRect(11, 5, 10, 7);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-  texture.generateMipmaps = false;
-  texture.needsUpdate = true;
-  return texture;
+  sharedShadowTexture = new THREE.CanvasTexture(canvas);
+  sharedShadowTexture.name = "overworld-shared-shadow";
+  sharedShadowTexture.colorSpace = THREE.SRGBColorSpace;
+  sharedShadowTexture.magFilter = THREE.NearestFilter;
+  sharedShadowTexture.minFilter = THREE.NearestFilter;
+  sharedShadowTexture.generateMipmaps = false;
+  sharedShadowTexture.needsUpdate = true;
+  return sharedShadowTexture;
 };
 
 export class DirectionalSpriteRig {
   constructor({ characterImage }) {
     this.variant = String(characterImage).includes("female") ? "female" : "male";
     this.direction = "front";
-    this.texture = prepareSheet(
+    this.texture = createSheetInstance(
       `assets/overworld/characters/hero-${this.variant}/hero-${this.variant}-sheet.png`,
       `overworld-hero-${this.variant}`
     );
@@ -90,7 +107,7 @@ export class DirectionalSpriteRig {
     this.material = new THREE.SpriteMaterial({
       map: this.texture,
       transparent: true,
-      alphaTest: 0.05,
+      alphaTest: 0.08,
       depthTest: false,
       depthWrite: false,
       toneMapped: false
@@ -99,7 +116,7 @@ export class DirectionalSpriteRig {
     this.sprite.name = `OverworldHeroSprite-${this.variant}`;
     this.sprite.center.set(0.5, 0.055);
     this.sprite.scale.set(2.5, 3.12, 1);
-    this.sprite.frustumCulled = false;
+    this.sprite.frustumCulled = true;
 
     this.root = new THREE.Group();
     this.root.name = `OverworldDirectionalPlayer-${this.variant}`;
@@ -131,13 +148,16 @@ export class DirectionalSpriteRig {
 }
 
 export const createNpcSprite = (role = "story") => {
-  const texture = prepareSheet("assets/overworld/characters/npcs/npc-sheet.png", `overworld-npc-${role}`);
+  const texture = createSheetInstance(
+    "assets/overworld/characters/npcs/npc-sheet.png",
+    `overworld-npc-${role}`
+  );
   const row = NPC_ROWS_BY_ROLE[role] ?? NPC_ROWS_BY_ROLE.story;
   configureAtlasFrame(texture, { columns: NPC_COLUMNS, rows: NPC_ROWS, column: 0, row });
   const material = new THREE.SpriteMaterial({
     map: texture,
     transparent: true,
-    alphaTest: 0.05,
+    alphaTest: 0.08,
     depthTest: false,
     depthWrite: false,
     toneMapped: false
@@ -146,7 +166,7 @@ export const createNpcSprite = (role = "story") => {
   sprite.name = `OverworldNpcSprite-${role}`;
   sprite.center.set(0.5, 0.055);
   sprite.scale.set(2.35, 2.95, 1);
-  sprite.frustumCulled = false;
+  sprite.frustumCulled = true;
   let lastColumn = -1;
   sprite.userData.updateFrame = (elapsed, worldZ = 0) => {
     const column = Math.floor(elapsed * 2.5) % NPC_COLUMNS;
@@ -156,26 +176,28 @@ export const createNpcSprite = (role = "story") => {
     }
     sprite.renderOrder = depthOrderForZ(worldZ, 18);
   };
-  sprite.userData.ownedTexture = texture;
-  return { sprite, material };
+  return { sprite, material, texture };
 };
 
 export const createGroundShadow = ({ width = 1.8, depth = 0.72, opacity = 0.34 } = {}) => {
-  const texture = createPixelShadowTexture();
   const material = new THREE.MeshBasicMaterial({
-    map: texture,
+    map: getPixelShadowTexture(),
     transparent: true,
     depthWrite: false,
     depthTest: false,
     opacity,
     toneMapped: false
   });
-  material.userData.ownedTexture = texture;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), material);
   mesh.rotation.x = -Math.PI / 2;
   mesh.renderOrder = depthOrderForZ(-40, -200);
-  mesh.frustumCulled = false;
+  mesh.frustumCulled = true;
   return { mesh, material };
 };
 
-export const disposeSpriteFrames = () => {};
+export const disposeSpriteFrames = () => {
+  sharedShadowTexture?.dispose?.();
+  sharedShadowTexture = null;
+  sheetBaseCache.forEach((texture) => texture.dispose());
+  sheetBaseCache.clear();
+};
