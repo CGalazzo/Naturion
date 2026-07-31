@@ -1,0 +1,3 @@
+Checkpoint de segurança anterior ao reset controlado da renderização do Bosque Luminal.
+Base preservada: main @ 1cf5756bbc8714bc4a61816496465f2f9404d547
+Data: 2026-07-31
