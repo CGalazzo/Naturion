@@ -1,0 +1,81 @@
+name: Build prerendered Bosque assets
+
+on:
+  push:
+    branches:
+      - change/bosque-luminal-prerendered-layers
+
+permissions:
+  contents: write
+
+jobs:
+  build-assets:
+    if: ${{ !contains(github.event.head_commit.message, '[generated-assets]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: change/bosque-luminal-prerendered-layers
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image tooling
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Generate layered scene and character sheets
+        run: python tools/generate_prerendered_assets.py
+
+      - name: Validate generated assets and protected mechanics
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check src/overworld/depth.js
+          node --check src/overworld/textures.js
+          node --check src/overworld/sprites.js
+          node --check src/overworld/environment.js
+          node --check src/overworld/entities.js
+          ! grep -Eq 'BoxGeometry|CylinderGeometry|DodecahedronGeometry' src/overworld/environment.js src/overworld/sprites.js
+          git fetch origin main
+          test -z "$(git diff --name-only origin/main -- src/overworld/player.js src/overworld/camera.js src/overworld/collision.js src/overworld/input.js src/overworld/battle-bridge.js src/overworld/main.js src/overworld/maps/bosque-luminal.js)"
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          expected = {
+              'assets/overworld/bosque-luminal/ground.webp': (2048, 1536),
+              'assets/overworld/bosque-luminal/foreground.webp': (2048, 1536),
+              'assets/overworld/bosque-luminal/shadows.webp': (2048, 1536),
+              'assets/overworld/bosque-luminal/collision-mask.png': (2048, 1536),
+              'assets/overworld/bosque-luminal/depth-mask.png': (2048, 1536),
+              'assets/overworld/bosque-luminal/water-frames.webp': (2048, 6144),
+              'assets/overworld/bosque-luminal/grass-frames.webp': (2048, 6144),
+              'assets/overworld/bosque-luminal/effects.webp': (2048, 6144),
+              'assets/overworld/characters/hero-male/hero-male-sheet.png': (704, 640),
+              'assets/overworld/characters/hero-female/hero-female-sheet.png': (704, 640),
+              'assets/overworld/characters/npcs/npc-sheet.png': (256, 960),
+          }
+          for filename, size in expected.items():
+              path = Path(filename)
+              assert path.exists() and path.stat().st_size > 0, filename
+              with Image.open(path) as image:
+                  assert image.size == size, (filename, image.size, size)
+          print('ASSETS_OK')
+          PY
+
+      - name: Commit generated assets and remove temporary tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tools/generate_prerendered_assets.py
+          rm -f .github/workflows/build-prerendered-bosque.yml
+          rmdir tools 2>/dev/null || true
+          git config user.name "Naturion Visual Pipeline"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Adicionar cena pré-renderizada em camadas [generated-assets]"
+          git push origin HEAD:change/bosque-luminal-prerendered-layers
