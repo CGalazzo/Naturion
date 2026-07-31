@@ -10,6 +10,7 @@ const configureTexture = (texture, { colorSpace = THREE.SRGBColorSpace } = {}) =
   texture.generateMipmaps = false;
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.anisotropy = 1;
   texture.needsUpdate = true;
   return texture;
 };
@@ -43,14 +44,10 @@ export const configureAtlasFrame = (texture, {
 };
 
 export const createOverworldTextures = () => ({
-  ground: loadTexture("bosque-ground", "assets/overworld/bosque-luminal/ground.webp"),
-  foreground: loadTexture("bosque-foreground", "assets/overworld/bosque-luminal/foreground.webp"),
-  shadows: loadTexture("bosque-shadows", "assets/overworld/bosque-luminal/shadows.webp"),
-  collisionMask: loadTexture("bosque-collision-mask", "assets/overworld/bosque-luminal/collision-mask.png", { colorSpace: THREE.NoColorSpace }),
-  depthMask: loadTexture("bosque-depth-mask", "assets/overworld/bosque-luminal/depth-mask.png", { colorSpace: THREE.NoColorSpace }),
-  waterAtlas: loadTexture("bosque-water-frames", "assets/overworld/bosque-luminal/water-frames.webp"),
-  grassAtlas: loadTexture("bosque-grass-frames", "assets/overworld/bosque-luminal/grass-frames.webp"),
-  effectsAtlas: loadTexture("bosque-effects-frames", "assets/overworld/bosque-luminal/effects.webp")
+  ground: loadTexture(
+    "bosque-reference-ground-v1",
+    "assets/overworld/bosque-luminal/reference-ground.webp"
+  )
 });
 
 export const createPixelMaterial = (texture, {
@@ -79,7 +76,7 @@ export const createSpriteMaterial = (texture, options = {}) => new THREE.SpriteM
   depthWrite: false,
   depthTest: false,
   color: options.color ?? 0xffffff,
-  fog: options.fog ?? false,
+  fog: false,
   toneMapped: false
 });
 
