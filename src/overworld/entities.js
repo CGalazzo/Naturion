@@ -4,6 +4,7 @@ import { createSpriteMaterial } from "./textures.js";
 import { depthOrderForZ } from "./depth.js";
 
 const hashText = (value) => [...String(value)].reduce((total, character) => total + character.charCodeAt(0), 0);
+const VISUAL_UPDATE_RADIUS = 22;
 
 export class OverworldEntities {
   constructor({ scene, collision, forms, onEncounter, onDialogue }) {
@@ -108,26 +109,29 @@ export class OverworldEntities {
       if (entity.behavior === "patrol") this.updatePatrol(entity, delta);
       else this.updateWander(entity, delta, elapsed);
 
-      if (entity.flying) {
-        const bob = Math.round(Math.sin(elapsed * 2.4 + entity.phase) * 8) / 32;
-        const flap = Math.sin(elapsed * 8 + entity.phase);
-        entity.root.position.y = (entity.altitude || 3.2) + bob;
-        entity.visual.scale.set(
-          (entity.direction.x < 0 ? -1 : 1) * entity.scale * (1 - Math.abs(flap) * .018),
-          entity.scale * (1 + Math.abs(flap) * .032),
-          1
-        );
-        entity.shadow.scale.setScalar(.76 + bob * .05);
-      } else {
-        const gait = Math.sin(elapsed * 7 + entity.phase);
-        entity.root.position.y = .04 + Math.round(Math.abs(gait) * 4) / 64;
-        entity.visual.scale.set((entity.direction.x < 0 ? -1 : 1) * entity.scale, entity.scale * (1 + Math.abs(gait) * .016), 1);
-      }
-      entity.shadow.position.set(entity.root.position.x, .025, entity.root.position.z);
-      entity.outline.renderOrder = depthOrderForZ(entity.root.position.z, 16);
-      entity.sprite.renderOrder = depthOrderForZ(entity.root.position.z, 18);
-
       const distance = Math.hypot(playerPosition.x - entity.root.position.x, playerPosition.z - entity.root.position.z);
+      const visualActive = distance <= VISUAL_UPDATE_RADIUS;
+      if (visualActive) {
+        if (entity.flying) {
+          const bob = Math.round(Math.sin(elapsed * 2.4 + entity.phase) * 8) / 32;
+          const flap = Math.sin(elapsed * 8 + entity.phase);
+          entity.root.position.y = (entity.altitude || 3.2) + bob;
+          entity.visual.scale.set(
+            (entity.direction.x < 0 ? -1 : 1) * entity.scale * (1 - Math.abs(flap) * .018),
+            entity.scale * (1 + Math.abs(flap) * .032),
+            1
+          );
+          entity.shadow.scale.setScalar(.76 + bob * .05);
+        } else {
+          const gait = Math.sin(elapsed * 7 + entity.phase);
+          entity.root.position.y = .04 + Math.round(Math.abs(gait) * 4) / 64;
+          entity.visual.scale.set((entity.direction.x < 0 ? -1 : 1) * entity.scale, entity.scale * (1 + Math.abs(gait) * .016), 1);
+        }
+        entity.shadow.position.set(entity.root.position.x, .025, entity.root.position.z);
+        entity.outline.renderOrder = depthOrderForZ(entity.root.position.z, 16);
+        entity.sprite.renderOrder = depthOrderForZ(entity.root.position.z, 18);
+      }
+
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearest = entity;
@@ -136,9 +140,11 @@ export class OverworldEntities {
     });
 
     this.npcs.forEach((npc) => {
-      npc.sprite.position.y = Math.round(Math.sin(elapsed * 2 + npc.phase) * 2) / 64;
-      npc.sprite.userData.updateFrame?.(elapsed, npc.root.position.z);
       const distance = Math.hypot(playerPosition.x - npc.root.position.x, playerPosition.z - npc.root.position.z);
+      if (distance <= VISUAL_UPDATE_RADIUS) {
+        npc.sprite.position.y = Math.round(Math.sin(elapsed * 2 + npc.phase) * 2) / 64;
+        npc.sprite.userData.updateFrame?.(elapsed, npc.root.position.z);
+      }
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearest = npc;
@@ -232,16 +238,14 @@ export class OverworldEntities {
       entity.material.dispose();
       entity.outlineMaterial.dispose();
       entity.shadow.geometry.dispose();
-      entity.shadowMaterial.userData.ownedTexture?.dispose?.();
       entity.shadowMaterial.dispose();
       entity.root.removeFromParent();
       entity.shadow.removeFromParent();
     });
     this.npcs.forEach((npc) => {
-      npc.material.map?.dispose?.();
+      npc.sprite.userData.ownedTexture?.dispose?.();
       npc.material.dispose();
       npc.shadow.geometry.dispose();
-      npc.shadowMaterial.userData.ownedTexture?.dispose?.();
       npc.shadowMaterial.dispose();
       npc.root.removeFromParent();
     });

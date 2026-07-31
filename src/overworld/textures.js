@@ -14,20 +14,12 @@ const configureTexture = (texture, { colorSpace = THREE.SRGBColorSpace } = {}) =
   return texture;
 };
 
-const loadTexture = (key, url, options = {}) => {
+export const loadPixelTexture = (key, url, options = {}) => {
   if (textureCache.has(key)) return textureCache.get(key);
   const texture = configureTexture(textureLoader.load(url), options);
   texture.name = key;
   textureCache.set(key, texture);
   return texture;
-};
-
-export const clonePixelTexture = (texture, name = `${texture.name || "pixel"}-clone`) => {
-  const clone = texture.clone();
-  clone.name = name;
-  configureTexture(clone, { colorSpace: texture.colorSpace });
-  clone.needsUpdate = true;
-  return clone;
 };
 
 export const configureAtlasFrame = (texture, {
@@ -43,14 +35,10 @@ export const configureAtlasFrame = (texture, {
 };
 
 export const createOverworldTextures = () => ({
-  ground: loadTexture("bosque-ground", "assets/overworld/bosque-luminal/ground.webp"),
-  foreground: loadTexture("bosque-foreground", "assets/overworld/bosque-luminal/foreground.webp"),
-  shadows: loadTexture("bosque-shadows", "assets/overworld/bosque-luminal/shadows.webp"),
-  collisionMask: loadTexture("bosque-collision-mask", "assets/overworld/bosque-luminal/collision-mask.png", { colorSpace: THREE.NoColorSpace }),
-  depthMask: loadTexture("bosque-depth-mask", "assets/overworld/bosque-luminal/depth-mask.png", { colorSpace: THREE.NoColorSpace }),
-  waterAtlas: loadTexture("bosque-water-frames", "assets/overworld/bosque-luminal/water-frames.webp"),
-  grassAtlas: loadTexture("bosque-grass-frames", "assets/overworld/bosque-luminal/grass-frames.webp"),
-  effectsAtlas: loadTexture("bosque-effects-frames", "assets/overworld/bosque-luminal/effects.webp")
+  fallbackGround: loadPixelTexture("bosque-fallback-ground", "assets/overworld/bosque-luminal/ground.webp"),
+  validationGround: loadPixelTexture("visual-reset-validation-ground", "assets/overworld/visual-reset/validation/validation-ground.webp"),
+  validationOcclusion: loadPixelTexture("visual-reset-validation-occlusion", "assets/overworld/visual-reset/validation/validation-occlusion.png"),
+  validationEffects: loadPixelTexture("visual-reset-validation-effects", "assets/overworld/visual-reset/validation/validation-effects.png")
 });
 
 export const createPixelMaterial = (texture, {
@@ -76,10 +64,10 @@ export const createSpriteMaterial = (texture, options = {}) => new THREE.SpriteM
   map: texture,
   transparent: true,
   alphaTest: options.alphaTest ?? 0.05,
-  depthWrite: false,
-  depthTest: false,
+  depthWrite: options.depthWrite ?? false,
+  depthTest: options.depthTest ?? false,
   color: options.color ?? 0xffffff,
-  fog: options.fog ?? false,
+  fog: false,
   toneMapped: false
 });
 
