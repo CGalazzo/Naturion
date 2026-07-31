@@ -1,7 +1,7 @@
 name: Export official art references
 on:
-  push:
-    branches: [inspection/official-art-assets]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
 jobs:
