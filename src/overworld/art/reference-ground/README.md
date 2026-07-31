@@ -1,0 +1,1 @@
+Correção transitória do cenário pré-renderizado do Bosque Luminal.
