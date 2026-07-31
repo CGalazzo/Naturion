@@ -1,0 +1,48 @@
+name: Generate visual reset validation assets
+on:
+  push:
+    branches: [visual-reset-overworld]
+permissions:
+  contents: write
+jobs:
+  generate:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: visual-reset-overworld
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Gerar assets determinísticos
+        run: |
+          python -m pip install --quiet pillow
+          python tools/generate_validation_environment.py
+          python tools/generate_validation_characters.py
+          python - <<'PY'
+          from PIL import Image
+          expected = {
+              'assets/overworld/visual-reset/validation/validation-ground.webp': (1024, 1024),
+              'assets/overworld/visual-reset/validation/validation-occlusion.png': (1024, 256),
+              'assets/overworld/visual-reset/validation/validation-effects.png': (512, 128),
+              'assets/overworld/visual-reset/validation/contact-shadow.png': (128, 64),
+              'assets/overworld/visual-reset/validation/hero-male.png': (704, 640),
+              'assets/overworld/visual-reset/validation/hero-female.png': (704, 640),
+              'assets/overworld/visual-reset/validation/npc-atlas.png': (256, 240),
+          }
+          for path, size in expected.items():
+              image = Image.open(path)
+              assert image.size == size, (path, image.size, size)
+          PY
+      - name: Limpar geradores e publicar assets
+        run: |
+          rm tools/generate_validation_environment.py tools/generate_validation_characters.py
+          rm .github/workflows/generate-visual-reset-validation.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "art: gerar assets da área de validação do Bosque Luminal"
+          git push origin HEAD:visual-reset-overworld
