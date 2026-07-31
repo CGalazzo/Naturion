@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><style>html,body,#game{width:100%;height:100%;margin:0;overflow:hidden}</style></head>
+<body><div id="game"></div><pre id="result">RUNNING</pre><script type="module">
+import { OverworldEngine, THREE } from "../src/overworld/engine.js";
+import { OverworldCamera } from "../src/overworld/camera.js";
+import { OverworldPlayer } from "../src/overworld/player.js";
+import { buildBosqueLuminal, bosqueLuminalMap } from "../src/overworld/maps/bosque-luminal.js";
+
+const result = document.getElementById("result");
+try {
+  const container = document.getElementById("game");
+  Object.defineProperty(container, "clientWidth", { value: 800 });
+  Object.defineProperty(container, "clientHeight", { value: 450 });
+  const engine = new OverworldEngine({ container, map: bosqueLuminalMap });
+  const camera = new OverworldCamera({ engine, map: bosqueLuminalMap });
+  const mapBuild = buildBosqueLuminal({ scene: engine.scene, engine });
+  const input = { getMovement: () => ({ x: 0, z: 0, running: false }) };
+  const player = new OverworldPlayer({ scene: engine.scene, collision: mapBuild.collision, input, characterImage: "assets/selection/hero-male.webp", startPosition: bosqueLuminalMap.startPosition });
+  camera.setPlayerObject(player.group);
+  player.update(1 / 60, 1);
+  camera.update(1 / 60, new THREE.Vector3());
+  engine.renderer.render(engine.scene, engine.camera);
+  let meshCount = 0;
+  let spriteCount = 0;
+  player.rig.root.traverse((object) => { if (object.isMesh) meshCount += 1; if (object.isSprite) spriteCount += 1; });
+  let environmentMeshes = 0;
+  mapBuild.root.traverse((object) => { if (object.isMesh || object.isInstancedMesh) environmentMeshes += 1; });
+  if (!player.rig.root.name.includes("Overworld3DHero")) throw new Error(`Rig incorreto: ${player.rig.root.name}`);
+  if (meshCount < 18) throw new Error(`Protagonista sem geometria 3D suficiente: ${meshCount}`);
+  if (spriteCount !== 0) throw new Error(`Protagonista ainda usa sprites: ${spriteCount}`);
+  if (environmentMeshes < 80) throw new Error(`Cenário 3D incompleto: ${environmentMeshes}`);
+  if (!engine.renderer.getContext()) throw new Error("Contexto WebGL ausente");
+  result.textContent = `OVERWORLD_3D_SMOKE_OK meshes=${meshCount} environment=${environmentMeshes}`;
+  document.body.dataset.testStatus = "passed";
+} catch (error) {
+  console.error(error);
+  result.textContent = `OVERWORLD_3D_SMOKE_FAILED ${error.stack || error.message}`;
+  document.body.dataset.testStatus = "failed";
+}
+</script></body></html>
