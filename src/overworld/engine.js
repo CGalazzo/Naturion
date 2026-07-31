@@ -10,15 +10,13 @@ export class OverworldEngine {
     this.map = map;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(map.palette.sky);
-    this.scene.fog = new THREE.Fog(map.palette.fog, 42, 88);
     this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(1);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.BasicShadowMap;
+    this.renderer.shadowMap.enabled = false;
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.domElement.className = "overworld-canvas";
-    this.renderer.domElement.setAttribute("aria-label", "Mapa superior tridimensional do Bosque Luminal");
+    this.renderer.domElement.setAttribute("aria-label", "Mapa superior 2.5D do Bosque Luminal");
     this.renderer.domElement.style.imageRendering = "pixelated";
     this.container.replaceChildren(this.renderer.domElement);
 
@@ -26,33 +24,12 @@ export class OverworldEngine {
     this.running = false;
     this.frame = 0;
     this.updaters = new Set();
+    this.loop = this.loop.bind(this);
+    this.handleVisibility = this.handleVisibility.bind(this);
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(container);
-    this.setupLights();
+    document.addEventListener("visibilitychange", this.handleVisibility);
     this.resize();
-  }
-
-  setupLights() {
-    const ambient = new THREE.HemisphereLight(0xfff2c4, 0x244c51, 1.08);
-    const sun = new THREE.DirectionalLight(0xffd58a, 1.62);
-    sun.position.set(-24, 36, 20);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
-    sun.shadow.camera.left = -38;
-    sun.shadow.camera.right = 38;
-    sun.shadow.camera.top = 34;
-    sun.shadow.camera.bottom = -34;
-    sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 92;
-    sun.shadow.bias = -0.0008;
-    sun.shadow.normalBias = 0.035;
-
-    const coolFill = new THREE.DirectionalLight(0x75b9b2, 0.32);
-    coolFill.position.set(24, 16, -22);
-    const warmBounce = new THREE.DirectionalLight(0xe8b85d, 0.15);
-    warmBounce.position.set(-10, 8, -18);
-    this.scene.add(ambient, sun, coolFill, warmBounce);
-    this.sun = sun;
   }
 
   resize() {
@@ -74,19 +51,35 @@ export class OverworldEngine {
     return () => this.updaters.delete(updater);
   }
 
+  scheduleFrame() {
+    if (!this.running || document.visibilityState === "hidden") return;
+    this.frame = requestAnimationFrame(this.loop);
+  }
+
+  loop() {
+    if (!this.running) return;
+    const delta = Math.min(0.04, this.clock.getDelta());
+    const elapsed = this.clock.elapsedTime;
+    this.updaters.forEach((updater) => updater(delta, elapsed));
+    if (this.camera) this.renderer.render(this.scene, this.camera);
+    this.scheduleFrame();
+  }
+
+  handleVisibility() {
+    if (!this.running) return;
+    if (document.visibilityState === "hidden") {
+      cancelAnimationFrame(this.frame);
+      return;
+    }
+    this.clock.getDelta();
+    this.scheduleFrame();
+  }
+
   start() {
     if (this.running) return;
     this.running = true;
     this.clock.start();
-    const loop = () => {
-      if (!this.running) return;
-      const delta = Math.min(0.04, this.clock.getDelta());
-      const elapsed = this.clock.elapsedTime;
-      this.updaters.forEach((updater) => updater(delta, elapsed));
-      if (this.camera) this.renderer.render(this.scene, this.camera);
-      this.frame = requestAnimationFrame(loop);
-    };
-    loop();
+    this.scheduleFrame();
   }
 
   stop() {
@@ -97,6 +90,7 @@ export class OverworldEngine {
 
   dispose() {
     this.stop();
+    document.removeEventListener("visibilitychange", this.handleVisibility);
     this.resizeObserver.disconnect();
     this.updaters.clear();
     this.renderer.dispose();
