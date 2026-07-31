@@ -7,5 +7,14 @@ import c5 from './chunk-05.js';
 import c6a from './chunk-06a.js';
 import c6b from './chunk-06b.js';
 
-export const REFERENCE_GROUND_COMPRESSED_BASE64 = [c0,c1,c2,c3,c4,c5,c6a,c6b].join('');
+const chunks = [c0, c1, c2, c3, c4, c5, c6a, c6b];
+const expectedLengths = [5000, 5000, 5000, 5000, 5000, 5000, 1120, 1120];
+
+chunks.forEach((chunk, index) => {
+  if (chunk.length !== expectedLengths[index]) {
+    throw new Error(`Bloco ${index} da arte do Bosque está incompleto: ${chunk.length}/${expectedLengths[index]}.`);
+  }
+});
+
+export const REFERENCE_GROUND_COMPRESSED_BASE64 = chunks.join('');
 export const REFERENCE_GROUND_FORMAT = Object.freeze({ width: 216, height: 156, colors: 128 });
