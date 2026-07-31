@@ -1,0 +1,46 @@
+name: Visual reset validation
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar sintaxe e arquivos protegidos
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in src/overworld/engine.js src/overworld/entities.js src/overworld/environment.js src/overworld/sprites.js src/overworld/textures.js src/overworld/rendering/*.js; do node --check "$file"; done
+          git diff --exit-code origin/main -- src/overworld/player.js src/overworld/camera.js src/overworld/collision.js src/overworld/input.js src/overworld/main.js src/overworld/battle-bridge.js src/overworld/maps/bosque-luminal.js
+          test "$(grep -R 'BosqueForegroundStrip' -n src/overworld | wc -l)" -eq 0
+          test "$(grep -R 'shadowMap.enabled = true' -n src/overworld | wc -l)" -eq 0
+      - name: Executar Chrome WebGL e benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for attempt in {1..30}; do curl -fsS http://127.0.0.1:4173/tests/visual-reset-validation.html >/dev/null && break; sleep 1; done
+          CHROME="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless=new --no-sandbox --disable-dev-shm-usage --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist --enable-precise-memory-info --window-size=1280,720 --virtual-time-budget=12000 --run-all-compositor-stages-before-draw --screenshot=/tmp/visual-reset-validation.png --dump-dom http://127.0.0.1:4173/tests/visual-reset-validation.html >/tmp/dom.html 2>/tmp/chrome.log
+          cat /tmp/dom.html
+          cat /tmp/chrome.log
+          grep -q 'data-test-status="passed"' /tmp/dom.html
+          grep -q '"foregroundStrips": 0' /tmp/dom.html
+          test -s /tmp/visual-reset-validation.png
+      - name: Salvar captura e métricas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-reset-validation
+          path: |
+            /tmp/visual-reset-validation.png
+            /tmp/dom.html
+            /tmp/chrome.log
+          if-no-files-found: warn
