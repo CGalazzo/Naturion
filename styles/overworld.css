@@ -11,6 +11,7 @@
   z-index: 72;
   inset: 0;
   overflow: hidden;
+  contain: strict;
   color: #fff4bd;
   background: #315f53;
   outline: none;
@@ -21,7 +22,8 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: linear-gradient(#426f61, #315f53);
+  contain: strict;
+  background: #315f53;
   outline: none;
 }
 
@@ -29,8 +31,10 @@
   display: block;
   width: 100%;
   height: 100%;
+  contain: strict;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  transform: translateZ(0);
 }
 
 .overworld-hud {
@@ -357,4 +361,9 @@
   .overworld-joystick { width: 104px; height: 104px; }
   .overworld-mobile-actions { grid-template-columns: repeat(2, 58px); gap: 8px; }
   .overworld-mobile-actions button { min-height: 48px; font-size: .48rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overworld-interaction { animation: none; }
+  .overworld-tool { transition: none; }
 }
