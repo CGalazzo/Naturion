@@ -22,14 +22,14 @@ try{
  entities.spawn({naturions:bosqueLuminalNaturions,npcs:bosqueLuminalNpcs});
  engine.addUpdater((delta,elapsed)=>{const move=player.update(delta,elapsed);camera.update(delta,move.velocity);entities.update(delta,elapsed,player.group.position);});
  engine.start();
- await wait(2200);
+ await wait(900);
  let frames=0; const start=performance.now();
- await new Promise(resolve=>{const sample=()=>{frames++; if(frames>=180) resolve(); else requestAnimationFrame(sample)}; requestAnimationFrame(sample)});
- const elapsed=performance.now()-start;
+ await new Promise(resolve=>{const sample=()=>{frames++; if(frames>=60) resolve(); else requestAnimationFrame(sample)}; requestAnimationFrame(sample)});
+ const elapsed=Math.max(1,performance.now()-start);
  engine.renderer.render(engine.scene,camera.camera);
  const info=engine.renderer.info;
- const strips=engine.scene.children.flatMap(function walk(o){return [o,...o.children.flatMap(walk)]}).filter(o=>String(o.name).startsWith('BosqueForegroundStrip-')).length;
- const metrics={fps:Number((frames/(elapsed/1000)).toFixed(2)),frameMs:Number((elapsed/frames).toFixed(3)),drawCalls:info.render.calls,textures:info.memory.textures,geometries:info.memory.geometries,triangles:info.render.triangles,sceneObjects:engine.scene.children.flatMap(function walk(o){return [o,...o.children.flatMap(walk)]}).length,foregroundStrips:strips,heapMB:performance.memory?Number((performance.memory.usedJSHeapSize/1048576).toFixed(2)):null,resolution:`${engine.renderResolution.width}x${engine.renderResolution.height}`};
+ const all=engine.scene.children.flatMap(function walk(o){return [o,...o.children.flatMap(walk)]});
+ const metrics={fps:Number((frames/(elapsed/1000)).toFixed(2)),frameMs:Number((elapsed/frames).toFixed(3)),drawCalls:info.render.calls,textures:info.memory.textures,geometries:info.memory.geometries,triangles:info.render.triangles,sceneObjects:all.length,foregroundStrips:all.filter(o=>String(o.name).startsWith('BosqueForegroundStrip-')).length,heapMB:performance.memory?Number((performance.memory.usedJSHeapSize/1048576).toFixed(2)):null,resolution:`${engine.renderResolution.width}x${engine.renderResolution.height}`};
  document.body.dataset.testStatus='passed'; result.textContent=JSON.stringify(metrics,null,2); window.__METRICS__=metrics; console.log('NATURION_METRICS '+JSON.stringify(metrics)); engine.stop();
 }catch(error){document.body.dataset.testStatus='failed';result.textContent=error.stack||error.message;console.error(error)}
 </script></body></html>
