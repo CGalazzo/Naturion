@@ -1,30 +1,17 @@
 import { THREE } from "./engine.js";
-import { clonePixelTexture, configureAtlasFrame } from "./textures.js";
+import { configureAtlasFrame } from "./textures.js";
 import { depthOrderForZ } from "./depth.js";
+import { VALIDATION_AREA, VALIDATION_OCCLUDERS, VALIDATION_EFFECT } from "./rendering/validation-area.js";
+import { shouldAnimateLocalEffect, isWithinRadius } from "./rendering/visibility-controller.js";
 
 const WORLD_WIDTH = 58;
 const WORLD_DEPTH = 46;
-const WORLD_MIN_Z = -23;
-const FOREGROUND_STRIPS = 32;
-const ANIMATION_FRAMES = 4;
+const EFFECT_FRAMES = 4;
 
-const makePlane = ({
-  texture,
-  width = WORLD_WIDTH,
-  depth = WORLD_DEPTH,
-  x = 0,
-  z = 0,
-  y = -0.1,
-  transparent = false,
-  opacity = 1,
-  alphaTest = 0,
-  renderOrder = 0,
-  name = "Layer"
-}) => {
+const makePlane = ({ texture, width, depth, x = 0, z = 0, y, transparent = false, alphaTest = 0, renderOrder = 0, name }) => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     transparent,
-    opacity,
     alphaTest,
     depthTest: false,
     depthWrite: false,
@@ -36,145 +23,140 @@ const makePlane = ({
   mesh.rotation.x = -Math.PI / 2;
   mesh.position.set(x, y, z);
   mesh.renderOrder = renderOrder;
-  mesh.frustumCulled = false;
   return { mesh, material };
 };
 
-const createAnimatedLayer = ({ texture, name, y, renderOrder }) => {
-  const frameTexture = clonePixelTexture(texture, `${name}-texture`);
-  configureAtlasFrame(frameTexture, { rows: ANIMATION_FRAMES, row: 0 });
-  const layer = makePlane({
-    texture: frameTexture,
-    y,
-    transparent: true,
-    alphaTest: 0.01,
-    renderOrder,
-    name
-  });
-  layer.texture = frameTexture;
-  layer.frame = -1;
-  return layer;
+const createAtlasPlaneGeometry = ({ columns, cell }) => {
+  const geometry = new THREE.PlaneGeometry(1, 1);
+  const u0 = cell / columns;
+  const u1 = (cell + 1) / columns;
+  const uv = geometry.getAttribute("uv");
+  uv.setXY(0, u0, 1);
+  uv.setXY(1, u1, 1);
+  uv.setXY(2, u0, 0);
+  uv.setXY(3, u1, 0);
+  uv.needsUpdate = true;
+  return geometry;
 };
 
-const createForegroundStrips = (texture) => {
-  const strips = [];
-  const stripDepth = WORLD_DEPTH / FOREGROUND_STRIPS;
-  for (let index = 0; index < FOREGROUND_STRIPS; index += 1) {
-    const stripTexture = clonePixelTexture(texture, `bosque-foreground-strip-${index}`);
-    configureAtlasFrame(stripTexture, {
-      rows: FOREGROUND_STRIPS,
-      row: index
-    });
-    const z = WORLD_MIN_Z + ((index + 0.5) * stripDepth);
-    const strip = makePlane({
-      texture: stripTexture,
-      depth: stripDepth + 0.025,
-      z,
-      y: -0.05,
-      transparent: true,
-      alphaTest: 0.01,
-      renderOrder: depthOrderForZ(z, 45),
-      name: `BosqueForegroundStrip-${index}`
-    });
-    strip.texture = stripTexture;
-    strips.push(strip);
-  }
-  return strips;
-};
-
-const ensureScene = (parent, materials) => {
+const ensureScene = (parent, materials, engine) => {
   const state = materials.sceneState;
   if (state.initialized) return state;
   state.initialized = true;
   state.root = new THREE.Group();
-  state.root.name = "BosqueLuminalPrerenderedLayers";
+  state.root.name = "BosqueLuminalVisualResetValidation";
   parent.add(state.root);
 
-  const ground = makePlane({
-    texture: materials.textures.ground,
-    y: -0.12,
+  const fallback = makePlane({
+    texture: materials.textures.fallbackGround,
+    width: WORLD_WIDTH,
+    depth: WORLD_DEPTH,
+    y: -0.13,
     renderOrder: -1000,
-    name: "BosqueGround"
+    name: "BosqueFallbackGround"
   });
-  const shadows = makePlane({
-    texture: materials.textures.shadows,
-    y: -0.105,
-    transparent: true,
-    renderOrder: -850,
-    name: "BosquePaintedShadows"
+  const validation = makePlane({
+    texture: materials.textures.validationGround,
+    width: VALIDATION_AREA.width,
+    depth: VALIDATION_AREA.depth,
+    x: VALIDATION_AREA.centerX,
+    z: VALIDATION_AREA.centerZ,
+    y: -0.115,
+    renderOrder: -900,
+    name: "BosqueValidationGround"
   });
-  const water = createAnimatedLayer({
-    texture: materials.textures.waterAtlas,
-    name: "BosqueWaterAnimation",
-    y: -0.095,
-    renderOrder: -700
-  });
-  const grass = createAnimatedLayer({
-    texture: materials.textures.grassAtlas,
-    name: "BosqueGrassAnimation",
-    y: -0.085,
-    renderOrder: -650
-  });
-  const effects = createAnimatedLayer({
-    texture: materials.textures.effectsAtlas,
-    name: "BosqueEffectsAnimation",
-    y: -0.075,
-    renderOrder: depthOrderForZ(23, 80)
-  });
-  const foreground = createForegroundStrips(materials.textures.foreground);
 
-  state.root.add(
-    ground.mesh,
-    shadows.mesh,
-    water.mesh,
-    grass.mesh,
-    ...foreground.map((strip) => strip.mesh),
-    effects.mesh
-  );
-  state.layers = { ground, shadows, water, grass, effects, foreground };
-  state.disposables.push(ground, shadows, water, grass, effects, ...foreground);
+  const occlusionMaterial = new THREE.MeshBasicMaterial({
+    map: materials.textures.validationOcclusion,
+    transparent: true,
+    alphaTest: 0.06,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+    side: THREE.DoubleSide
+  });
+  const occluders = VALIDATION_OCCLUDERS.map((definition) => {
+    const mesh = new THREE.Mesh(
+      createAtlasPlaneGeometry({ columns: 4, cell: definition.atlasCell }),
+      occlusionMaterial
+    );
+    mesh.name = `ValidationOccluder-${definition.id}`;
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(definition.x, -0.045, definition.z);
+    mesh.scale.set(definition.width, definition.depth, 1);
+    mesh.renderOrder = depthOrderForZ(definition.sortZ, 45);
+    state.root.add(mesh);
+    return { definition, mesh };
+  });
+
+  const effectTexture = materials.textures.validationEffects;
+  configureAtlasFrame(effectTexture, { columns: EFFECT_FRAMES, column: 0 });
+  const effect = makePlane({
+    texture: effectTexture,
+    width: VALIDATION_EFFECT.width,
+    depth: VALIDATION_EFFECT.depth,
+    x: VALIDATION_EFFECT.x,
+    z: VALIDATION_EFFECT.z,
+    y: -0.035,
+    transparent: true,
+    alphaTest: 0.04,
+    renderOrder: depthOrderForZ(VALIDATION_EFFECT.z, 10),
+    name: "BosqueValidationLocalEffect"
+  });
+
+  state.root.add(fallback.mesh, validation.mesh, effect.mesh);
+  state.layers = { fallback, validation, effect, occluders, occlusionMaterial };
+  state.frame = -1;
+  state.removeUpdater = engine.addUpdater((delta, elapsed) => {
+    const player = engine.scene.getObjectByName("OverworldPlayer");
+    const playerPosition = player?.position;
+    const animate = shouldAnimateLocalEffect({ playerPosition, effect: VALIDATION_EFFECT, screenActive: engine.running });
+    effect.mesh.visible = animate;
+    if (animate) {
+      const frame = Math.floor(elapsed * 5) % EFFECT_FRAMES;
+      if (frame !== state.frame) {
+        configureAtlasFrame(effectTexture, { columns: EFFECT_FRAMES, column: frame });
+        state.frame = frame;
+      }
+    }
+    occluders.forEach(({ definition, mesh }) => {
+      const near = isWithinRadius(playerPosition, definition, 22);
+      mesh.visible = near;
+      if (!near || !playerPosition) return;
+      const playerBehind = playerPosition.z < definition.sortZ;
+      mesh.renderOrder = depthOrderForZ(definition.sortZ, playerBehind ? 80 : -80);
+    });
+  });
   return state;
 };
 
-const hiddenMaterial = (color = 0x173d33, transparent = false) => new THREE.MeshBasicMaterial({
-  color,
-  transparent,
-  opacity: transparent ? 0 : 1,
+const hiddenMaterial = () => new THREE.MeshBasicMaterial({
+  transparent: true,
+  opacity: 0,
+  colorWrite: false,
   depthWrite: false,
   depthTest: false,
   toneMapped: false
 });
 
 export const createEnvironmentMaterials = (textures) => {
+  const proxy = hiddenMaterial();
   const materials = {
     textures,
-    grass: hiddenMaterial(0xffffff, true),
-    path: hiddenMaterial(0xffffff, true),
-    stone: hiddenMaterial(0xffffff, true),
-    shore: hiddenMaterial(0xffffff, true),
+    grass: proxy,
+    path: proxy,
+    stone: proxy,
+    shore: proxy,
     water: [],
-    sceneState: {
-      initialized: false,
-      updaterRegistered: false,
-      root: null,
-      layers: null,
-      disposables: []
-    }
+    sceneState: { initialized: false, root: null, layers: null, removeUpdater: null }
   };
-  [materials.grass, materials.path, materials.stone, materials.shore].forEach((material) => {
-    material.userData.environmentMaterials = materials;
-  });
+  proxy.userData.environmentMaterials = materials;
   return materials;
 };
 
-export const createTileInstances = ({ parent, material }) => {
-  const materials = material?.userData?.environmentMaterials;
-  if (materials) ensureScene(parent, materials);
-  return null;
-};
+export const createTileInstances = () => null;
 
 const noVisual = () => new THREE.Group();
-
 export const createTree = () => noVisual();
 export const createHouse = () => noVisual();
 export const createFenceSegment = () => noVisual();
@@ -193,29 +175,23 @@ export const createPuzzleMarker = () => {
 };
 
 export const createWaterSurface = ({ parent, engine, materials }) => {
-  const state = ensureScene(parent, materials);
-  if (!state.updaterRegistered) {
-    state.updaterRegistered = true;
-    state.removeUpdater = engine.addUpdater((delta, elapsed) => {
-      const frame = Math.floor(elapsed * 3) % ANIMATION_FRAMES;
-      [state.layers.water, state.layers.grass, state.layers.effects].forEach((layer) => {
-        if (layer.frame === frame) return;
-        configureAtlasFrame(layer.texture, { rows: ANIMATION_FRAMES, row: frame });
-        layer.frame = frame;
-      });
-    });
-  }
-  return state.layers.water.mesh;
+  const state = ensureScene(parent, materials, engine);
+  return state.layers.effect.mesh;
 };
 
 export const disposeEnvironmentMaterials = (materials) => {
   const state = materials?.sceneState;
   state?.removeUpdater?.();
-  state?.disposables?.forEach((item) => {
-    item.mesh?.geometry?.dispose?.();
-    item.material?.dispose?.();
-    item.texture?.dispose?.();
-  });
+  if (state?.layers) {
+    state.layers.fallback.mesh.geometry.dispose();
+    state.layers.fallback.material.dispose();
+    state.layers.validation.mesh.geometry.dispose();
+    state.layers.validation.material.dispose();
+    state.layers.effect.mesh.geometry.dispose();
+    state.layers.effect.material.dispose();
+    state.layers.occluders.forEach(({ mesh }) => mesh.geometry.dispose());
+    state.layers.occlusionMaterial.dispose();
+  }
   state?.root?.removeFromParent?.();
-  [materials?.grass, materials?.path, materials?.stone, materials?.shore].forEach((material) => material?.dispose?.());
+  materials?.grass?.dispose?.();
 };
