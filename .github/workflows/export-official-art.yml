@@ -1,0 +1,21 @@
+name: Export official art references
+on:
+  push:
+    branches: [inspection/official-art-assets]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: naturion-official-art-references
+          path: |
+            assets/selection/hero-male.webp
+            assets/selection/hero-female.webp
+            assets/selection/forest-gate.webp
+            assets/story/research-outpost.webp
+            assets/map/bosque-luminal.webp
+          if-no-files-found: error
