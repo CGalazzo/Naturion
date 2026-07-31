@@ -148,7 +148,7 @@ const hiddenMaterial = (color = 0x173d33, transparent = false) => new THREE.Mesh
 export const createEnvironmentMaterials = (textures) => {
   const materials = {
     textures,
-    grass: hiddenMaterial(0x173d33),
+    grass: hiddenMaterial(0xffffff, true),
     path: hiddenMaterial(0xffffff, true),
     stone: hiddenMaterial(0xffffff, true),
     shore: hiddenMaterial(0xffffff, true),
