@@ -10,12 +10,14 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Validar sintaxe e arquivos protegidos
         shell: bash
         run: |
           set -euo pipefail
           for file in src/overworld/engine.js src/overworld/entities.js src/overworld/environment.js src/overworld/sprites.js src/overworld/textures.js src/overworld/rendering/*.js; do node --check "$file"; done
-          git diff --exit-code origin/main -- src/overworld/player.js src/overworld/camera.js src/overworld/collision.js src/overworld/input.js src/overworld/main.js src/overworld/battle-bridge.js src/overworld/maps/bosque-luminal.js
+          git diff --exit-code HEAD^1 HEAD^2 -- src/overworld/player.js src/overworld/camera.js src/overworld/collision.js src/overworld/input.js src/overworld/main.js src/overworld/battle-bridge.js src/overworld/maps/bosque-luminal.js
           test "$(grep -R 'BosqueForegroundStrip' -n src/overworld | wc -l)" -eq 0
           test "$(grep -R 'shadowMap.enabled = true' -n src/overworld | wc -l)" -eq 0
       - name: Executar Chrome WebGL e benchmark
