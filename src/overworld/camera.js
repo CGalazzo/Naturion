@@ -1,14 +1,14 @@
 import { THREE } from "./engine.js";
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const PIXEL_SNAP = 1 / 32;
+const BASE_VERTICAL_VIEW = 23.5;
 
 export class OverworldCamera {
   constructor({ engine, map }) {
     this.engine = engine;
     this.map = map;
-    this.camera = new THREE.OrthographicCamera(-16, 16, 9, -9, 0.1, 140);
-    this.target = new THREE.Vector3(map.startPosition.x, 0.25, map.startPosition.z);
+    this.camera = new THREE.OrthographicCamera(-16, 16, 9, -9, 0.1, 160);
+    this.target = new THREE.Vector3(map.startPosition.x, 0.2, map.startPosition.z);
     this.renderTarget = this.target.clone();
     this.lookAhead = new THREE.Vector3();
     this.desired = new THREE.Vector3();
@@ -17,7 +17,7 @@ export class OverworldCamera {
     this.zoom = 1;
     this.lastProjectionZoom = NaN;
     this.lastProjectionAspect = NaN;
-    this.offset = new THREE.Vector3(0, 24.5, 18.5);
+    this.offset = new THREE.Vector3(0, 29.5, 22.5);
     engine.camera = this.camera;
     engine.onResize = () => this.updateProjection(true);
     this.updateProjection(true);
@@ -27,7 +27,7 @@ export class OverworldCamera {
   setPlayerObject(object) {
     this.playerObject = object;
     if (!object) return;
-    this.target.set(object.position.x, 0.25, object.position.z);
+    this.target.set(object.position.x, 0.2, object.position.z);
     this.snapRenderTarget();
     this.applyTransform();
   }
@@ -35,7 +35,7 @@ export class OverworldCamera {
   focusOn(point, { duration = 0.7, zoom = 1.08 } = {}) {
     this.focus = {
       start: this.target.clone(),
-      point: new THREE.Vector3(point.x, 0.25, point.z),
+      point: new THREE.Vector3(point.x, 0.2, point.z),
       elapsed: 0,
       duration,
       startZoom: this.zoom,
@@ -48,7 +48,7 @@ export class OverworldCamera {
     if (!this.playerObject) return;
     this.focus = {
       start: this.target.clone(),
-      point: new THREE.Vector3(this.playerObject.position.x, 0.25, this.playerObject.position.z),
+      point: new THREE.Vector3(this.playerObject.position.x, 0.2, this.playerObject.position.z),
       elapsed: 0,
       duration,
       startZoom: this.zoom,
@@ -68,15 +68,15 @@ export class OverworldCamera {
       this.zoom = THREE.MathUtils.lerp(this.focus.startZoom, this.focus.zoom, eased);
       if (progress >= 1 && this.focus.returning) this.focus = null;
     } else {
-      this.lookAhead.set(velocity.x, 0, velocity.z).multiplyScalar(0.34);
+      this.lookAhead.set(velocity.x, 0, velocity.z).multiplyScalar(0.23);
       this.desired.set(
         this.playerObject.position.x,
-        0.25,
+        0.2,
         this.playerObject.position.z
       ).add(this.lookAhead);
       this.desired.x = clamp(this.desired.x, this.map.cameraBounds.minX, this.map.cameraBounds.maxX);
       this.desired.z = clamp(this.desired.z, this.map.cameraBounds.minZ, this.map.cameraBounds.maxZ);
-      this.target.lerp(this.desired, 1 - Math.exp(-delta * 6.5));
+      this.target.lerp(this.desired, 1 - Math.exp(-delta * 7.2));
       this.zoom = THREE.MathUtils.lerp(this.zoom, 1, 1 - Math.exp(-delta * 4));
     }
 
@@ -85,11 +85,17 @@ export class OverworldCamera {
     this.applyTransform();
   }
 
+  getPixelWorldUnit() {
+    const height = Math.max(1, this.engine.renderResolution?.height || this.engine.container.clientHeight || 1);
+    return (BASE_VERTICAL_VIEW / this.zoom) / height;
+  }
+
   snapRenderTarget() {
+    const pixel = this.getPixelWorldUnit();
     this.renderTarget.set(
-      Math.round(this.target.x / PIXEL_SNAP) * PIXEL_SNAP,
-      0.25,
-      Math.round(this.target.z / PIXEL_SNAP) * PIXEL_SNAP
+      Math.round(this.target.x / pixel) * pixel,
+      0.2,
+      Math.round(this.target.z / pixel) * pixel
     );
   }
 
@@ -104,7 +110,7 @@ export class OverworldCamera {
       && Math.abs(this.lastProjectionAspect - aspect) < 0.0005
     ) return;
 
-    const vertical = 20.5 / this.zoom;
+    const vertical = BASE_VERTICAL_VIEW / this.zoom;
     this.camera.left = -vertical * aspect * 0.5;
     this.camera.right = vertical * aspect * 0.5;
     this.camera.top = vertical * 0.5;
