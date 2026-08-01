@@ -15,6 +15,7 @@ const pixelTexture = ({ name, base, light, dark, marks = [] }) => {
   canvas.width = TEXTURE_SIZE;
   canvas.height = TEXTURE_SIZE;
   const context = canvas.getContext("2d", { alpha: false });
+  if (!context) throw new Error(`Não foi possível criar a textura ${name}.`);
   context.imageSmoothingEnabled = false;
   context.fillStyle = base;
   context.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
@@ -52,11 +53,9 @@ const pixelTexture = ({ name, base, light, dark, marks = [] }) => {
   return texture;
 };
 
-const makeMaterial = (texture, { color = 0xffffff, emissive = 0x000000 } = {}) => {
+const makeMaterial = (texture) => {
   const material = new THREE.MeshLambertMaterial({
     map: texture,
-    color,
-    emissive,
     flatShading: true
   });
   material.toneMapped = false;
@@ -64,15 +63,47 @@ const makeMaterial = (texture, { color = 0xffffff, emissive = 0x000000 } = {}) =
   return material;
 };
 
-const box = ({ width, height, depth, material, x = 0, y = 0, z = 0, name = "PhaseOneBlock" }) => {
-  const geometry = new THREE.BoxGeometry(width, height, depth);
+const createBoxMesh = ({ width, height, depth, material, x = 0, y = 0, z = 0, name }) => {
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
   ownedGeometries.add(geometry);
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = name;
   mesh.position.set(x, y, z);
+  mesh.scale.set(width, height, depth);
   mesh.receiveShadow = false;
   mesh.castShadow = false;
   mesh.frustumCulled = true;
+  return mesh;
+};
+
+const createInstancedBoxes = ({ root, name, material, boxes }) => {
+  if (!boxes.length) return null;
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  ownedGeometries.add(geometry);
+  const mesh = new THREE.InstancedMesh(geometry, material, boxes.length);
+  mesh.name = name;
+  mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  mesh.frustumCulled = true;
+
+  const matrix = new THREE.Matrix4();
+  const position = new THREE.Vector3();
+  const quaternion = new THREE.Quaternion();
+  const scale = new THREE.Vector3();
+  const euler = new THREE.Euler();
+
+  boxes.forEach((entry, index) => {
+    position.set(entry.x || 0, entry.y || 0, entry.z || 0);
+    euler.set(0, entry.rotationY || 0, 0);
+    quaternion.setFromEuler(euler);
+    scale.set(entry.width, entry.height, entry.depth);
+    matrix.compose(position, quaternion, scale);
+    mesh.setMatrixAt(index, matrix);
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.computeBoundingSphere();
+  root.add(mesh);
   return mesh;
 };
 
@@ -127,7 +158,7 @@ const createTextures = () => ({
 });
 
 const addGroundBase = (root, materials) => {
-  const cliff = box({
+  const cliff = createBoxMesh({
     width: WORLD_WIDTH,
     height: 1.2,
     depth: WORLD_DEPTH,
@@ -135,9 +166,10 @@ const addGroundBase = (root, materials) => {
     y: -0.68,
     name: "ClareiraPhaseOneCliffBase"
   });
+  cliff.material.map.repeat.set(14.5, 11.5);
   root.add(cliff);
 
-  const grass = box({
+  const grass = createBoxMesh({
     width: WORLD_WIDTH - 1,
     height: 0.24,
     depth: WORLD_DEPTH - 1,
@@ -149,56 +181,61 @@ const addGroundBase = (root, materials) => {
   root.add(grass);
 };
 
-const addPathTile = (root, materials, x, z, width = 1.65, depth = 1.55, rotation = 0) => {
-  const edge = box({
-    width: width + 0.18,
-    height: 0.12,
-    depth: depth + 0.18,
-    material: materials.pathEdge,
-    x,
-    y: 0.19,
-    z,
-    name: "ClareiraPhaseOnePathEdge"
-  });
-  edge.rotation.y = rotation;
-  root.add(edge);
+const buildPathBoxes = () => {
+  const path = [];
+  const edges = [];
+  const pushTile = (x, z, width = 1.65, depth = 1.55, rotationY = 0) => {
+    edges.push({
+      x,
+      y: 0.19,
+      z,
+      width: width + 0.18,
+      height: 0.12,
+      depth: depth + 0.18,
+      rotationY
+    });
+    path.push({
+      x,
+      y: 0.27,
+      z,
+      width,
+      height: 0.11,
+      depth,
+      rotationY
+    });
+  };
 
-  const tile = box({
-    width,
-    height: 0.11,
-    depth,
-    material: materials.path,
-    x,
-    y: 0.27,
-    z,
-    name: "ClareiraPhaseOnePathTile"
-  });
-  tile.rotation.y = rotation;
-  root.add(tile);
-};
-
-const addPath = (root, materials) => {
   for (let z = -21; z <= 20; z += 1.35) {
     const bend = Math.sin((z + 5) * 0.18) * 0.55;
     const width = z > 11 ? 2.0 : z < -13 ? 1.9 : 1.7;
-    addPathTile(root, materials, bend, z, width, 1.55, Math.sin(z * 0.21) * 0.035);
+    pushTile(bend, z, width, 1.55, Math.sin(z * 0.21) * 0.035);
   }
-
   for (let x = -18; x <= 17; x += 1.4) {
-    const z = -3.8 + Math.sin(x * 0.22) * 0.45;
-    addPathTile(root, materials, x, z, 1.6, 1.45, Math.sin(x * 0.19) * 0.04);
+    pushTile(x, -3.8 + Math.sin(x * 0.22) * 0.45, 1.6, 1.45, Math.sin(x * 0.19) * 0.04);
   }
-
   for (let x = -12; x <= 12; x += 1.45) {
-    const z = 8.8 + Math.sin(x * 0.27) * 0.4;
-    addPathTile(root, materials, x, z, 1.65, 1.5, Math.sin(x * 0.15) * 0.03);
+    pushTile(x, 8.8 + Math.sin(x * 0.27) * 0.4, 1.65, 1.5, Math.sin(x * 0.15) * 0.03);
   }
-
   for (let x = -4.2; x <= 4.2; x += 1.4) {
-    for (let z = 13; z <= 17.4; z += 1.35) {
-      addPathTile(root, materials, x, z, 1.55, 1.5, 0);
-    }
+    for (let z = 13; z <= 17.4; z += 1.35) pushTile(x, z, 1.55, 1.5, 0);
   }
+  return { path, edges };
+};
+
+const addPath = (root, materials) => {
+  const boxes = buildPathBoxes();
+  createInstancedBoxes({
+    root,
+    name: "ClareiraPhaseOnePathEdges",
+    material: materials.shore,
+    boxes: boxes.edges
+  });
+  createInstancedBoxes({
+    root,
+    name: "ClareiraPhaseOnePathTiles",
+    material: materials.path,
+    boxes: boxes.path
+  });
 };
 
 const addGroundAccents = (root, materials) => {
@@ -208,77 +245,47 @@ const addGroundAccents = (root, materials) => {
     [18, 13, 2.6, 1.6], [22, 2, 2.7, 1.5], [18, -11, 2.3, 1.3],
     [23, -17, 3.0, 1.8], [-10, -17, 2.2, 1.4], [11, -16, 2.5, 1.4]
   ];
-
-  placements.forEach(([x, z, width, depth], index) => {
-    const patch = box({
-      width,
-      height: 0.035,
-      depth,
-      material: materials.accent,
-      x,
-      y: 0.155,
-      z,
-      name: "ClareiraPhaseOneGroundAccent"
-    });
-    patch.rotation.y = (index % 3 - 1) * 0.12;
-    root.add(patch);
+  const boxes = placements.map(([x, z, width, depth], index) => ({
+    x,
+    y: 0.155,
+    z,
+    width,
+    height: 0.035,
+    depth,
+    rotationY: (index % 3 - 1) * 0.12
+  }));
+  createInstancedBoxes({
+    root,
+    name: "ClareiraPhaseOneGroundAccents",
+    material: materials.accent,
+    boxes
   });
 };
 
 const addBoundary = (root, materials) => {
+  const boxes = [];
   const segment = 2.25;
   const opening = 3.8;
 
   for (let x = -HALF_WIDTH + 1; x <= HALF_WIDTH - 1; x += segment) {
-    const isOpening = Math.abs(x) < opening;
-    if (!isOpening) {
-      const northHeight = 1.05 + ((Math.round(x / segment) & 1) ? 0.2 : 0);
-      root.add(box({
-        width: segment + 0.15,
-        height: northHeight,
-        depth: 1.75,
-        material: materials.border,
-        x,
-        y: 0.52,
-        z: -HALF_DEPTH + 0.6,
-        name: "ClareiraPhaseOneBoundary"
-      }));
-      root.add(box({
-        width: segment + 0.15,
-        height: northHeight + 0.15,
-        depth: 1.75,
-        material: materials.border,
-        x,
-        y: 0.59,
-        z: HALF_DEPTH - 0.6,
-        name: "ClareiraPhaseOneBoundary"
-      }));
-    }
+    if (Math.abs(x) < opening) continue;
+    const height = 1.05 + ((Math.round(x / segment) & 1) ? 0.2 : 0);
+    boxes.push({ x, y: 0.52, z: -HALF_DEPTH + 0.6, width: segment + 0.15, height, depth: 1.75 });
+    boxes.push({ x, y: 0.59, z: HALF_DEPTH - 0.6, width: segment + 0.15, height: height + 0.15, depth: 1.75 });
   }
 
   for (let z = -HALF_DEPTH + 1; z <= HALF_DEPTH - 1; z += segment) {
     const height = 1.05 + ((Math.round(z / segment) & 1) ? 0.18 : 0);
-    root.add(box({
-      width: 1.75,
-      height,
-      depth: segment + 0.15,
-      material: materials.border,
-      x: -HALF_WIDTH + 0.6,
-      y: 0.52,
-      z,
-      name: "ClareiraPhaseOneBoundary"
-    }));
-    root.add(box({
-      width: 1.75,
-      height: height + 0.12,
-      depth: segment + 0.15,
-      material: materials.border,
-      x: HALF_WIDTH - 0.6,
-      y: 0.58,
-      z,
-      name: "ClareiraPhaseOneBoundary"
-    }));
+    boxes.push({ x: -HALF_WIDTH + 0.6, y: 0.52, z, width: 1.75, height, depth: segment + 0.15 });
+    boxes.push({ x: HALF_WIDTH - 0.6, y: 0.58, z, width: 1.75, height: height + 0.12, depth: segment + 0.15 });
   }
+
+  createInstancedBoxes({
+    root,
+    name: "ClareiraPhaseOneBoundaries",
+    material: materials.border,
+    boxes
+  });
 };
 
 const addLighting = (root) => {
@@ -333,10 +340,7 @@ export const createEnvironmentMaterials = () => {
     border: makeMaterial(textures.border),
     accent: makeMaterial(textures.accent),
     water: [],
-    sceneState: {
-      initialized: false,
-      root: null
-    }
+    sceneState: { initialized: false, root: null }
   };
 
   [materials.grass, materials.path, materials.stone, materials.shore].forEach((material) => {
