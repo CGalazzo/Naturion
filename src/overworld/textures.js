@@ -1,8 +1,6 @@
 import { THREE } from "./engine.js";
-import { decodeReferenceGroundCanvas } from "./art/reference-ground/decode.js";
 
 const textureCache = new Map();
-const textureLoader = new THREE.TextureLoader();
 
 const configureTexture = (texture, { colorSpace = THREE.SRGBColorSpace } = {}) => {
   texture.colorSpace = colorSpace;
@@ -13,47 +11,6 @@ const configureTexture = (texture, { colorSpace = THREE.SRGBColorSpace } = {}) =
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.anisotropy = 1;
   texture.needsUpdate = true;
-  return texture;
-};
-
-const loadTexture = (key, url, options = {}) => {
-  if (textureCache.has(key)) return textureCache.get(key);
-  const texture = configureTexture(textureLoader.load(url), options);
-  texture.name = key;
-  textureCache.set(key, texture);
-  return texture;
-};
-
-const upgradeReferenceGround = async (texture) => {
-  if (texture.userData.referenceUpgradeStarted) return;
-  texture.userData.referenceUpgradeStarted = true;
-  try {
-    const canvas = await decodeReferenceGroundCanvas();
-    texture.image = canvas;
-    texture.name = "bosque-reference-ground-decoded-v2";
-    configureTexture(texture);
-  } catch (error) {
-    console.error("[Naturion Overworld] A arte principal não pôde ser decodificada; mantendo o cenário de segurança.", error);
-  }
-};
-
-const createReferenceGroundTexture = () => {
-  const key = "bosque-reference-ground-safe-v2";
-  if (textureCache.has(key)) return textureCache.get(key);
-
-  let texture;
-  texture = textureLoader.load(
-    "assets/overworld/bosque-luminal/ground.webp",
-    () => upgradeReferenceGround(texture),
-    undefined,
-    (error) => {
-      console.error("[Naturion Overworld] Falha ao carregar o cenário de segurança.", error);
-      upgradeReferenceGround(texture);
-    }
-  );
-  configureTexture(texture);
-  texture.name = key;
-  textureCache.set(key, texture);
   return texture;
 };
 
@@ -77,9 +34,9 @@ export const configureAtlasFrame = (texture, {
   return texture;
 };
 
-export const createOverworldTextures = () => ({
-  ground: createReferenceGroundTexture()
-});
+// Fase 1: o terreno é construído em 3D por environment.js.
+// Nenhuma arte de mapa pré-renderizada é carregada nesta etapa.
+export const createOverworldTextures = () => ({});
 
 export const createPixelMaterial = (texture, {
   transparent = false,
