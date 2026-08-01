@@ -1,6 +1,7 @@
 import { THREE } from "./engine.js";
 import { DirectionalSpriteRig, createGroundShadow } from "./sprites.js";
 
+const GROUND_HEIGHT = 0.24;
 const damp = (current, target, smoothing, delta) => THREE.MathUtils.lerp(current, target, 1 - Math.exp(-smoothing * delta));
 
 export class OverworldPlayer {
@@ -14,7 +15,7 @@ export class OverworldPlayer {
     this.velocity = new THREE.Vector3();
     this.desiredVelocity = new THREE.Vector3();
     this.state = "idle";
-    this.lastSafe = new THREE.Vector3(startPosition.x, 0, startPosition.z);
+    this.lastSafe = new THREE.Vector3(startPosition.x, GROUND_HEIGHT, startPosition.z);
     this.group = new THREE.Group();
     this.group.name = "OverworldPlayer";
     this.group.position.copy(this.lastSafe);
@@ -65,7 +66,7 @@ export class OverworldPlayer {
       position.copy(this.lastSafe);
       this.velocity.set(0, 0, 0);
     } else {
-      position.y = 0;
+      position.y = GROUND_HEIGHT;
       this.lastSafe.copy(position);
     }
 
@@ -78,7 +79,7 @@ export class OverworldPlayer {
   }
 
   teleport(position) {
-    this.group.position.set(position.x, 0, position.z);
+    this.group.position.set(position.x, GROUND_HEIGHT, position.z);
     this.lastSafe.copy(this.group.position);
     this.velocity.set(0, 0, 0);
   }
