@@ -4,7 +4,11 @@ import { OverworldInput } from "./input.js";
 import { OverworldPlayer } from "./player.js";
 import { OverworldEntities } from "./entities.js";
 import { OverworldBattleBridge } from "./battle-bridge.js";
-import { bosqueLuminalMap, buildBosqueLuminal, bosqueLuminalNpcs, bosqueLuminalNaturions } from "./maps/bosque-luminal.js";
+import { bosqueLuminalMap, buildBosqueLuminal } from "./maps/bosque-luminal.js";
+
+const PHASE_ONE = true;
+const PHASE_ONE_OBJECTIVE = "Fase 1: teste o terreno, os caminhos, a câmera e a movimentação.";
+const PHASE_ONE_BOUNDS = Object.freeze({ minX: -27.2, maxX: 27.2, minZ: -21.2, maxZ: 21.2 });
 
 const screen = document.getElementById("overworldScreen");
 const viewport = document.getElementById("overworldViewport");
@@ -59,7 +63,7 @@ const setPrompt = (interaction) => {
   interactionPrompt.hidden = false;
 };
 
-const showDialogue = ({ name = "Bosque Luminal", message }) => {
+const showDialogue = ({ name = "Clareira dos Ecos", message }) => {
   input?.reset?.();
   dialogueName.textContent = name;
   dialogueText.textContent = message;
@@ -73,7 +77,7 @@ const closeDialogue = () => {
 };
 
 const recoverFromOverworldError = (error) => {
-  console.error("[Naturion Overworld] Falha ao carregar o Bosque Luminal:", error);
+  console.error("[Naturion Overworld] Falha ao carregar a Clareira dos Ecos:", error);
   active = false;
   interactionLocked = false;
   try { input?.reset?.(); } catch (resetError) { console.warn(resetError); }
@@ -94,12 +98,12 @@ const recoverFromOverworldError = (error) => {
   screen.hidden = true;
   worldMap.hidden = false;
   bridge()?.returnToWorldMap?.();
-  showToast("Não foi possível carregar o Bosque Luminal. Você voltou ao mapa-múndi.");
+  showToast("Não foi possível carregar a Clareira dos Ecos. Você voltou ao mapa-múndi.");
   destinationButton?.focus();
 };
 
 const getStaticInteraction = () => {
-  if (!player || !mapBuild) return null;
+  if (PHASE_ONE || !player || !mapBuild) return null;
   const position = player.group.position;
   let nearest = null;
   let distance = Infinity;
@@ -116,9 +120,19 @@ const getStaticInteraction = () => {
 const handleEntityDialogue = (npc) => showDialogue({ name: npc.name, message: npc.dialogue });
 
 const handleStaticInteraction = (interaction) => {
+  if (PHASE_ONE) return;
   if (interaction.focus) camera.focusOn(interaction.focus, { duration: .65, zoom: 1.08 });
   if (interaction.type === "gate") objective.textContent = "O portão exige um desafio ainda não disponível.";
-  showDialogue({ name: interaction.type === "door" ? "Casa" : interaction.type === "gate" ? "Portão de raízes" : interaction.type === "puzzle" ? "Altar Luminal" : "Placa", message: interaction.message });
+  showDialogue({
+    name: interaction.type === "door"
+      ? "Casa"
+      : interaction.type === "gate"
+        ? "Portão de raízes"
+        : interaction.type === "puzzle"
+          ? "Altar Luminal"
+          : "Placa",
+    message: interaction.message
+  });
   if (interaction.focus) {
     window.setTimeout(() => {
       camera.returnToPlayer();
@@ -200,28 +214,54 @@ const returnToMap = () => {
 };
 
 const runEncounter = async (entity) => {
+  if (PHASE_ONE) return { outcome: "disabled" };
   active = false;
   engine.stop();
   setPrompt(null);
-  const battleBridge = new OverworldBattleBridge({ mapId: bosqueLuminalMap.id, sceneImage: bosqueLuminalMap.sceneImage });
+  const battleBridge = new OverworldBattleBridge({
+    mapId: bosqueLuminalMap.id,
+    sceneImage: bosqueLuminalMap.sceneImage
+  });
   const result = await battleBridge.start(entity);
   active = true;
   engine.start();
   encounterCooldownUntil = performance.now() + 1800;
-  if (result?.outcome === "victory") showToast(`${entity.form.name} foi derrotado. Você retornou ao Bosque Luminal.`);
+  if (result?.outcome === "victory") showToast(`${entity.form.name} foi derrotado. Você retornou à Clareira dos Ecos.`);
   if (result?.outcome === "fled") showToast("Você recuou e retornou ao mesmo local.");
-  if (result?.outcome === "defeat") showToast("Sua equipe se recuperou e voltou ao Bosque Luminal.");
+  if (result?.outcome === "defeat") showToast("Sua equipe se recuperou e voltou à Clareira dos Ecos.");
   return result;
+};
+
+const applyPhaseOneCollision = (collision) => {
+  if (!PHASE_ONE || !collision) return collision;
+  collision.collides = (x, z, radius = 0.56) => (
+    x - radius < PHASE_ONE_BOUNDS.minX
+    || x + radius > PHASE_ONE_BOUNDS.maxX
+    || z - radius < PHASE_ONE_BOUNDS.minZ
+    || z + radius > PHASE_ONE_BOUNDS.maxZ
+  );
+  return collision;
 };
 
 const createScene = () => {
   const playerData = getPlayerSnapshot();
-  const saved = playerData.overworldProgress?.mapId === bosqueLuminalMap.id ? playerData.overworldProgress.position : null;
-  const startPosition = saved && Number.isFinite(saved.x) && Number.isFinite(saved.z) ? saved : bosqueLuminalMap.startPosition;
+  const saved = playerData.overworldProgress?.mapId === bosqueLuminalMap.id
+    ? playerData.overworldProgress.position
+    : null;
+  const savedIsInsidePhaseOne = saved
+    && Number.isFinite(saved.x)
+    && Number.isFinite(saved.z)
+    && saved.x > PHASE_ONE_BOUNDS.minX + 1
+    && saved.x < PHASE_ONE_BOUNDS.maxX - 1
+    && saved.z > PHASE_ONE_BOUNDS.minZ + 1
+    && saved.z < PHASE_ONE_BOUNDS.maxZ - 1;
+  const startPosition = savedIsInsidePhaseOne ? saved : bosqueLuminalMap.startPosition;
 
   engine = new OverworldEngine({ container: viewport, map: bosqueLuminalMap });
   camera = new OverworldCamera({ engine, map: bosqueLuminalMap });
   mapBuild = buildBosqueLuminal({ scene: engine.scene, engine });
+  applyPhaseOneCollision(mapBuild.collision);
+
   input = new OverworldInput({
     isActive: () => active && !screen.hidden && teamPanel.hidden && dialogue.hidden,
     onInteract: handleInteraction,
@@ -237,9 +277,18 @@ const createScene = () => {
     }
   });
 
-  const characterImage = playerData.character === "female" ? "assets/selection/hero-female.webp" : "assets/selection/hero-male.webp";
-  player = new OverworldPlayer({ scene: engine.scene, collision: mapBuild.collision, input, characterImage, startPosition });
+  const characterImage = playerData.character === "female"
+    ? "assets/selection/hero-female.webp"
+    : "assets/selection/hero-male.webp";
+  player = new OverworldPlayer({
+    scene: engine.scene,
+    collision: mapBuild.collision,
+    input,
+    characterImage,
+    startPosition
+  });
   camera.setPlayerObject(player.group);
+
   entities = new OverworldEntities({
     scene: engine.scene,
     collision: mapBuild.collision,
@@ -247,17 +296,33 @@ const createScene = () => {
     onEncounter: runEncounter,
     onDialogue: handleEntityDialogue
   });
-  entities.spawn({ naturions: bosqueLuminalNaturions, npcs: bosqueLuminalNpcs });
+  entities.spawn({ naturions: [], npcs: [] });
 
   engine.addUpdater((delta, elapsed) => {
     const movement = player.update(delta, elapsed);
     camera.update(delta, movement.velocity);
-    const entityInteraction = entities.update(delta, elapsed, player.group.position);
+    const entityInteraction = PHASE_ONE
+      ? null
+      : entities.update(delta, elapsed, player.group.position);
     const nextInteraction = entityInteraction ? entities.getInteraction() : getStaticInteraction();
-    if (nextInteraction?.id !== activeInteraction?.id || nextInteraction?.type !== activeInteraction?.type) setPrompt(nextInteraction);
-    stateLabel.textContent = movement.state === "running" ? "Correndo" : movement.state === "walking" ? "Caminhando" : "Parado";
+    if (nextInteraction?.id !== activeInteraction?.id || nextInteraction?.type !== activeInteraction?.type) {
+      setPrompt(nextInteraction);
+    }
+    stateLabel.textContent = movement.state === "running"
+      ? "Correndo"
+      : movement.state === "walking"
+        ? "Caminhando"
+        : "Parado";
     savePosition();
-    if (!touchEncounterPending && performance.now() >= encounterCooldownUntil && entities.touchTarget && active && dialogue.hidden && teamPanel.hidden) {
+    if (
+      !PHASE_ONE
+      && !touchEncounterPending
+      && performance.now() >= encounterCooldownUntil
+      && entities.touchTarget
+      && active
+      && dialogue.hidden
+      && teamPanel.hidden
+    ) {
       touchEncounterPending = true;
       entities.consumeTouchEncounter().finally(() => { touchEncounterPending = false; });
     }
@@ -273,13 +338,15 @@ const enterOverworld = async () => {
     teamPanel.hidden = true;
     dialogue.hidden = true;
     screen.hidden = false;
-    objective.textContent = bosqueLuminalMap.objective;
+    objective.textContent = PHASE_ONE ? PHASE_ONE_OBJECTIVE : bosqueLuminalMap.objective;
     if (!engine) createScene();
     active = true;
     input.enabled = true;
     engine.start();
     viewport.focus();
-    showToast("WASD ou setas para mover · Shift para correr · E para interagir");
+    showToast(PHASE_ONE
+      ? "Fase 1 ativa · teste o chão, a câmera e a movimentação"
+      : "WASD ou setas para mover · Shift para correr · E para interagir");
   } catch (error) {
     recoverFromOverworldError(error);
   }
@@ -294,10 +361,20 @@ const handleDestination = async (event) => {
 destinationButton?.addEventListener("click", handleDestination, true);
 backButton?.addEventListener("click", returnToMap);
 teamButton?.addEventListener("click", openTeam);
-teamClose?.addEventListener("click", () => { teamPanel.hidden = true; viewport.focus(); });
+teamClose?.addEventListener("click", () => {
+  teamPanel.hidden = true;
+  viewport.focus();
+});
 dialogueClose?.addEventListener("click", closeDialogue);
-teamPanel?.addEventListener("click", (event) => { if (event.target === teamPanel) { teamPanel.hidden = true; viewport.focus(); } });
-dialogue?.addEventListener("click", (event) => { if (event.target === dialogue) closeDialogue(); });
+teamPanel?.addEventListener("click", (event) => {
+  if (event.target === teamPanel) {
+    teamPanel.hidden = true;
+    viewport.focus();
+  }
+});
+dialogue?.addEventListener("click", (event) => {
+  if (event.target === dialogue) closeDialogue();
+});
 window.addEventListener("keydown", (event) => {
   if (!active || event.code !== "Escape") return;
   if (!teamPanel.hidden) {
