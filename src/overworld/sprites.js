@@ -4,10 +4,15 @@ import { depthOrderForZ } from "./depth.js";
 
 const HERO_COLUMNS = 11;
 const HERO_ROWS = 8;
+const HERO_CANVAS_WIDTH = 96;
+const HERO_CANVAS_HEIGHT = 160;
+const HERO_WORLD_WIDTH = 1.55;
+const HERO_WORLD_HEIGHT = 3.28;
 const NPC_COLUMNS = 4;
 const NPC_ROWS = 12;
 const textureLoader = new THREE.TextureLoader();
 const sheetBaseCache = new Map();
+const imagePromiseCache = new Map();
 let sharedShadowTexture = null;
 
 const DIRECTIONS = Object.freeze([
@@ -54,6 +59,19 @@ const createSheetInstance = (url, name) => {
   return texture;
 };
 
+const loadImage = (url) => {
+  if (imagePromiseCache.has(url)) return imagePromiseCache.get(url);
+  const promise = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Não foi possível carregar ${url}.`));
+    image.src = url;
+  });
+  imagePromiseCache.set(url, promise);
+  return promise;
+};
+
 const directionFromVelocity = (velocity, fallback = "front") => {
   if (Math.hypot(velocity.x, velocity.z) < 0.05) return fallback;
   const angle = Math.atan2(velocity.x, velocity.z);
@@ -61,13 +79,101 @@ const directionFromVelocity = (velocity, fallback = "front") => {
   return DIRECTIONS[(index + 8) % 8];
 };
 
-const setHeroFrame = (texture, direction, column) => {
-  configureAtlasFrame(texture, {
-    columns: HERO_COLUMNS,
-    rows: HERO_ROWS,
-    column,
-    row: Math.max(0, DIRECTIONS.indexOf(direction))
-  });
+const getOpaqueBounds = (image) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth || image.width;
+  canvas.height = image.naturalHeight || image.height;
+  const context = canvas.getContext("2d", { alpha: true, willReadFrequently: true });
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0);
+  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  let minX = canvas.width;
+  let minY = canvas.height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      if (data[((y * canvas.width) + x) * 4 + 3] <= 8) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  if (maxX < minX || maxY < minY) {
+    return { x: 0, y: 0, width: canvas.width, height: canvas.height };
+  }
+
+  const paddingX = Math.max(1, Math.round((maxX - minX + 1) * 0.025));
+  const paddingY = Math.max(1, Math.round((maxY - minY + 1) * 0.015));
+  const x = Math.max(0, minX - paddingX);
+  const y = Math.max(0, minY - paddingY);
+  return {
+    x,
+    y,
+    width: Math.min(canvas.width - x, maxX - minX + 1 + paddingX * 2),
+    height: Math.min(canvas.height - y, maxY - minY + 1 + paddingY * 2)
+  };
+};
+
+const drawContained = (context, image, source, { bottomPadding = 2 } = {}) => {
+  const availableWidth = HERO_CANVAS_WIDTH - 8;
+  const availableHeight = HERO_CANVAS_HEIGHT - 4 - bottomPadding;
+  const scale = Math.min(availableWidth / source.width, availableHeight / source.height);
+  const width = Math.max(1, Math.round(source.width * scale));
+  const height = Math.max(1, Math.round(source.height * scale));
+  const x = Math.round((HERO_CANVAS_WIDTH - width) / 2);
+  const y = HERO_CANVAS_HEIGHT - height - bottomPadding;
+  context.clearRect(0, 0, HERO_CANVAS_WIDTH, HERO_CANVAS_HEIGHT);
+  context.imageSmoothingEnabled = false;
+  context.drawImage(
+    image,
+    source.x,
+    source.y,
+    source.width,
+    source.height,
+    x,
+    y,
+    width,
+    height
+  );
+};
+
+const createSelectionHeroTexture = ({ characterImage, variant }) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = HERO_CANVAS_WIDTH;
+  canvas.height = HERO_CANVAS_HEIGHT;
+  const context = canvas.getContext("2d", { alpha: true });
+  context.imageSmoothingEnabled = false;
+
+  const texture = new THREE.CanvasTexture(canvas);
+  configureSheet(texture, `overworld-selection-hero-${variant}`);
+  texture.userData.selectionReady = false;
+
+  const fallbackUrl = `assets/overworld/characters/hero-${variant}/hero-${variant}-sheet.png`;
+  loadImage(fallbackUrl).then((image) => {
+    if (texture.userData.selectionReady) return;
+    const frameWidth = Math.floor(image.width / HERO_COLUMNS);
+    const frameHeight = Math.floor(image.height / HERO_ROWS);
+    drawContained(context, image, {
+      x: 0,
+      y: 0,
+      width: frameWidth,
+      height: frameHeight
+    }, { bottomPadding: 4 });
+    texture.needsUpdate = true;
+  }).catch((error) => console.warn("[Naturion Overworld] Falha no sprite de segurança.", error));
+
+  loadImage(characterImage).then((image) => {
+    const bounds = getOpaqueBounds(image);
+    drawContained(context, image, bounds, { bottomPadding: 1 });
+    texture.userData.selectionReady = true;
+    texture.needsUpdate = true;
+  }).catch((error) => console.error("[Naturion Overworld] Falha ao carregar o protagonista original da seleção.", error));
+
+  return texture;
 };
 
 const getPixelShadowTexture = () => {
@@ -98,47 +204,45 @@ export class DirectionalSpriteRig {
   constructor({ characterImage }) {
     this.variant = String(characterImage).includes("female") ? "female" : "male";
     this.direction = "front";
-    this.texture = createSheetInstance(
-      `assets/overworld/characters/hero-${this.variant}/hero-${this.variant}-sheet.png`,
-      `overworld-hero-${this.variant}`
-    );
-    setHeroFrame(this.texture, this.direction, 0);
+    this.texture = createSelectionHeroTexture({ characterImage, variant: this.variant });
 
     this.material = new THREE.SpriteMaterial({
       map: this.texture,
       transparent: true,
-      alphaTest: 0.08,
+      alphaTest: 0.035,
       depthTest: false,
       depthWrite: false,
       toneMapped: false
     });
     this.sprite = new THREE.Sprite(this.material);
-    this.sprite.name = `OverworldHeroSprite-${this.variant}`;
-    this.sprite.center.set(0.5, 0.055);
-    this.sprite.scale.set(2.5, 3.12, 1);
+    this.sprite.name = `OverworldHeroSelectionSprite-${this.variant}`;
+    this.sprite.center.set(0.5, 0.025);
+    this.sprite.scale.set(HERO_WORLD_WIDTH, HERO_WORLD_HEIGHT, 1);
     this.sprite.frustumCulled = true;
 
     this.root = new THREE.Group();
-    this.root.name = `OverworldDirectionalPlayer-${this.variant}`;
+    this.root.name = `OverworldSelectionPlayer-${this.variant}`;
     this.root.add(this.sprite);
-    this.lastFrameKey = "";
   }
 
   update({ state, velocity, elapsed }) {
     this.direction = directionFromVelocity(velocity, this.direction);
-    let column = Math.floor(elapsed * 2.2) % 3;
-    if (state === "walking") column = 3 + (Math.floor(elapsed * 8) % 4);
-    if (state === "running") column = 7 + (Math.floor(elapsed * 12) % 4);
-    const frameKey = `${this.direction}:${column}`;
-    if (frameKey !== this.lastFrameKey) {
-      setHeroFrame(this.texture, this.direction, column);
-      this.lastFrameKey = frameKey;
-    }
+    const moving = state !== "idle";
+    const frequency = state === "running" ? 12 : state === "walking" ? 8 : 2.2;
+    const phase = Math.sin(elapsed * frequency);
+    const bob = state === "running"
+      ? Math.abs(phase) * 0.075
+      : state === "walking"
+        ? Math.abs(phase) * 0.045
+        : phase * 0.012;
+    const squash = moving ? Math.abs(phase) * 0.018 : 0;
+    const facingLeft = this.direction.includes("left");
+    const signedWidth = HERO_WORLD_WIDTH * (facingLeft ? -1 : 1) * (1 + squash * 0.45);
+
+    this.sprite.scale.set(signedWidth, HERO_WORLD_HEIGHT * (1 - squash), 1);
+    this.sprite.position.y = Math.round(bob * 64) / 64;
     const worldZ = this.root.parent?.position?.z ?? 0;
     this.sprite.renderOrder = depthOrderForZ(worldZ, 20);
-    this.sprite.position.y = state === "idle"
-      ? Math.round(Math.sin(elapsed * 2.2) * 2) / 96
-      : 0;
   }
 
   dispose() {
@@ -200,4 +304,5 @@ export const disposeSpriteFrames = () => {
   sharedShadowTexture = null;
   sheetBaseCache.forEach((texture) => texture.dispose());
   sheetBaseCache.clear();
+  imagePromiseCache.clear();
 };
