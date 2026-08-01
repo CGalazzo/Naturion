@@ -179,6 +179,7 @@ const addGroundBase = (root, materials) => {
   });
   grass.material.map.repeat.set(14.25, 11.25);
   root.add(grass);
+  return { cliff, grass };
 };
 
 const buildPathBoxes = () => {
@@ -315,7 +316,7 @@ const ensureScene = (parent, materials) => {
   parent.add(state.root);
 
   addLighting(state.root);
-  addGroundBase(state.root, materials);
+  state.ground = addGroundBase(state.root, materials);
   addPath(state.root, materials);
   addGroundAccents(state.root, materials);
   addBoundary(state.root, materials);
@@ -340,7 +341,7 @@ export const createEnvironmentMaterials = () => {
     border: makeMaterial(textures.border),
     accent: makeMaterial(textures.accent),
     water: [],
-    sceneState: { initialized: false, root: null }
+    sceneState: { initialized: false, root: null, ground: null }
   };
 
   [materials.grass, materials.path, materials.stone, materials.shore].forEach((material) => {
@@ -374,7 +375,7 @@ export const createPuzzleMarker = () => {
 
 export const createWaterSurface = ({ parent, materials }) => {
   const state = ensureScene(parent, materials);
-  return state.root;
+  return state.ground.grass;
 };
 
 export const disposeEnvironmentMaterials = (materials) => {
