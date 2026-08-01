@@ -2,42 +2,213 @@ import { THREE } from "./engine.js";
 
 const WORLD_WIDTH = 58;
 const WORLD_DEPTH = 46;
-const HALF_WIDTH = WORLD_WIDTH / 2;
-const HALF_DEPTH = WORLD_DEPTH / 2;
-const TEXTURE_SIZE = 32;
+const TERRAIN_TEXTURE_WIDTH = 256;
+const TERRAIN_TEXTURE_HEIGHT = 192;
+const TERRAIN_SEGMENTS_X = 72;
+const TERRAIN_SEGMENTS_Z = 56;
 
 const ownedTextures = new Set();
 const ownedMaterials = new Set();
 const ownedGeometries = new Set();
 
-const pixelTexture = ({ name, base, light, dark, marks = [] }) => {
+const PATH_LINES = Object.freeze([
+  Object.freeze([
+    Object.freeze({ x: 0, z: 22 }),
+    Object.freeze({ x: 0.45, z: 14 }),
+    Object.freeze({ x: -0.2, z: 7 }),
+    Object.freeze({ x: 0.55, z: -1 }),
+    Object.freeze({ x: -0.35, z: -10 }),
+    Object.freeze({ x: 0, z: -21 })
+  ]),
+  Object.freeze([
+    Object.freeze({ x: -20, z: -4.4 }),
+    Object.freeze({ x: -11, z: -4.05 }),
+    Object.freeze({ x: -3, z: -3.7 }),
+    Object.freeze({ x: 5, z: -4.2 }),
+    Object.freeze({ x: 19, z: -3.85 })
+  ]),
+  Object.freeze([
+    Object.freeze({ x: -14, z: 9.2 }),
+    Object.freeze({ x: -7, z: 8.75 }),
+    Object.freeze({ x: 0, z: 9.05 }),
+    Object.freeze({ x: 7, z: 8.65 }),
+    Object.freeze({ x: 14, z: 9.1 })
+  ])
+]);
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const hash = (x, y, seed = 0) => {
+  let value = Math.imul((x | 0) ^ (seed * 374761393), 668265263);
+  value = Math.imul(value ^ ((y | 0) * 2246822519), 3266489917);
+  value ^= value >>> 15;
+  value = Math.imul(value, 2246822519);
+  value ^= value >>> 13;
+  return (value >>> 0) / 4294967295;
+};
+
+const distanceToSegment = (x, z, a, b) => {
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const lengthSquared = dx * dx + dz * dz || 1;
+  const t = clamp(((x - a.x) * dx + (z - a.z) * dz) / lengthSquared, 0, 1);
+  return Math.hypot(x - (a.x + dx * t), z - (a.z + dz * t));
+};
+
+const distanceToPath = (x, z) => {
+  let distance = Infinity;
+  PATH_LINES.forEach((line) => {
+    for (let index = 0; index < line.length - 1; index += 1) {
+      distance = Math.min(distance, distanceToSegment(x, z, line[index], line[index + 1]));
+    }
+  });
+  return distance;
+};
+
+const hexToRgb = (hex) => ({
+  r: (hex >> 16) & 255,
+  g: (hex >> 8) & 255,
+  b: hex & 255
+});
+
+const GRASS_PALETTE = [
+  0x315f2c,
+  0x3d7331,
+  0x4d8536,
+  0x5e963d,
+  0x73aa48,
+  0x86bb55
+].map(hexToRgb);
+
+const PATH_PALETTE = [
+  0x65472f,
+  0x7f5b39,
+  0x9b7041,
+  0xb48750,
+  0xc99d60,
+  0xdfba78
+].map(hexToRgb);
+
+const PATH_EDGE_PALETTE = [
+  0x40572c,
+  0x56683a,
+  0x726846,
+  0x8a7349
+].map(hexToRgb);
+
+const writePixel = (data, index, color) => {
+  const offset = index * 4;
+  data[offset] = color.r;
+  data[offset + 1] = color.g;
+  data[offset + 2] = color.b;
+  data[offset + 3] = 255;
+};
+
+const createTerrainTexture = () => {
   const canvas = document.createElement("canvas");
-  canvas.width = TEXTURE_SIZE;
-  canvas.height = TEXTURE_SIZE;
+  canvas.width = TERRAIN_TEXTURE_WIDTH;
+  canvas.height = TERRAIN_TEXTURE_HEIGHT;
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) throw new Error("Não foi possível criar a textura principal da Clareira dos Ecos.");
+  context.imageSmoothingEnabled = false;
+
+  const image = context.createImageData(TERRAIN_TEXTURE_WIDTH, TERRAIN_TEXTURE_HEIGHT);
+  const data = image.data;
+
+  for (let py = 0; py < TERRAIN_TEXTURE_HEIGHT; py += 1) {
+    for (let px = 0; px < TERRAIN_TEXTURE_WIDTH; px += 1) {
+      const worldX = ((px + 0.5) / TERRAIN_TEXTURE_WIDTH - 0.5) * WORLD_WIDTH;
+      const worldZ = (0.5 - (py + 0.5) / TERRAIN_TEXTURE_HEIGHT) * WORLD_DEPTH;
+      const distance = distanceToPath(worldX, worldZ);
+      const coarse = hash(Math.floor(px / 4), Math.floor(py / 4), 11);
+      const medium = hash(Math.floor(px / 2), Math.floor(py / 2), 29);
+      const fine = hash(px, py, 47);
+      const pathJitter = (coarse - 0.5) * 0.42 + (medium - 0.5) * 0.16;
+      const pathRadius = 1.72 + pathJitter;
+      const edgeRadius = 2.38 + pathJitter * 0.72;
+      let color;
+
+      if (distance <= pathRadius) {
+        let shade = 3;
+        if (coarse < 0.18) shade = 2;
+        if (coarse > 0.82) shade = 4;
+        if (fine > 0.965) shade = 5;
+        if (fine < 0.035) shade = 1;
+        color = PATH_PALETTE[shade];
+
+        const cobble = hash(Math.floor(px / 3), Math.floor(py / 2), 83);
+        if (distance < pathRadius * 0.88 && cobble > 0.91) {
+          color = PATH_PALETTE[cobble > 0.97 ? 5 : 1];
+        }
+      } else if (distance <= edgeRadius) {
+        const edgeShade = clamp(Math.floor(coarse * PATH_EDGE_PALETTE.length), 0, PATH_EDGE_PALETTE.length - 1);
+        color = PATH_EDGE_PALETTE[edgeShade];
+      } else {
+        let shade = 2;
+        if (coarse < 0.18) shade = 1;
+        if (coarse > 0.78) shade = 3;
+        if (medium > 0.9) shade = 4;
+        if (fine > 0.985) shade = 5;
+        if (fine < 0.018) shade = 0;
+        color = GRASS_PALETTE[shade];
+      }
+
+      writePixel(data, py * TERRAIN_TEXTURE_WIDTH + px, color);
+    }
+  }
+
+  context.putImageData(image, 0, 0);
+
+  const clusterCount = 190;
+  for (let index = 0; index < clusterCount; index += 1) {
+    const px = Math.floor(hash(index, 7, 101) * (TERRAIN_TEXTURE_WIDTH - 5));
+    const py = Math.floor(hash(index, 13, 103) * (TERRAIN_TEXTURE_HEIGHT - 5));
+    const worldX = ((px + 2) / TERRAIN_TEXTURE_WIDTH - 0.5) * WORLD_WIDTH;
+    const worldZ = (0.5 - (py + 2) / TERRAIN_TEXTURE_HEIGHT) * WORLD_DEPTH;
+    if (distanceToPath(worldX, worldZ) < 2.65) continue;
+    const bright = hash(index, 19, 107) > 0.56;
+    context.fillStyle = bright ? "#79aa49" : "#28532a";
+    const width = 1 + Math.floor(hash(index, 23, 109) * 3);
+    const height = 1 + Math.floor(hash(index, 29, 113) * 2);
+    context.fillRect(px, py, width, height);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.name = "ClareiraPhaseOneAuthoredTerrain";
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.anisotropy = 1;
+  texture.needsUpdate = true;
+  ownedTextures.add(texture);
+  return texture;
+};
+
+const createRepeatTexture = ({ name, size = 32, base, light, dark, accent }) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) throw new Error(`Não foi possível criar a textura ${name}.`);
   context.imageSmoothingEnabled = false;
   context.fillStyle = base;
-  context.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
-
+  context.fillRect(0, 0, size, size);
   context.fillStyle = light;
-  context.fillRect(0, 0, TEXTURE_SIZE, 3);
-  context.fillRect(2, 5, 8, 3);
-  context.fillRect(19, 9, 9, 3);
-  context.fillRect(6, 20, 12, 3);
-  context.fillRect(24, 26, 6, 3);
-
+  context.fillRect(0, 0, size, 3);
+  context.fillRect(3, 8, 10, 3);
+  context.fillRect(18, 18, 12, 3);
   context.fillStyle = dark;
-  context.fillRect(0, 29, TEXTURE_SIZE, 3);
-  context.fillRect(12, 6, 5, 3);
-  context.fillRect(2, 13, 7, 3);
-  context.fillRect(21, 17, 8, 3);
-  context.fillRect(10, 27, 8, 2);
-
-  marks.forEach(({ color, rects }) => {
-    context.fillStyle = color;
-    rects.forEach(([x, y, width, height]) => context.fillRect(x, y, width, height));
-  });
+  context.fillRect(0, size - 4, size, 4);
+  context.fillRect(14, 5, 7, 3);
+  context.fillRect(4, 22, 9, 3);
+  if (accent) {
+    context.fillStyle = accent;
+    context.fillRect(22, 7, 7, 3);
+    context.fillRect(9, 14, 6, 3);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.name = name;
@@ -53,255 +224,154 @@ const pixelTexture = ({ name, base, light, dark, marks = [] }) => {
   return texture;
 };
 
-const makeMaterial = (texture) => {
-  const material = new THREE.MeshLambertMaterial({
-    map: texture,
-    flatShading: true
-  });
+const createToonGradient = () => {
+  const data = new Uint8Array([58, 112, 174, 236, 255]);
+  const texture = new THREE.DataTexture(data, data.length, 1, THREE.RedFormat);
+  texture.name = "ClareiraPhaseOneToonGradient";
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.needsUpdate = true;
+  ownedTextures.add(texture);
+  return texture;
+};
+
+const ownMaterial = (material) => {
   material.toneMapped = false;
   ownedMaterials.add(material);
   return material;
 };
 
-const createBoxMesh = ({ width, height, depth, material, x = 0, y = 0, z = 0, name }) => {
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
+const ownGeometry = (geometry) => {
   ownedGeometries.add(geometry);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = name;
-  mesh.position.set(x, y, z);
-  mesh.scale.set(width, height, depth);
-  mesh.receiveShadow = false;
-  mesh.castShadow = false;
-  mesh.frustumCulled = true;
-  return mesh;
+  return geometry;
 };
 
-const createInstancedBoxes = ({ root, name, material, boxes }) => {
-  if (!boxes.length) return null;
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  ownedGeometries.add(geometry);
-  const mesh = new THREE.InstancedMesh(geometry, material, boxes.length);
-  mesh.name = name;
-  mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
-  mesh.castShadow = false;
-  mesh.receiveShadow = false;
-  mesh.frustumCulled = true;
+const createTerrainGeometry = () => {
+  const geometry = ownGeometry(new THREE.PlaneGeometry(
+    WORLD_WIDTH - 1,
+    WORLD_DEPTH - 1,
+    TERRAIN_SEGMENTS_X,
+    TERRAIN_SEGMENTS_Z
+  ));
+  const positions = geometry.attributes.position;
 
-  const matrix = new THREE.Matrix4();
-  const position = new THREE.Vector3();
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3();
-  const euler = new THREE.Euler();
+  for (let index = 0; index < positions.count; index += 1) {
+    const x = positions.getX(index);
+    const planeY = positions.getY(index);
+    const z = -planeY;
+    const distance = distanceToPath(x, z);
+    const macro = Math.sin(x * 0.23) * Math.cos(z * 0.19) * 0.045;
+    const coarse = (hash(Math.round((x + 30) * 1.4), Math.round((z + 24) * 1.4), 151) - 0.5) * 0.085;
+    const pathBlend = clamp((distance - 1.2) / 2.0, 0, 1);
+    const height = 0.24 + (macro + coarse) * pathBlend;
+    positions.setZ(index, Math.round(height * 64) / 64);
+  }
 
-  boxes.forEach((entry, index) => {
-    position.set(entry.x || 0, entry.y || 0, entry.z || 0);
-    euler.set(0, entry.rotationY || 0, 0);
-    quaternion.setFromEuler(euler);
-    scale.set(entry.width, entry.height, entry.depth);
-    matrix.compose(position, quaternion, scale);
-    mesh.setMatrixAt(index, matrix);
-  });
-  mesh.instanceMatrix.needsUpdate = true;
-  mesh.computeBoundingSphere();
-  root.add(mesh);
-  return mesh;
+  positions.needsUpdate = true;
+  geometry.computeVertexNormals();
+  geometry.rotateX(-Math.PI / 2);
+  return geometry;
 };
 
-const createTextures = () => ({
-  grass: pixelTexture({
-    name: "phase1-grass",
-    base: "#4f8739",
-    light: "#73a84c",
-    dark: "#2d5f31",
-    marks: [
-      { color: "#91bd5c", rects: [[14, 14, 2, 4], [4, 24, 2, 3], [27, 5, 2, 4]] },
-      { color: "#234c2c", rects: [[15, 18, 2, 2], [5, 27, 2, 2], [28, 9, 2, 2]] }
-    ]
-  }),
-  path: pixelTexture({
-    name: "phase1-path",
-    base: "#b48750",
-    light: "#d2ad72",
-    dark: "#765637",
-    marks: [
-      { color: "#e3c68b", rects: [[4, 9, 5, 2], [20, 22, 6, 2], [13, 3, 3, 2]] },
-      { color: "#5b4633", rects: [[11, 16, 6, 2], [25, 8, 3, 2], [2, 25, 4, 2]] }
-    ]
-  }),
-  pathEdge: pixelTexture({
-    name: "phase1-path-edge",
-    base: "#8d693f",
-    light: "#ae8450",
-    dark: "#513d2e"
-  }),
-  cliff: pixelTexture({
-    name: "phase1-cliff",
-    base: "#5f4934",
-    light: "#866548",
-    dark: "#332c28",
-    marks: [
-      { color: "#416044", rects: [[1, 4, 9, 3], [20, 14, 11, 3], [7, 25, 8, 3]] }
-    ]
-  }),
-  border: pixelTexture({
-    name: "phase1-border",
-    base: "#244f33",
-    light: "#3c7140",
-    dark: "#143226"
-  }),
-  accent: pixelTexture({
-    name: "phase1-accent",
-    base: "#5c963f",
-    light: "#83b756",
-    dark: "#356c34"
-  })
-});
+const createPlaceholderMaterial = () => ownMaterial(new THREE.MeshBasicMaterial({
+  transparent: true,
+  opacity: 0,
+  depthWrite: false,
+  colorWrite: false,
+  side: THREE.DoubleSide
+}));
 
-const addGroundBase = (root, materials) => {
-  const cliff = createBoxMesh({
-    width: WORLD_WIDTH,
-    height: 1.2,
-    depth: WORLD_DEPTH,
-    material: materials.cliff,
-    y: -0.68,
-    name: "ClareiraPhaseOneCliffBase"
+const createSceneMaterials = () => {
+  const terrainTexture = createTerrainTexture();
+  const cliffTexture = createRepeatTexture({
+    name: "ClareiraPhaseOneSoilCliff",
+    base: "#4b3829",
+    light: "#6b5036",
+    dark: "#261f1b",
+    accent: "#355237"
   });
-  cliff.material.map.repeat.set(14.5, 11.5);
+  cliffTexture.repeat.set(12, 9);
+  const outsideTexture = createRepeatTexture({
+    name: "ClareiraPhaseOneOutsideGround",
+    base: "#173728",
+    light: "#234c31",
+    dark: "#0c211a",
+    accent: "#2e5b36"
+  });
+  outsideTexture.repeat.set(20, 16);
+  const gradientMap = createToonGradient();
+
+  return {
+    terrainTexture,
+    cliffTexture,
+    outsideTexture,
+    gradientMap,
+    terrain: ownMaterial(new THREE.MeshToonMaterial({
+      map: terrainTexture,
+      gradientMap,
+      color: 0xffffff,
+      flatShading: true
+    })),
+    cliff: ownMaterial(new THREE.MeshToonMaterial({
+      map: cliffTexture,
+      gradientMap,
+      color: 0xffffff,
+      flatShading: true
+    })),
+    outside: ownMaterial(new THREE.MeshToonMaterial({
+      map: outsideTexture,
+      gradientMap,
+      color: 0xffffff,
+      flatShading: true
+    }))
+  };
+};
+
+const addTerrain = (root, sceneMaterials) => {
+  const outside = new THREE.Mesh(
+    ownGeometry(new THREE.PlaneGeometry(104, 88, 1, 1)),
+    sceneMaterials.outside
+  );
+  outside.name = "ClareiraPhaseOneLowerForestFloor";
+  outside.rotation.x = -Math.PI / 2;
+  outside.position.y = -1.38;
+  outside.receiveShadow = false;
+  root.add(outside);
+
+  const cliff = new THREE.Mesh(
+    ownGeometry(new THREE.BoxGeometry(WORLD_WIDTH, 1.45, WORLD_DEPTH)),
+    sceneMaterials.cliff
+  );
+  cliff.name = "ClareiraPhaseOnePlateauCliff";
+  cliff.position.y = -0.62;
+  cliff.castShadow = false;
+  cliff.receiveShadow = false;
   root.add(cliff);
 
-  const grass = createBoxMesh({
-    width: WORLD_WIDTH - 1,
-    height: 0.24,
-    depth: WORLD_DEPTH - 1,
-    material: materials.grass,
-    y: 0.01,
-    name: "ClareiraPhaseOneGrassTop"
-  });
-  grass.material.map.repeat.set(14.25, 11.25);
+  const grass = new THREE.Mesh(createTerrainGeometry(), sceneMaterials.terrain);
+  grass.name = "ClareiraPhaseOnePixelTerrain";
+  grass.position.y = 0;
+  grass.castShadow = false;
+  grass.receiveShadow = false;
   root.add(grass);
-  return { cliff, grass };
-};
 
-const buildPathBoxes = () => {
-  const path = [];
-  const edges = [];
-  const pushTile = (x, z, width = 1.65, depth = 1.55, rotationY = 0) => {
-    edges.push({
-      x,
-      y: 0.19,
-      z,
-      width: width + 0.18,
-      height: 0.12,
-      depth: depth + 0.18,
-      rotationY
-    });
-    path.push({
-      x,
-      y: 0.27,
-      z,
-      width,
-      height: 0.11,
-      depth,
-      rotationY
-    });
-  };
-
-  for (let z = -21; z <= 20; z += 1.35) {
-    const bend = Math.sin((z + 5) * 0.18) * 0.55;
-    const width = z > 11 ? 2.0 : z < -13 ? 1.9 : 1.7;
-    pushTile(bend, z, width, 1.55, Math.sin(z * 0.21) * 0.035);
-  }
-  for (let x = -18; x <= 17; x += 1.4) {
-    pushTile(x, -3.8 + Math.sin(x * 0.22) * 0.45, 1.6, 1.45, Math.sin(x * 0.19) * 0.04);
-  }
-  for (let x = -12; x <= 12; x += 1.45) {
-    pushTile(x, 8.8 + Math.sin(x * 0.27) * 0.4, 1.65, 1.5, Math.sin(x * 0.15) * 0.03);
-  }
-  for (let x = -4.2; x <= 4.2; x += 1.4) {
-    for (let z = 13; z <= 17.4; z += 1.35) pushTile(x, z, 1.55, 1.5, 0);
-  }
-  return { path, edges };
-};
-
-const addPath = (root, materials) => {
-  const boxes = buildPathBoxes();
-  createInstancedBoxes({
-    root,
-    name: "ClareiraPhaseOnePathEdges",
-    material: materials.shore,
-    boxes: boxes.edges
-  });
-  createInstancedBoxes({
-    root,
-    name: "ClareiraPhaseOnePathTiles",
-    material: materials.path,
-    boxes: boxes.path
-  });
-};
-
-const addGroundAccents = (root, materials) => {
-  const placements = [
-    [-21, -16, 2.8, 1.9], [-16, -10, 2.2, 1.4], [-22, 2, 3.1, 1.7],
-    [-17, 15, 2.5, 1.5], [-10, 18, 2.0, 1.2], [10, 18, 2.2, 1.2],
-    [18, 13, 2.6, 1.6], [22, 2, 2.7, 1.5], [18, -11, 2.3, 1.3],
-    [23, -17, 3.0, 1.8], [-10, -17, 2.2, 1.4], [11, -16, 2.5, 1.4]
-  ];
-  const boxes = placements.map(([x, z, width, depth], index) => ({
-    x,
-    y: 0.155,
-    z,
-    width,
-    height: 0.035,
-    depth,
-    rotationY: (index % 3 - 1) * 0.12
-  }));
-  createInstancedBoxes({
-    root,
-    name: "ClareiraPhaseOneGroundAccents",
-    material: materials.accent,
-    boxes
-  });
-};
-
-const addBoundary = (root, materials) => {
-  const boxes = [];
-  const segment = 2.25;
-  const opening = 3.8;
-
-  for (let x = -HALF_WIDTH + 1; x <= HALF_WIDTH - 1; x += segment) {
-    if (Math.abs(x) < opening) continue;
-    const height = 1.05 + ((Math.round(x / segment) & 1) ? 0.2 : 0);
-    boxes.push({ x, y: 0.52, z: -HALF_DEPTH + 0.6, width: segment + 0.15, height, depth: 1.75 });
-    boxes.push({ x, y: 0.59, z: HALF_DEPTH - 0.6, width: segment + 0.15, height: height + 0.15, depth: 1.75 });
-  }
-
-  for (let z = -HALF_DEPTH + 1; z <= HALF_DEPTH - 1; z += segment) {
-    const height = 1.05 + ((Math.round(z / segment) & 1) ? 0.18 : 0);
-    boxes.push({ x: -HALF_WIDTH + 0.6, y: 0.52, z, width: 1.75, height, depth: segment + 0.15 });
-    boxes.push({ x: HALF_WIDTH - 0.6, y: 0.58, z, width: 1.75, height: height + 0.12, depth: segment + 0.15 });
-  }
-
-  createInstancedBoxes({
-    root,
-    name: "ClareiraPhaseOneBoundaries",
-    material: materials.border,
-    boxes
-  });
+  return { cliff, grass, outside };
 };
 
 const addLighting = (root) => {
-  const ambient = new THREE.HemisphereLight(0xbfe5c0, 0x253a2f, 1.55);
-  ambient.name = "ClareiraPhaseOneAmbient";
-  root.add(ambient);
+  const hemisphere = new THREE.HemisphereLight(0xd9f0b2, 0x193529, 1.55);
+  hemisphere.name = "ClareiraPhaseOneHemisphere";
+  root.add(hemisphere);
 
-  const key = new THREE.DirectionalLight(0xffe5ae, 1.45);
-  key.name = "ClareiraPhaseOneKey";
-  key.position.set(-18, 28, 12);
+  const key = new THREE.DirectionalLight(0xffd28f, 1.72);
+  key.name = "ClareiraPhaseOneWarmKey";
+  key.position.set(-19, 31, 17);
   root.add(key);
 
-  const fill = new THREE.DirectionalLight(0x8fd8c4, 0.42);
-  fill.name = "ClareiraPhaseOneFill";
-  fill.position.set(18, 14, -15);
+  const fill = new THREE.DirectionalLight(0x74b7a0, 0.48);
+  fill.name = "ClareiraPhaseOneCoolFill";
+  fill.position.set(20, 17, -16);
   root.add(fill);
 };
 
@@ -311,15 +381,16 @@ const ensureScene = (parent, materials) => {
 
   state.initialized = true;
   state.root = new THREE.Group();
-  state.root.name = "ClareiraDosEcosPhaseOne";
+  state.root.name = "ClareiraDosEcosPhaseOneRebuilt";
   state.root.userData.phase = 1;
+  state.root.userData.visualStyle = "authored-3d-pixel-art";
   parent.add(state.root);
 
+  const scene = parent.parent;
+  if (scene?.isScene) scene.background = new THREE.Color(0x153528);
+
   addLighting(state.root);
-  state.ground = addGroundBase(state.root, materials);
-  addPath(state.root, materials);
-  addGroundAccents(state.root, materials);
-  addBoundary(state.root, materials);
+  state.ground = addTerrain(state.root, materials.sceneMaterials);
   return state;
 };
 
@@ -330,16 +401,16 @@ const noVisual = () => {
 };
 
 export const createEnvironmentMaterials = () => {
-  const textures = createTextures();
+  const sceneMaterials = createSceneMaterials();
   const materials = {
-    textures,
-    grass: makeMaterial(textures.grass),
-    path: makeMaterial(textures.path),
-    stone: makeMaterial(textures.cliff),
-    shore: makeMaterial(textures.pathEdge),
-    cliff: makeMaterial(textures.cliff),
-    border: makeMaterial(textures.border),
-    accent: makeMaterial(textures.accent),
+    sceneMaterials,
+    grass: createPlaceholderMaterial(),
+    path: createPlaceholderMaterial(),
+    stone: createPlaceholderMaterial(),
+    shore: createPlaceholderMaterial(),
+    cliff: sceneMaterials.cliff,
+    border: createPlaceholderMaterial(),
+    accent: createPlaceholderMaterial(),
     water: [],
     sceneState: { initialized: false, root: null, ground: null }
   };
