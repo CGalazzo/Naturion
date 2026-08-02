@@ -40,7 +40,7 @@ const choosePixelPerfectResolution = ({ cssWidth, cssHeight }) => {
 
 export class OverworldEngine {
   constructor({ container, map }) {
-    if (!container) throw new Error("Contêiner do Bosque Luminal não encontrado.");
+    if (!container) throw new Error(`Contêiner de ${map?.name || "exploração"} não encontrado.`);
 
     this.container = container;
     this.map = map;
@@ -59,7 +59,10 @@ export class OverworldEngine {
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.sortObjects = true;
     this.renderer.domElement.className = "overworld-canvas";
-    this.renderer.domElement.setAttribute("aria-label", "Mapa superior do Bosque Luminal em 3D pixel art");
+    this.renderer.domElement.setAttribute(
+      "aria-label",
+      `Mapa superior de ${map?.name || "Naturion"} em 3D pixel art`
+    );
     Object.assign(this.renderer.domElement.style, {
       position: "absolute",
       imageRendering: "pixelated",

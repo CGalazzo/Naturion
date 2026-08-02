@@ -88,8 +88,9 @@ export class OverworldCamera {
         0.2,
         this.playerObject.position.z
       ).add(this.lookAhead);
-      this.desired.x = clamp(this.desired.x, this.map.cameraBounds.minX, this.map.cameraBounds.maxX);
-      this.desired.z = clamp(this.desired.z, this.map.cameraBounds.minZ, this.map.cameraBounds.maxZ);
+      const targetBounds = this.getResponsiveTargetBounds();
+      this.desired.x = clamp(this.desired.x, targetBounds.minX, targetBounds.maxX);
+      this.desired.z = clamp(this.desired.z, targetBounds.minZ, targetBounds.maxZ);
       this.target.lerp(this.desired, 1 - Math.exp(-delta * 7.2));
       this.zoom = THREE.MathUtils.lerp(this.zoom, 1, 1 - Math.exp(-delta * 4));
     }
@@ -97,6 +98,32 @@ export class OverworldCamera {
     this.updateProjection(false);
     this.snapRenderTarget();
     this.applyTransform();
+  }
+
+  getResponsiveTargetBounds() {
+    const fallback = this.map.cameraBounds;
+    const extent = this.map.cameraExtent;
+    if (!extent) return fallback;
+
+    const resolution = this.engine.renderResolution;
+    const width = Math.max(1, resolution?.width || this.engine.container.clientWidth);
+    const height = Math.max(1, resolution?.height || this.engine.container.clientHeight);
+    const aspect = width / height;
+    const vertical = this.getBaseVerticalView() / this.zoom;
+    const halfX = vertical * aspect * 0.5;
+    const depthProjection = Math.max(0.01, Number(extent.depthProjection) || 1);
+    const halfZ = vertical / (2 * depthProjection);
+    const minX = extent.minX + halfX;
+    const maxX = extent.maxX - halfX;
+    const minZ = extent.minZ + halfZ;
+    const maxZ = extent.maxZ - halfZ;
+
+    return {
+      minX: minX <= maxX ? minX : (extent.minX + extent.maxX) * 0.5,
+      maxX: minX <= maxX ? maxX : (extent.minX + extent.maxX) * 0.5,
+      minZ: minZ <= maxZ ? minZ : (extent.minZ + extent.maxZ) * 0.5,
+      maxZ: minZ <= maxZ ? maxZ : (extent.minZ + extent.maxZ) * 0.5
+    };
   }
 
   getPixelWorldUnit() {
