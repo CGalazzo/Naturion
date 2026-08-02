@@ -1,8 +1,8 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js";
 
-const HIGH_CAP = Object.freeze({ width: 960, height: 640 });
-const COMPACT_CAP = Object.freeze({ width: 800, height: 520 });
-const LOW_CAP = Object.freeze({ width: 640, height: 480 });
+const HIGH_CAP = Object.freeze({ width: 1920, height: 1080 });
+const COMPACT_CAP = Object.freeze({ width: 1280, height: 720 });
+const LOW_CAP = Object.freeze({ width: 960, height: 540 });
 
 THREE.Cache.enabled = true;
 

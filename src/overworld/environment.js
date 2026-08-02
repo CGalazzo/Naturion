@@ -1,44 +1,35 @@
 import { THREE } from "./engine.js";
 import { depthOrderForZ } from "./depth.js";
 
-const SOURCE_WIDTH = 216;
-const SOURCE_HEIGHT = 156;
+const SOURCE_WIDTH = 1536;
+const SOURCE_HEIGHT = 1024;
 const WORLD_DEPTH = 46;
-const WORLD_WIDTH = WORLD_DEPTH * (SOURCE_WIDTH / SOURCE_HEIGHT);
-const WORLD_MIN_Z = -WORLD_DEPTH / 2;
-const OCCLUSION_BANDS = 12;
+const CAMERA_OFFSET_Y = 29.5;
+const CAMERA_OFFSET_Z = 22.5;
+const CAMERA_DISTANCE = Math.hypot(CAMERA_OFFSET_Y, CAMERA_OFFSET_Z);
+const SCREEN_UP_Y = CAMERA_OFFSET_Z / CAMERA_DISTANCE;
+const SCREEN_UP_Z = -(CAMERA_OFFSET_Y / CAMERA_DISTANCE);
+const DEPTH_PROJECTION = Math.abs(SCREEN_UP_Z);
+const PROJECTED_HEIGHT = WORLD_DEPTH * DEPTH_PROJECTION;
+const WORLD_WIDTH = PROJECTED_HEIGHT * (SOURCE_WIDTH / SOURCE_HEIGHT);
+const PLANE_ROTATION_X = -Math.atan2(CAMERA_OFFSET_Y, CAMERA_OFFSET_Z);
+const OCCLUSION_BANDS = 16;
 
-const makePlane = ({
-  texture,
-  width = WORLD_WIDTH,
-  depth = WORLD_DEPTH,
-  y = 0.16,
-  transparent = false,
-  alphaTest = 0,
-  depthTest = true,
-  depthWrite = true,
-  renderOrder = -1000,
-  name
-}) => {
+const createArtworkPlane = ({ texture, name, renderOrder }) => {
+  const geometry = new THREE.PlaneGeometry(WORLD_WIDTH, PROJECTED_HEIGHT);
   const material = new THREE.MeshBasicMaterial({
     map: texture,
-    transparent,
-    alphaTest,
-    depthTest,
-    depthWrite,
+    depthTest: false,
+    depthWrite: false,
     toneMapped: false,
     side: THREE.DoubleSide
   });
-  const geometry = new THREE.PlaneGeometry(width, depth);
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = name;
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.position.y = y;
+  mesh.rotation.x = PLANE_ROTATION_X;
   mesh.renderOrder = renderOrder;
-  mesh.frustumCulled = true;
-  mesh.castShadow = false;
-  mesh.receiveShadow = false;
-  return { mesh, material, geometry };
+  mesh.frustumCulled = false;
+  return { mesh, geometry, material };
 };
 
 const setBandUvs = (geometry, index) => {
@@ -55,55 +46,33 @@ const setBandUvs = (geometry, index) => {
 const createForegroundBands = (texture) => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
-    transparent: false,
-    alphaTest: 0.08,
+    transparent: true,
+    alphaTest: 0.025,
     depthTest: false,
     depthWrite: false,
     toneMapped: false,
     side: THREE.DoubleSide
   });
-  const bandDepth = WORLD_DEPTH / OCCLUSION_BANDS;
+  const bandHeight = PROJECTED_HEIGHT / OCCLUSION_BANDS;
   const meshes = [];
   const geometries = [];
 
   for (let index = 0; index < OCCLUSION_BANDS; index += 1) {
-    const geometry = new THREE.PlaneGeometry(WORLD_WIDTH, bandDepth + 0.025);
+    const geometry = new THREE.PlaneGeometry(WORLD_WIDTH, bandHeight + 0.02);
     setBandUvs(geometry, index);
-    const z = WORLD_MIN_Z + ((index + 0.5) * bandDepth);
+    const localY = PROJECTED_HEIGHT * 0.5 - ((index + 0.5) * bandHeight);
+    const logicalZ = -localY / DEPTH_PROJECTION;
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = `BosqueApprovedForeground-${index}`;
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.set(0, 0.19, z);
-    mesh.renderOrder = depthOrderForZ(z, 35);
-    mesh.frustumCulled = true;
+    mesh.rotation.x = PLANE_ROTATION_X;
+    mesh.position.set(0, localY * SCREEN_UP_Y, localY * SCREEN_UP_Z);
+    mesh.renderOrder = depthOrderForZ(logicalZ, 35);
+    mesh.frustumCulled = false;
     meshes.push(mesh);
     geometries.push(geometry);
   }
+
   return { meshes, geometries, material };
-};
-
-const createDioramaBase = () => {
-  const geometry = new THREE.BoxGeometry(WORLD_WIDTH + 0.35, 0.78, WORLD_DEPTH + 0.35);
-  const material = new THREE.MeshBasicMaterial({ color: 0x10291f, toneMapped: false });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = "BosqueApprovedDioramaBase";
-  mesh.position.y = -0.25;
-  mesh.renderOrder = -1200;
-  return { mesh, material, geometry };
-};
-
-const createHeroLighting = (root) => {
-  const hemisphere = new THREE.HemisphereLight(0xffe4a8, 0x163c32, 1.35);
-  hemisphere.name = "BosqueApprovedHemisphere";
-  root.add(hemisphere);
-  const key = new THREE.DirectionalLight(0xffd18a, 1.55);
-  key.name = "BosqueApprovedWarmKey";
-  key.position.set(-12, 24, 15);
-  root.add(key);
-  const fill = new THREE.DirectionalLight(0x72b7a3, 0.28);
-  fill.name = "BosqueApprovedCoolFill";
-  fill.position.set(16, 10, -14);
-  root.add(fill);
 };
 
 const ensureScene = (parent, materials) => {
@@ -112,20 +81,18 @@ const ensureScene = (parent, materials) => {
   state.initialized = true;
   state.root = new THREE.Group();
   state.root.name = "BosqueLuminalApprovedDiorama";
-  state.root.userData.visualSource = "approved-reference-ground";
+  state.root.userData.visualSource = "approved-high-resolution-artwork";
   state.root.userData.sourceResolution = `${SOURCE_WIDTH}x${SOURCE_HEIGHT}`;
   parent.add(state.root);
 
-  const base = createDioramaBase();
-  const ground = makePlane({
+  const ground = createArtworkPlane({
     texture: materials.textures.ground,
     name: "BosqueApprovedGround",
     renderOrder: -1000
   });
   const foreground = createForegroundBands(materials.textures.foreground);
-  createHeroLighting(state.root);
-  state.root.add(base.mesh, ground.mesh, ...foreground.meshes);
-  state.layers = { base, ground, foreground };
+  state.root.add(ground.mesh, ...foreground.meshes);
+  state.layers = { ground, foreground };
   return state;
 };
 
@@ -164,8 +131,7 @@ const hiddenGroup = () => {
 };
 
 // A composição aprovada já contém árvores, construções, caminhos, pedras e
-// vegetação. Estes contratos continuam existindo para preservar mapa,
-// interações e colisões sem desenhar objetos duplicados sobre a arte.
+// vegetação. Os contratos permanecem para preservar os sistemas existentes.
 export const createTree = () => hiddenGroup();
 export const createHouse = () => hiddenGroup();
 export const createFenceSegment = () => hiddenGroup();
@@ -191,19 +157,19 @@ export const createWaterSurface = ({ parent, materials }) => {
 export const disposeEnvironmentMaterials = (materials) => {
   const state = materials?.sceneState;
   const layers = state?.layers;
-  layers?.base?.geometry?.dispose?.();
-  layers?.base?.material?.dispose?.();
   layers?.ground?.geometry?.dispose?.();
   layers?.ground?.material?.dispose?.();
   layers?.foreground?.geometries?.forEach((geometry) => geometry.dispose());
   layers?.foreground?.material?.dispose?.();
   state?.root?.removeFromParent?.();
-  [materials?.grass, materials?.path, materials?.stone, materials?.shore].forEach((material) => material?.dispose?.());
+  [materials?.grass, materials?.path, materials?.stone, materials?.shore]
+    .forEach((material) => material?.dispose?.());
 };
 
 export const APPROVED_BOSQUE_WORLD_SIZE = Object.freeze({
   width: WORLD_WIDTH,
   depth: WORLD_DEPTH,
+  projectedHeight: PROJECTED_HEIGHT,
   sourceWidth: SOURCE_WIDTH,
   sourceHeight: SOURCE_HEIGHT
 });

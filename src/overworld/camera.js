@@ -1,14 +1,19 @@
 import { THREE } from "./engine.js";
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const BASE_VERTICAL_VIEW = 23.5;
+const FALLBACK_VERTICAL_VIEW = 23.5;
 
 export class OverworldCamera {
   constructor({ engine, map }) {
     this.engine = engine;
     this.map = map;
     this.camera = new THREE.OrthographicCamera(-16, 16, 9, -9, 0.1, 160);
-    this.target = new THREE.Vector3(map.startPosition.x, 0.2, map.startPosition.z);
+    const fixedDiorama = map.cameraMode === "fixed-diorama";
+    this.target = new THREE.Vector3(
+      fixedDiorama ? 0 : map.startPosition.x,
+      0.2,
+      fixedDiorama ? 0 : map.startPosition.z
+    );
     this.renderTarget = this.target.clone();
     this.lookAhead = new THREE.Vector3();
     this.desired = new THREE.Vector3();
@@ -26,16 +31,19 @@ export class OverworldCamera {
 
   setPlayerObject(object) {
     this.playerObject = object;
-    if (!object) return;
+    if (!object || this.map.cameraMode === "fixed-diorama") return;
     this.target.set(object.position.x, 0.2, object.position.z);
     this.snapRenderTarget();
     this.applyTransform();
   }
 
   focusOn(point, { duration = 0.7, zoom = 1.08 } = {}) {
+    const fixedDiorama = this.map.cameraMode === "fixed-diorama";
     this.focus = {
       start: this.target.clone(),
-      point: new THREE.Vector3(point.x, 0.2, point.z),
+      point: fixedDiorama
+        ? new THREE.Vector3(0, 0.2, 0)
+        : new THREE.Vector3(point.x, 0.2, point.z),
       elapsed: 0,
       duration,
       startZoom: this.zoom,
@@ -46,9 +54,12 @@ export class OverworldCamera {
 
   returnToPlayer({ duration = 0.65 } = {}) {
     if (!this.playerObject) return;
+    const fixedDiorama = this.map.cameraMode === "fixed-diorama";
     this.focus = {
       start: this.target.clone(),
-      point: new THREE.Vector3(this.playerObject.position.x, 0.2, this.playerObject.position.z),
+      point: fixedDiorama
+        ? new THREE.Vector3(0, 0.2, 0)
+        : new THREE.Vector3(this.playerObject.position.x, 0.2, this.playerObject.position.z),
       elapsed: 0,
       duration,
       startZoom: this.zoom,
@@ -67,6 +78,9 @@ export class OverworldCamera {
       this.target.lerpVectors(this.focus.start, this.focus.point, eased);
       this.zoom = THREE.MathUtils.lerp(this.focus.startZoom, this.focus.zoom, eased);
       if (progress >= 1 && this.focus.returning) this.focus = null;
+    } else if (this.map.cameraMode === "fixed-diorama") {
+      this.target.lerp(new THREE.Vector3(0, 0.2, 0), 1 - Math.exp(-delta * 7.2));
+      this.zoom = THREE.MathUtils.lerp(this.zoom, 1, 1 - Math.exp(-delta * 4));
     } else {
       this.lookAhead.set(velocity.x, 0, velocity.z).multiplyScalar(0.23);
       this.desired.set(
@@ -87,7 +101,17 @@ export class OverworldCamera {
 
   getPixelWorldUnit() {
     const height = Math.max(1, this.engine.renderResolution?.height || this.engine.container.clientHeight || 1);
-    return (BASE_VERTICAL_VIEW / this.zoom) / height;
+    return (this.getBaseVerticalView() / this.zoom) / height;
+  }
+
+  getBaseVerticalView() {
+    const resolution = this.engine.renderResolution;
+    const width = Math.max(1, resolution?.width || this.engine.container.clientWidth);
+    const height = Math.max(1, resolution?.height || this.engine.container.clientHeight);
+    const aspect = width / height;
+    const visual = this.map.visualProjection;
+    if (!visual?.width || !visual?.height) return FALLBACK_VERTICAL_VIEW;
+    return Math.min(visual.height, visual.width / aspect);
   }
 
   snapRenderTarget() {
@@ -110,7 +134,7 @@ export class OverworldCamera {
       && Math.abs(this.lastProjectionAspect - aspect) < 0.0005
     ) return;
 
-    const vertical = BASE_VERTICAL_VIEW / this.zoom;
+    const vertical = this.getBaseVerticalView() / this.zoom;
     this.camera.left = -vertical * aspect * 0.5;
     this.camera.right = vertical * aspect * 0.5;
     this.camera.top = vertical * 0.5;

@@ -32,8 +32,8 @@ const loadPixelCanvasTexture = (key, url, { transparent = false } = {}) => {
   if (textureCache.has(key)) return textureCache.get(key);
 
   const canvas = document.createElement("canvas");
-  canvas.width = 216;
-  canvas.height = 156;
+  canvas.width = 1536;
+  canvas.height = 1024;
   const context = canvas.getContext("2d", { alpha: transparent });
   if (!context) throw new Error("Não foi possível preparar a arte do Bosque Luminal.");
   context.imageSmoothingEnabled = false;
@@ -49,7 +49,7 @@ const loadPixelCanvasTexture = (key, url, { transparent = false } = {}) => {
   const image = new Image();
   image.decoding = "async";
   image.addEventListener("load", () => {
-    if (image.naturalWidth !== 216 || image.naturalHeight !== 156) {
+    if (image.naturalWidth !== 1536 || image.naturalHeight !== 1024) {
       texture.userData.failed = true;
       if (!transparent) paintLoadError(context, "DIMENSÃO INVÁLIDA");
       texture.needsUpdate = true;
@@ -98,12 +98,12 @@ export const configureAtlasFrame = (texture, {
 
 export const createOverworldTextures = () => ({
   ground: loadPixelCanvasTexture(
-    "bosque-approved-ground-v1",
-    "assets/overworld/bosque-luminal/reference-ground.png"
+    "bosque-approved-ground-v2",
+    "assets/overworld/bosque-luminal/approved-ground.webp"
   ),
   foreground: loadPixelCanvasTexture(
-    "bosque-approved-foreground-v1",
-    "assets/overworld/bosque-luminal/reference-foreground.png",
+    "bosque-approved-foreground-v2",
+    "assets/overworld/bosque-luminal/approved-foreground.webp",
     { transparent: true }
   )
 });

@@ -38,11 +38,25 @@ const isPath = (x, z) => PATH_SEGMENTS.some(([ax, az, bx, bz, width]) => distanc
 const pondMetric = (x, z) => ((x + 17) ** 2) / 27 + ((z + 5) ** 2) / 17;
 
 const WALKABLE_POLYGONS = Object.freeze([
-  Object.freeze([[86, 0], [134, 0], [135, 34], [126, 56], [115, 74], [94, 75], [79, 58], [74, 37]]),
-  Object.freeze([[48, 42], [151, 40], [178, 54], [178, 86], [151, 103], [78, 104], [42, 94], [32, 69]]),
-  Object.freeze([[0, 44], [67, 39], [101, 58], [96, 88], [39, 105], [0, 95]]),
-  Object.freeze([[105, 57], [153, 39], [198, 38], [216, 47], [216, 96], [166, 101], [126, 87]]),
-  Object.freeze([[75, 87], [145, 85], [146, 156], [74, 156]])
+  Object.freeze([
+    [608, 1024], [918, 1024], [892, 900], [870, 770], [890, 662],
+    [958, 560], [920, 478], [840, 402], [854, 304], [842, 206],
+    [694, 202], [675, 302], [690, 402], [610, 480], [565, 558],
+    [602, 662], [625, 770], [615, 900]
+  ]),
+  Object.freeze([
+    [0, 786], [128, 778], [278, 700], [420, 595], [570, 515],
+    [676, 548], [650, 660], [500, 722], [350, 815], [255, 930],
+    [250, 1024], [0, 1024]
+  ]),
+  Object.freeze([
+    [292, 408], [515, 402], [650, 455], [748, 510], [685, 600],
+    [550, 565], [410, 535], [290, 520]
+  ]),
+  Object.freeze([
+    [820, 465], [980, 430], [1135, 420], [1365, 492], [1352, 590],
+    [1170, 595], [1005, 582], [855, 560]
+  ])
 ]);
 
 const pointInPolygon = (point, polygon) => {
@@ -81,14 +95,19 @@ export const bosqueLuminalMap = Object.freeze({
   name: "Bosque Luminal",
   objective: "Explore o bosque e descubra como abrir o portão de raízes.",
   sceneImage: "assets/map/bosque-luminal.webp",
-  startPosition: Object.freeze({ x: 0, z: 20 }),
+  startPosition: Object.freeze({ x: 0, z: 7.5 }),
   bounds: Object.freeze({
     minX: -(APPROVED_BOSQUE_WORLD_SIZE.width / 2),
     maxX: APPROVED_BOSQUE_WORLD_SIZE.width / 2,
     minZ: -(APPROVED_BOSQUE_WORLD_SIZE.depth / 2),
     maxZ: APPROVED_BOSQUE_WORLD_SIZE.depth / 2
   }),
-  cameraBounds: Object.freeze({ minX: -20.5, maxX: 20.5, minZ: -9.5, maxZ: 9.5 }),
+  cameraMode: "fixed-diorama",
+  cameraBounds: Object.freeze({ minX: 0, maxX: 0, minZ: 0, maxZ: 0 }),
+  visualProjection: Object.freeze({
+    width: APPROVED_BOSQUE_WORLD_SIZE.width,
+    height: APPROVED_BOSQUE_WORLD_SIZE.projectedHeight
+  }),
   palette: Object.freeze({ sky: 0x315f53, fog: 0x3f7162 }),
   focusPoints: Object.freeze({ gate: { x: 0, y: 1.8, z: -20 }, puzzle: { x: -13, y: 1.5, z: -13 } })
 });

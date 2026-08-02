@@ -22,7 +22,7 @@ export class OverworldPlayer {
     this.group.position.copy(this.lastSafe);
     this.rig = new DirectionalSpriteRig({ characterImage });
     this.group.add(this.rig.root);
-    const shadow = createGroundShadow({ width: 1.45, depth: .58, opacity: .36 });
+    const shadow = createGroundShadow({ width: 2.15, depth: .72, opacity: .34 });
     shadow.mesh.position.y = -0.055;
     this.shadow = shadow.mesh;
     this.shadowMaterial = shadow.material;
