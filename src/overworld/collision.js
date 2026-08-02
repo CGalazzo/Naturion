@@ -16,6 +16,20 @@ export class CollisionWorld {
     return shape;
   }
 
+  addObstacle(shape) {
+    if (!shape || typeof shape !== "object") {
+      throw new TypeError("Obstáculo de mapa inválido.");
+    }
+    if (shape.kind === "rect") return this.addRect(shape);
+    if (shape.kind === "circle") return this.addCircle(shape);
+    throw new TypeError(`Formato de obstáculo não suportado: ${shape.kind || "desconhecido"}.`);
+  }
+
+  addObstacles(shapes = []) {
+    shapes.forEach((shape) => this.addObstacle(shape));
+    return this;
+  }
+
   insideBounds(x, z, radius = 0) {
     return x - radius >= this.bounds.minX
       && x + radius <= this.bounds.maxX
@@ -39,3 +53,10 @@ export class CollisionWorld {
     return this.shapes.filter((shape) => this.intersectsShape(shape, x, z, radius));
   }
 }
+
+// Padrão compartilhado pelos mapas de diorama: todo terreno dentro dos
+// limites nasce caminhável. Cada mapa cadastra somente casas, pedras, água,
+// cercas e demais elementos visuais sólidos como obstáculos.
+export const createMapCollisionWorld = ({ bounds, obstacles = [] }) => (
+  new CollisionWorld(bounds).addObstacles(obstacles)
+);
