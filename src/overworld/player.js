@@ -22,7 +22,7 @@ export class OverworldPlayer {
     this.group.position.copy(this.lastSafe);
     this.rig = new DirectionalSpriteRig({ characterImage });
     this.group.add(this.rig.root);
-    const shadow = createGroundShadow({ width: 2.15, depth: .72, opacity: .34 });
+    const shadow = createGroundShadow({ width: 1.55, depth: .54, opacity: .32 });
     shadow.mesh.position.y = -0.055;
     this.shadow = shadow.mesh;
     this.shadowMaterial = shadow.material;
@@ -34,7 +34,7 @@ export class OverworldPlayer {
     return !this.collision.collides(x, z, this.radius);
   }
 
-  update(delta, elapsed) {
+  update(delta) {
     const movement = this.input.getMovement();
     const hasInput = Math.abs(movement.x) + Math.abs(movement.z) > 0.01;
     const speed = movement.running ? this.runSpeed : this.walkSpeed;
@@ -73,7 +73,7 @@ export class OverworldPlayer {
 
     const planarSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     this.state = planarSpeed < .18 ? "idle" : movement.running && planarSpeed > this.walkSpeed * .82 ? "running" : "walking";
-    this.rig.update({ state: this.state, velocity: this.velocity, elapsed, worldZ: position.z });
+    this.rig.update({ state: this.state, velocity: this.velocity, delta, worldZ: position.z });
     this.shadow.renderOrder = depthOrderForZ(position.z, 4);
     this.shadow.scale.set(1, 1, 1);
     return { moved, velocity: this.velocity, state: this.state };

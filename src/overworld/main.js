@@ -24,10 +24,10 @@ const TUTORIAL_NPCS = Object.freeze([
     name: "Dra. Íris",
     image: "assets/story/dr-iris.webp",
     aspect: 571 / 1090,
-    scale: 3.8,
+    scale: 4.45,
     steady: true,
     position: Object.freeze({ x: -3.4, z: 8.2 }),
-    dialogue: "Muito bem! Siga o caminho central. Plumirel foi avistado perto da casa ao lado do lago. Aproxime-se com calma."
+    dialogue: "Muito bem! Siga o caminho central. Plumirel foi avistado na parte alta do bosque, perto do portão de raízes. Aproxime-se com calma."
   })
 ]);
 const TUTORIAL_NATURIONS = Object.freeze([
@@ -38,7 +38,7 @@ const TUTORIAL_NATURIONS = Object.freeze([
     behavior: "idle",
     flying: true,
     altitude: 2.5,
-    position: Object.freeze({ x: 13.8, z: 1.4 }),
+    position: Object.freeze({ x: 1.8, z: -11.5 }),
     speed: 0,
     scale: 2.25
   })
@@ -331,7 +331,7 @@ const createScene = () => {
   entities.spawn({ naturions: TUTORIAL_NATURIONS, npcs: TUTORIAL_NPCS });
 
   engine.addUpdater((delta, elapsed) => {
-    const movement = player.update(delta, elapsed);
+    const movement = player.update(delta);
     camera.update(delta, movement.velocity);
     const entityInteraction = entities.update(delta, elapsed, player.group.position);
     const nextInteraction = entityInteraction ? entities.getInteraction() : getStaticInteraction();
@@ -381,7 +381,7 @@ const enterOverworld = async () => {
       if (!active || !tutorialActive || !dialogue.hidden) return;
       showDialogue({
         name: "Dra. Íris",
-        message: "Este é o Bosque Luminal. Use WASD ou as setas para caminhar, Shift para correr e siga pela trilha até Plumirel. Eu estarei logo à frente caso precise falar comigo."
+        message: "Este é o Bosque Luminal. Use WASD ou as setas para caminhar, Shift para correr e siga pela trilha até a parte alta do bosque, onde Plumirel foi avistado. Eu estarei logo à frente caso precise falar comigo."
       });
     }, 420);
   } catch (error) {
