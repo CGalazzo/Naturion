@@ -21,7 +21,7 @@ const bounds = Object.freeze({
 
 // Corredores visuais de chão que precisam prevalecer sobre máscaras de água
 // conservadoras. Cada corredor remove somente os obstáculos explicitamente
-// listados e nunca desativa colisões de árvores, pedras ou construções.
+// listados e nunca desativa colisões fora do próprio traçado caminhável.
 const WALKABLE_PATH_OVERRIDES = Object.freeze([
   Object.freeze({
     id: "central-upper-shore-path",
@@ -36,6 +36,43 @@ const WALKABLE_PATH_OVERRIDES = Object.freeze([
       [451, 297],
       [414, 307],
       [388, 293]
+    ])
+  }),
+  Object.freeze({
+    id: "west-sanctuary-full-access-path",
+    clearIds: Object.freeze([
+      "west-sanctuary-pillar-07",
+      "west-sanctuary-pillar-08",
+      "west-sanctuary-stair-rock-left",
+      "west-sanctuary-stair-rock-right"
+    ]),
+    // Acompanha a trilha clara inteira desenhada na arte: começa na abertura
+    // dos degraus do santuário e termina somente depois de alcançar o caminho
+    // largo. O recorte anterior estava deslocado para a direita e deixava a
+    // metade esquerda da passagem bloqueada.
+    points: Object.freeze([
+      [292, 220],
+      [310, 216],
+      [324, 235],
+      [333, 250],
+      [343, 262],
+      [354, 274],
+      [367, 285],
+      [380, 300],
+      [394, 318],
+      [398, 333],
+      [389, 348],
+      [375, 358],
+      [359, 352],
+      [350, 337],
+      [342, 321],
+      [331, 308],
+      [320, 296],
+      [310, 285],
+      [299, 274],
+      [290, 261],
+      [281, 247],
+      [278, 232]
     ])
   })
 ]);
