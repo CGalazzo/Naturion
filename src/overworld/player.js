@@ -1,5 +1,6 @@
 import { THREE } from "./engine.js";
 import { DirectionalSpriteRig, createGroundShadow } from "./sprites.js";
+import { depthOrderForZ } from "./depth.js";
 
 const GROUND_HEIGHT = 0.24;
 const damp = (current, target, smoothing, delta) => THREE.MathUtils.lerp(current, target, 1 - Math.exp(-smoothing * delta));
@@ -21,8 +22,8 @@ export class OverworldPlayer {
     this.group.position.copy(this.lastSafe);
     this.rig = new DirectionalSpriteRig({ characterImage });
     this.group.add(this.rig.root);
-    const shadow = createGroundShadow({ width: 1.45, depth: .58, opacity: .36 });
-    shadow.mesh.position.y = .025;
+    const shadow = createGroundShadow({ width: 2.15, depth: .72, opacity: .34 });
+    shadow.mesh.position.y = -0.055;
     this.shadow = shadow.mesh;
     this.shadowMaterial = shadow.material;
     this.group.add(this.shadow);
@@ -72,7 +73,8 @@ export class OverworldPlayer {
 
     const planarSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     this.state = planarSpeed < .18 ? "idle" : movement.running && planarSpeed > this.walkSpeed * .82 ? "running" : "walking";
-    this.rig.update({ state: this.state, velocity: this.velocity, elapsed });
+    this.rig.update({ state: this.state, velocity: this.velocity, elapsed, worldZ: position.z });
+    this.shadow.renderOrder = depthOrderForZ(position.z, 4);
     const shadowPulse = this.state === "running" ? .94 + Math.abs(Math.sin(elapsed * 11)) * .08 : 1;
     this.shadow.scale.set(shadowPulse, shadowPulse, 1);
     return { moved, velocity: this.velocity, state: this.state };

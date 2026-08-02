@@ -14,7 +14,8 @@ import {
   createRootGate,
   createPuzzleMarker,
   createWaterSurface,
-  disposeEnvironmentMaterials
+  disposeEnvironmentMaterials,
+  APPROVED_BOSQUE_WORLD_SIZE
 } from "../environment.js";
 
 const TILE = 2;
@@ -36,14 +37,77 @@ const PATH_SEGMENTS = [
 const isPath = (x, z) => PATH_SEGMENTS.some(([ax, az, bx, bz, width]) => distanceToSegment(x, z, ax, az, bx, bz) <= width);
 const pondMetric = (x, z) => ((x + 17) ** 2) / 27 + ((z + 5) ** 2) / 17;
 
+const WALKABLE_POLYGONS = Object.freeze([
+  Object.freeze([
+    [608, 1024], [918, 1024], [892, 900], [870, 770], [890, 662],
+    [958, 560], [920, 478], [840, 402], [854, 304], [842, 206],
+    [694, 202], [675, 302], [690, 402], [610, 480], [565, 558],
+    [602, 662], [625, 770], [615, 900]
+  ]),
+  Object.freeze([
+    [0, 786], [128, 778], [278, 700], [420, 595], [570, 515],
+    [676, 548], [650, 660], [500, 722], [350, 815], [255, 930],
+    [250, 1024], [0, 1024]
+  ]),
+  Object.freeze([
+    [292, 408], [515, 402], [650, 455], [748, 510], [685, 600],
+    [550, 565], [410, 535], [290, 520]
+  ]),
+  Object.freeze([
+    [820, 465], [980, 430], [1135, 420], [1365, 492], [1352, 590],
+    [1170, 595], [1005, 582], [855, 560]
+  ])
+]);
+
+const pointInPolygon = (point, polygon) => {
+  let inside = false;
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+    const currentPoint = polygon[index];
+    const previousPoint = polygon[previous];
+    const intersects = ((currentPoint[1] > point.y) !== (previousPoint[1] > point.y))
+      && (point.x < ((previousPoint[0] - currentPoint[0]) * (point.y - currentPoint[1]))
+        / ((previousPoint[1] - currentPoint[1]) || Number.EPSILON) + currentPoint[0]);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+};
+
+const worldToApprovedPixel = (x, z) => ({
+  x: ((x / APPROVED_BOSQUE_WORLD_SIZE.width) + 0.5) * APPROVED_BOSQUE_WORLD_SIZE.sourceWidth,
+  y: ((z / APPROVED_BOSQUE_WORLD_SIZE.depth) + 0.5) * APPROVED_BOSQUE_WORLD_SIZE.sourceHeight
+});
+
+const pointIsWalkable = (x, z) => {
+  const point = worldToApprovedPixel(x, z);
+  return WALKABLE_POLYGONS.some((polygon) => pointInPolygon(point, polygon));
+};
+
+export const isBosqueLuminalWalkable = (x, z, radius = 0.56) => {
+  const diagonal = radius * 0.72;
+  return [
+    [0, 0], [radius, 0], [-radius, 0], [0, radius], [0, -radius],
+    [diagonal, diagonal], [-diagonal, diagonal], [diagonal, -diagonal], [-diagonal, -diagonal]
+  ].every(([offsetX, offsetZ]) => pointIsWalkable(x + offsetX, z + offsetZ));
+};
+
 export const bosqueLuminalMap = Object.freeze({
   id: "bosque-luminal-overworld",
   name: "Bosque Luminal",
   objective: "Explore o bosque e descubra como abrir o portão de raízes.",
   sceneImage: "assets/map/bosque-luminal.webp",
-  startPosition: Object.freeze({ x: 0, z: 20 }),
-  bounds: Object.freeze({ minX: -29, maxX: 29, minZ: -23, maxZ: 23 }),
-  cameraBounds: Object.freeze({ minX: -19.5, maxX: 19.5, minZ: -15, maxZ: 15.5 }),
+  startPosition: Object.freeze({ x: 0, z: 7.5 }),
+  bounds: Object.freeze({
+    minX: -(APPROVED_BOSQUE_WORLD_SIZE.width / 2),
+    maxX: APPROVED_BOSQUE_WORLD_SIZE.width / 2,
+    minZ: -(APPROVED_BOSQUE_WORLD_SIZE.depth / 2),
+    maxZ: APPROVED_BOSQUE_WORLD_SIZE.depth / 2
+  }),
+  cameraMode: "fixed-diorama",
+  cameraBounds: Object.freeze({ minX: 0, maxX: 0, minZ: 0, maxZ: 0 }),
+  visualProjection: Object.freeze({
+    width: APPROVED_BOSQUE_WORLD_SIZE.width,
+    height: APPROVED_BOSQUE_WORLD_SIZE.projectedHeight
+  }),
   palette: Object.freeze({ sky: 0x315f53, fog: 0x3f7162 }),
   focusPoints: Object.freeze({ gate: { x: 0, y: 1.8, z: -20 }, puzzle: { x: -13, y: 1.5, z: -13 } })
 });
