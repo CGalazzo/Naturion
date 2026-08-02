@@ -41,6 +41,16 @@ const HERO_SHEETS = Object.freeze({
     frameWidth: 209,
     frameHeight: 314,
     cropTop: Object.freeze([0, 24, 0]),
+    cropLeft: Object.freeze([
+      Object.freeze([0, 8, 18, 6, 0, 0, 0, 0]),
+      Object.freeze([0, 2, 10, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 10, 12, 0, 0, 0, 0, 0])
+    ]),
+    cropRight: Object.freeze([
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0])
+    ]),
     footY: Object.freeze([
       Object.freeze([289, 289, 289, 287, 289, 289, 288, 289]),
       Object.freeze([309, 309, 308, 306, 308, 308, 308, 309]),
@@ -55,6 +65,16 @@ const HERO_SHEETS = Object.freeze({
     frameWidth: 222,
     frameHeight: 296,
     cropTop: Object.freeze([0, 0, 0]),
+    cropLeft: Object.freeze([
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0])
+    ]),
+    cropRight: Object.freeze([
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+      Object.freeze([0, 0, 0, 0, 0, 0, 0, 0])
+    ]),
     footY: Object.freeze([
       Object.freeze([278, 278, 280, 275, 278, 276, 280, 281]),
       Object.freeze([265, 263, 264, 263, 264, 264, 264, 266]),
@@ -69,16 +89,17 @@ const configureHeroFrame = (texture, sheet, column, row) => {
   // pequeno recuo nas bordas impede vazamento entre quadros do atlas.
   const inset = 1;
   const topCrop = sheet.cropTop[row] || 0;
+  const leftCrop = sheet.cropLeft[row]?.[column] || 0;
+  const rightCrop = sheet.cropRight[row]?.[column] || 0;
   texture.repeat.set(
-    (sheet.frameWidth - inset * 2) / sheet.width,
+    (sheet.frameWidth - leftCrop - rightCrop - inset * 2) / sheet.width,
     (sheet.frameHeight - topCrop - inset * 2) / sheet.height
   );
   texture.offset.set(
-    (column * sheet.frameWidth + inset) / sheet.width,
+    (column * sheet.frameWidth + leftCrop + inset) / sheet.width,
     1 - (((row + 1) * sheet.frameHeight) / sheet.height) + inset / sheet.height
   );
   texture.updateMatrix();
-  texture.needsUpdate = true;
 };
 
 const configureSheet = (texture, name) => {
@@ -136,7 +157,9 @@ export class DirectionalSpriteRig {
     const walking = state === "walking";
     const running = state === "running";
     const moving = walking || running;
-    if (moving) this.animationTime += delta * (running ? 11 : 8);
+    const planarSpeed = Math.hypot(velocity.x, velocity.z);
+    const frameRate = THREE.MathUtils.clamp(planarSpeed * 1.45, 3.2, running ? 10.5 : 7.5);
+    if (moving) this.animationTime += delta * frameRate;
     else this.animationTime = 0;
     const row = moving
       ? WALK_CYCLE[Math.floor(this.animationTime) % WALK_CYCLE.length]
@@ -149,8 +172,15 @@ export class DirectionalSpriteRig {
       const frameFootY = this.sheet.footY[row][column];
       const baseHeight = HERO_HEIGHT;
       const topCrop = this.sheet.cropTop[row] || 0;
+      const leftCrop = this.sheet.cropLeft[row]?.[column] || 0;
+      const rightCrop = this.sheet.cropRight[row]?.[column] || 0;
       const frameHeight = baseHeight * ((this.sheet.frameHeight - topCrop) / this.sheet.frameHeight);
-      this.sprite.scale.set(baseHeight * this.sheet.frameAspect, frameHeight, 1);
+      const baseWidth = baseHeight * this.sheet.frameAspect;
+      const frameWidth = baseWidth
+        * ((this.sheet.frameWidth - leftCrop - rightCrop) / this.sheet.frameWidth);
+      this.sprite.scale.set(frameWidth, frameHeight, 1);
+      this.sprite.position.x = baseWidth
+        * ((leftCrop - rightCrop) / (2 * this.sheet.frameWidth));
       this.sprite.position.y = ((frameFootY - idleFootY) / this.sheet.frameHeight) * baseHeight
         + this.sprite.center.y * (frameHeight - baseHeight);
       this.lastFrameKey = frameKey;
