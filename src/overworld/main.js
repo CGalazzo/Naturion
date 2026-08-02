@@ -4,11 +4,15 @@ import { OverworldInput } from "./input.js";
 import { OverworldPlayer } from "./player.js";
 import { OverworldEntities } from "./entities.js";
 import { OverworldBattleBridge } from "./battle-bridge.js";
-import { bosqueLuminalMap, buildBosqueLuminal } from "./maps/bosque-luminal.js";
+import {
+  bosqueLuminalMap,
+  buildBosqueLuminal,
+  isBosqueLuminalWalkable
+} from "./maps/bosque-luminal.js";
 
 const PHASE_ONE = true;
 const PHASE_ONE_OBJECTIVE = "Fase 1: teste o terreno, os caminhos, a câmera e a movimentação.";
-const PHASE_ONE_BOUNDS = Object.freeze({ minX: -27.2, maxX: 27.2, minZ: -21.2, maxZ: 21.2 });
+const PHASE_ONE_BOUNDS = bosqueLuminalMap.bounds;
 
 const screen = document.getElementById("overworldScreen");
 const viewport = document.getElementById("overworldViewport");
@@ -234,12 +238,7 @@ const runEncounter = async (entity) => {
 
 const applyPhaseOneCollision = (collision) => {
   if (!PHASE_ONE || !collision) return collision;
-  collision.collides = (x, z, radius = 0.56) => (
-    x - radius < PHASE_ONE_BOUNDS.minX
-    || x + radius > PHASE_ONE_BOUNDS.maxX
-    || z - radius < PHASE_ONE_BOUNDS.minZ
-    || z + radius > PHASE_ONE_BOUNDS.maxZ
-  );
+  collision.collides = (x, z, radius = 0.56) => !isBosqueLuminalWalkable(x, z, radius);
   return collision;
 };
 

@@ -37,12 +37,12 @@ const HERO_PALETTES = Object.freeze({
   }),
   female: Object.freeze({
     skin: 0xe2ac82, skinLight: 0xf8caa0, skinShadow: 0xb67c60,
-    hair: 0x4b2927, hairLight: 0x86504a,
-    shirt: 0xd8bd89, shirtShadow: 0x92774f,
-    vest: 0x3c6d67, vestLight: 0x63958a,
-    pants: 0x30415b, pantsLight: 0x52617a,
+    hair: 0x41241f, hairLight: 0x74402f,
+    shirt: 0xe0c99b, shirtShadow: 0xa18358,
+    vest: 0x426f3d, vestLight: 0x719553,
+    pants: 0x3b342d, pantsLight: 0x5e5143,
     boot: 0x392820, bootLight: 0x704d31,
-    pack: 0x426758, packLight: 0x6d9580,
+    pack: 0x496b3f, packLight: 0x78935b,
     leather: 0x855331, accent: 0xd8ad58, eye: 0x17212a
   })
 });
@@ -175,36 +175,40 @@ const createHeroModel = (variant) => {
     packLight: colorMaterial(palette.packLight),
     leather: colorMaterial(palette.leather),
     accent: colorMaterial(palette.accent, 0x271800, 0.05),
+    eyeWhite: colorMaterial(0xfff1d4),
     eye: colorMaterial(palette.eye)
   };
   const geometries = {
-    torso: new THREE.CapsuleGeometry(0.32, 0.58, 3, 7),
+    torso: new THREE.BoxGeometry(0.64, 1.12, 0.54),
     chestPanel: new THREE.BoxGeometry(0.46, 0.56, 0.09),
     belt: new THREE.BoxGeometry(0.69, 0.12, 0.48),
     buckle: new THREE.BoxGeometry(0.12, 0.1, 0.055),
-    head: new THREE.SphereGeometry(0.43, 8, 6),
+    head: new THREE.BoxGeometry(0.78, 0.82, 0.70),
     cheek: new THREE.BoxGeometry(0.48, 0.17, 0.055),
-    ear: new THREE.SphereGeometry(0.09, 6, 4),
-    eye: new THREE.BoxGeometry(0.065, 0.09, 0.045),
+    ear: new THREE.BoxGeometry(0.13, 0.18, 0.13),
+    eyeWhite: new THREE.BoxGeometry(0.14, 0.14, 0.045),
+    eye: new THREE.BoxGeometry(0.055, 0.085, 0.04),
     eyebrow: new THREE.BoxGeometry(0.11, 0.035, 0.035),
-    hairCap: new THREE.SphereGeometry(0.455, 8, 5),
-    hairSpike: new THREE.ConeGeometry(0.13, 0.38, 5),
-    hairLock: new THREE.ConeGeometry(0.10, 0.31, 5),
+    nose: new THREE.BoxGeometry(0.07, 0.07, 0.06),
+    mouth: new THREE.BoxGeometry(0.13, 0.025, 0.045),
+    hairCap: new THREE.BoxGeometry(0.84, 0.40, 0.74),
+    hairSpike: new THREE.BoxGeometry(0.18, 0.38, 0.18),
+    hairLock: new THREE.BoxGeometry(0.15, 0.31, 0.17),
     backpack: new THREE.BoxGeometry(0.62, 0.70, 0.28),
     backpackPocket: new THREE.BoxGeometry(0.43, 0.27, 0.11),
     backpackFlap: new THREE.BoxGeometry(0.50, 0.15, 0.10),
     strap: new THREE.BoxGeometry(0.095, 0.67, 0.07),
-    upperArm: new THREE.CylinderGeometry(0.13, 0.15, 0.56, 6),
+    upperArm: new THREE.BoxGeometry(0.25, 0.56, 0.26),
     sleeveHighlight: new THREE.BoxGeometry(0.08, 0.24, 0.07),
-    forearm: new THREE.CylinderGeometry(0.105, 0.12, 0.43, 6),
-    hand: new THREE.SphereGeometry(0.13, 6, 4),
-    thigh: new THREE.CylinderGeometry(0.15, 0.17, 0.51, 6),
-    shin: new THREE.CylinderGeometry(0.135, 0.15, 0.47, 6),
+    forearm: new THREE.BoxGeometry(0.21, 0.43, 0.22),
+    hand: new THREE.BoxGeometry(0.22, 0.24, 0.22),
+    thigh: new THREE.BoxGeometry(0.29, 0.51, 0.31),
+    shin: new THREE.BoxGeometry(0.27, 0.47, 0.29),
     boot: new THREE.BoxGeometry(0.29, 0.23, 0.42),
     bootToe: new THREE.BoxGeometry(0.25, 0.09, 0.18),
-    hairTail: new THREE.CapsuleGeometry(0.095, 0.35, 2, 5),
+    hairTail: new THREE.BoxGeometry(0.20, 0.55, 0.20),
     accessory: new THREE.OctahedronGeometry(0.105, 0),
-    neckOutline: new THREE.TorusGeometry(0.36, 0.028, 4, 12)
+    neckOutline: new THREE.BoxGeometry(0.66, 0.06, 0.50)
   };
 
   const root = new THREE.Group();
@@ -257,8 +261,12 @@ const createHeroModel = (variant) => {
   });
   [-0.145, 0.145].forEach((x, index) => {
     addMesh(headPivot, {
+      geometry: geometries.eyeWhite, material: materials.eyeWhite,
+      name: `hero-eye-white-${index}`, position: [x, -0.015, 0.414]
+    });
+    addMesh(headPivot, {
       geometry: geometries.eye, material: materials.eye,
-      name: `hero-eye-${index}`, position: [x, -0.015, 0.414]
+      name: `hero-eye-${index}`, position: [x, -0.02, 0.444]
     });
     addMesh(headPivot, {
       geometry: geometries.eyebrow, material: materials.hair,
@@ -267,8 +275,16 @@ const createHeroModel = (variant) => {
     });
   });
   addMesh(headPivot, {
+    geometry: geometries.nose, material: materials.skinShadow,
+    name: "hero-nose", position: [0, -0.09, 0.422]
+  });
+  addMesh(headPivot, {
+    geometry: geometries.mouth, material: materials.leather,
+    name: "hero-mouth", position: [0, -0.21, 0.42]
+  });
+  addMesh(headPivot, {
     geometry: geometries.hairCap, material: materials.hair,
-    name: "hero-hair-cap", position: [0, 0.205, -0.025], scale: [1.04, 0.66, 1.02]
+    name: "hero-hair-cap", position: [0, 0.285, -0.12], scale: [1.04, 0.62, 0.90]
   });
 
   const spikeData = variant === "female"
@@ -342,10 +358,14 @@ export class DirectionalSpriteRig {
     this.direction = "front";
     this.parts = createHeroModel(this.variant);
     this.root = this.parts.root;
-    this.root.scale.setScalar(0.93);
+    this.root.scale.setScalar(1.24);
+    this.renderables = [];
+    this.root.traverse((object) => {
+      if (object.isMesh) this.renderables.push(object);
+    });
   }
 
-  update({ state, velocity, elapsed }) {
+  update({ state, velocity, elapsed, worldZ = 0 }) {
     this.direction = directionFromVelocity(velocity, this.direction);
     const targetRotation = DIRECTION_ANGLE[this.direction] ?? 0;
     let difference = targetRotation - this.root.rotation.y;
@@ -381,6 +401,8 @@ export class DirectionalSpriteRig {
     this.parts.backpackPivot.rotation.x = running
       ? -0.08 + Math.abs(phase) * 0.055
       : walking ? -0.025 + Math.abs(phase) * 0.025 : 0;
+    const renderOrder = depthOrderForZ(worldZ, 18);
+    this.renderables.forEach((mesh) => { mesh.renderOrder = renderOrder; });
   }
 
   dispose() {
@@ -451,7 +473,7 @@ export const createNpcSprite = (role = "story") => {
 
 export const createGroundShadow = ({ width = 1.8, depth = 0.72, opacity = 0.34 } = {}) => {
   const material = new THREE.MeshBasicMaterial({
-    map: getPixelShadowTexture(), transparent: true,
+    map: getPixelShadowTexture(), transparent: true, alphaTest: 0.02,
     depthWrite: false, depthTest: false, opacity, toneMapped: false
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), material);
