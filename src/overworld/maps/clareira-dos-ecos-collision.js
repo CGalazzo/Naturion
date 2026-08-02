@@ -50,8 +50,8 @@ export const clareiraDosEcosCollisionLayout = Object.freeze([
   ellipse("rock-middle-west", 390, 274, 25, 19),
   ellipse("rock-south-path", 806, 846, 22, 16),
 
-  // Santuário oeste. O círculo e sua abertura sudeste são caminháveis; cada
-  // coluna bloqueia somente a própria base.
+  // Santuário oeste. O piso é livre, mas pilares e blocos que ladeiam a
+  // escada são sólidos. O corredor dos degraus é recortado separadamente.
   ellipse("west-sanctuary-pillar-01", 126, 170, 15, 24),
   ellipse("west-sanctuary-pillar-02", 160, 112, 14, 22),
   ellipse("west-sanctuary-pillar-03", 221, 89, 14, 19),
@@ -62,6 +62,8 @@ export const clareiraDosEcosCollisionLayout = Object.freeze([
   ellipse("west-sanctuary-pillar-08", 282, 253, 15, 17),
   ellipse("west-sanctuary-pillar-09", 207, 254, 16, 17),
   ellipse("west-sanctuary-pillar-10", 148, 224, 16, 20),
+  polygon("west-sanctuary-stair-rock-left", [[244, 236], [272, 228], [299, 239], [311, 260], [309, 281], [300, 303], [278, 313], [252, 301], [238, 277]]),
+  polygon("west-sanctuary-stair-rock-right", [[323, 198], [354, 198], [380, 217], [389, 241], [381, 264], [362, 282], [341, 279], [326, 261], [317, 237]]),
 
   // Terraço nordeste. A parede é quebrada exatamente no corredor da escada.
   polygon("terrace-northeast-wall-west", [[1035, 105], [1080, 94], [1110, 122], [1115, 190], [1086, 221], [1047, 203]]),
@@ -114,6 +116,21 @@ export const clareiraDosEcosTerrainTransitions = Object.freeze([
     points: Object.freeze([[920, 730], [986, 714], [1068, 762], [1055, 846], [982, 850], [918, 792]])
   })
 ]);
+
+// Corredor específico do santuário oeste. Ele só remove as colisões dos dois
+// pilares e dos blocos laterais quando o centro do jogador está sobre os
+// degraus desenhados; fora desse corredor, as pedras continuam sólidas.
+const westSanctuaryStairChannel = Object.freeze({
+  id: "west-sanctuary-stair-channel",
+  kind: "polygon",
+  clearIds: Object.freeze([
+    "west-sanctuary-pillar-07",
+    "west-sanctuary-pillar-08",
+    "west-sanctuary-stair-rock-left",
+    "west-sanctuary-stair-rock-right"
+  ]),
+  points: Object.freeze([[269, 218], [286, 245], [303, 267], [320, 289], [343, 323], [373, 330], [389, 298], [354, 271], [337, 250], [305, 210]])
+});
 
 // Corredores atravessáveis desenhados sobre elementos que visualmente ficam
 // acima de água/muro. Eles funcionam como recortes sem apagar a colisão do
@@ -174,6 +191,12 @@ const terrainAt = (x, z, bounds, artwork) => {
     : { kind: "surface", id: "ground", level: 0 };
 };
 
+const channelClearsShape = (channel, shapeId) => {
+  if (!channel) return false;
+  if (channel.clearIds?.includes(shapeId)) return true;
+  return Boolean(channel.clearPrefixes?.some((prefix) => shapeId.startsWith(prefix)));
+};
+
 export const createClareiraDosEcosCollision = ({ bounds, artwork }) => {
   const world = createArtworkCollisionWorld({
     bounds,
@@ -182,6 +205,7 @@ export const createClareiraDosEcosCollision = ({ bounds, artwork }) => {
   });
   const collisionChannelAt = (x, z) => {
     const point = worldToArtwork(x, z, bounds, artwork);
+    if (terrainContains(westSanctuaryStairChannel, point.x, point.y)) return westSanctuaryStairChannel;
     return clareiraDosEcosWalkableChannels.find((item) => terrainContains(item, point.x, point.y)) || null;
   };
   world.collides = (x, z, radius = 0.5, { ignore = null } = {}) => {
@@ -189,7 +213,7 @@ export const createClareiraDosEcosCollision = ({ bounds, artwork }) => {
     const channel = collisionChannelAt(x, z);
     return world.shapes.some((shape) => {
       if (shape === ignore) return false;
-      if (channel?.clearPrefixes.some((prefix) => shape.id.startsWith(prefix))) return false;
+      if (channelClearsShape(channel, shape.id)) return false;
       return world.intersectsShape(shape, x, z, radius);
     });
   };
