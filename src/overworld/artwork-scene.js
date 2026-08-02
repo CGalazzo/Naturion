@@ -78,7 +78,7 @@ const setBandUvs = (geometry, index, bandCount) => {
   uv.needsUpdate = true;
 };
 
-const createForegroundBands = ({ texture, size, name, bandCount }) => {
+const createForegroundBands = ({ texture, size, name, bandCount, depthBias = 0 }) => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     transparent: true,
@@ -101,7 +101,10 @@ const createForegroundBands = ({ texture, size, name, bandCount }) => {
     mesh.name = `${name}-${index}`;
     mesh.rotation.x = PLANE_ROTATION_X;
     mesh.position.set(0, localY * SCREEN_UP_Y, localY * SCREEN_UP_Z);
-    mesh.renderOrder = depthOrderForZ(logicalZ, 35);
+    // A pequena margem evita que vegetação pertencente à mesma faixa dos
+    // pés cubra o tronco do protagonista. Elementos realmente à frente ainda
+    // preservam a profundidade natural do diorama.
+    mesh.renderOrder = depthOrderForZ(logicalZ + depthBias, 35);
     mesh.frustumCulled = false;
     meshes.push(mesh);
     geometries.push(geometry);
@@ -117,7 +120,8 @@ export const buildArtworkScene = ({
   groundUrl,
   foregroundUrl,
   assetVersion = "1",
-  foregroundBands = 24
+  foregroundBands = 24,
+  foregroundDepthBias = 0
 }) => {
   const root = new THREE.Group();
   root.name = `${map.id}-approved-diorama`;
@@ -148,7 +152,8 @@ export const buildArtworkScene = ({
         texture: foregroundTexture,
         size,
         name: `${map.id}-foreground`,
-        bandCount: foregroundBands
+        bandCount: foregroundBands,
+        depthBias: foregroundDepthBias
       })
     : null;
 

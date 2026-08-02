@@ -5,7 +5,7 @@ import { OverworldPlayer } from "./player.js";
 import {
   clareiraDosEcosMap,
   buildClareiraDosEcos
-} from "./maps/clareira-dos-ecos.js";
+} from "./maps/clareira-dos-ecos.js?v=2";
 
 const screen = document.getElementById("echoOverworldScreen");
 const viewport = document.getElementById("echoOverworldViewport");
