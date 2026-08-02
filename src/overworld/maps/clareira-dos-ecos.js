@@ -19,6 +19,73 @@ const bounds = Object.freeze({
   maxZ: WORLD_DEPTH / 2
 });
 
+// Corredores visuais de chão que precisam prevalecer sobre máscaras de água
+// conservadoras. Cada corredor remove somente os obstáculos explicitamente
+// listados e nunca desativa colisões de árvores, pedras ou construções.
+const WALKABLE_PATH_OVERRIDES = Object.freeze([
+  Object.freeze({
+    id: "central-upper-shore-path",
+    clearIds: Object.freeze(["water-central-upper"]),
+    points: Object.freeze([
+      [392, 248],
+      [430, 238],
+      [477, 242],
+      [520, 257],
+      [524, 279],
+      [494, 294],
+      [451, 297],
+      [414, 307],
+      [388, 293]
+    ])
+  })
+]);
+
+const pointInPolygon = (x, y, points) => {
+  let inside = false;
+  for (let index = 0, previous = points.length - 1; index < points.length; previous = index, index += 1) {
+    const current = points[index];
+    const last = points[previous];
+    const crosses = ((current[1] > y) !== (last[1] > y))
+      && (x < ((last[0] - current[0]) * (y - current[1])) / ((last[1] - current[1]) || Number.EPSILON) + current[0]);
+    if (crosses) inside = !inside;
+  }
+  return inside;
+};
+
+const worldToArtwork = (x, z) => ({
+  x: ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * SOURCE_WIDTH,
+  y: ((z - bounds.minZ) / (bounds.maxZ - bounds.minZ)) * SOURCE_HEIGHT
+});
+
+const applyWalkablePathOverrides = (collision) => {
+  const baseCollides = collision.collides.bind(collision);
+
+  collision.collides = (x, z, radius = 0.5, { ignore = null } = {}) => {
+    const artworkPoint = worldToArtwork(x, z);
+    const channel = WALKABLE_PATH_OVERRIDES.find((item) => (
+      pointInPolygon(artworkPoint.x, artworkPoint.y, item.points)
+    ));
+
+    if (!channel) return baseCollides(x, z, radius, { ignore });
+    if (!collision.insideBounds(x, z, radius)) return true;
+
+    return collision.shapes.some((shape) => {
+      if (shape === ignore) return false;
+      if (channel.clearIds.includes(shape.id)) return false;
+      return collision.intersectsShape(shape, x, z, radius);
+    });
+  };
+
+  collision.walkablePathOverrideAt = (x, z) => {
+    const artworkPoint = worldToArtwork(x, z);
+    return WALKABLE_PATH_OVERRIDES.find((item) => (
+      pointInPolygon(artworkPoint.x, artworkPoint.y, item.points)
+    )) || null;
+  };
+
+  return collision;
+};
+
 export const clareiraDosEcosMap = Object.freeze({
   id: "clareira-dos-ecos-overworld",
   name: "Clareira dos Ecos",
@@ -35,13 +102,13 @@ export const clareiraDosEcosMap = Object.freeze({
 });
 
 export const buildClareiraDosEcos = ({ scene }) => {
-  const collision = createClareiraDosEcosCollision({
+  const collision = applyWalkablePathOverrides(createClareiraDosEcosCollision({
     bounds: clareiraDosEcosMap.bounds,
     artwork: {
       width: CLAREIRA_DOS_ECOS_WORLD_SIZE.sourceWidth,
       height: CLAREIRA_DOS_ECOS_WORLD_SIZE.sourceHeight
     }
-  });
+  }));
   const artwork = buildArtworkScene({
     scene,
     map: clareiraDosEcosMap,
