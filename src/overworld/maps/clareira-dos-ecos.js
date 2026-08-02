@@ -1,5 +1,6 @@
 import { buildArtworkScene, createArtworkWorldSize, ARTWORK_DEPTH_PROJECTION } from "../artwork-scene.js?v=2";
-import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=3";
+import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=4";
+export { clareiraDosEcosNaturions } from "./clareira-dos-ecos-content.js?v=1";
 
 const SOURCE_WIDTH = 1536;
 const SOURCE_HEIGHT = 1024;
@@ -30,7 +31,7 @@ export const clareiraDosEcosMap = Object.freeze({
   cameraExtent: Object.freeze({ ...bounds, depthProjection: ARTWORK_DEPTH_PROJECTION }),
   visualProjection: Object.freeze({ width: 42, height: 23.5 }),
   palette: Object.freeze({ sky: 0x0b2818, fog: 0x173b26 }),
-  contentPhase: "map-only"
+  contentPhase: "exploration-wildlife"
 });
 
 export const buildClareiraDosEcos = ({ scene }) => {

@@ -2,15 +2,19 @@ import { OverworldEngine } from "./engine.js";
 import { OverworldCamera } from "./camera.js";
 import { OverworldInput } from "./input.js";
 import { OverworldPlayer } from "./player.js";
+import { OverworldEntities } from "./entities.js";
+import { OverworldBattleBridge } from "./battle-bridge.js";
 import {
   clareiraDosEcosMap,
-  buildClareiraDosEcos
-} from "./maps/clareira-dos-ecos.js?v=3";
+  buildClareiraDosEcos,
+  clareiraDosEcosNaturions
+} from "./maps/clareira-dos-ecos.js?v=4";
 
 const screen = document.getElementById("echoOverworldScreen");
 const viewport = document.getElementById("echoOverworldViewport");
 const objective = document.getElementById("echoOverworldObjective");
 const stateLabel = document.getElementById("echoOverworldMovementState");
+const interactionPrompt = document.getElementById("echoOverworldInteraction");
 const backButton = document.getElementById("echoOverworldBackMap");
 const teamButton = document.getElementById("echoOverworldTeamButton");
 const worldMap = document.getElementById("openForestMap");
@@ -23,12 +27,28 @@ let engine = null;
 let camera = null;
 let player = null;
 let input = null;
+let entities = null;
 let mapBuild = null;
+let activeInteraction = null;
 let active = false;
 let lastSaveAt = 0;
+let encounterCooldownUntil = 0;
+let touchEncounterPending = false;
 
 const bridge = () => window.NaturionOverworldBridge;
 const getPlayerSnapshot = () => bridge()?.getPlayer?.() || {};
+
+const setPrompt = (interaction) => {
+  activeInteraction = interaction;
+  if (!interactionPrompt) return;
+  if (!interaction) {
+    interactionPrompt.hidden = true;
+    interactionPrompt.textContent = "";
+    return;
+  }
+  interactionPrompt.textContent = interaction.label;
+  interactionPrompt.hidden = false;
+};
 
 const showToast = (message) => {
   const toast = document.getElementById("toast");
@@ -82,8 +102,35 @@ const openTeam = () => {
   teamClose.focus();
 };
 
+const runEncounter = async (entity) => {
+  savePosition(true);
+  active = false;
+  input?.reset?.();
+  setPrompt(null);
+  engine.stop();
+  const battleBridge = new OverworldBattleBridge({
+    mapId: clareiraDosEcosMap.id,
+    sceneImage: clareiraDosEcosMap.sceneImage
+  });
+  const result = await battleBridge.start(entity);
+  active = true;
+  engine.start();
+  encounterCooldownUntil = performance.now() + 1800;
+  if (result?.outcome === "victory") showToast(`${entity.form.name} foi derrotado. Você retornou à Clareira dos Ecos.`);
+  if (result?.outcome === "fled") showToast("Você recuou e retornou ao mesmo local.");
+  if (result?.outcome === "defeat") showToast("Sua equipe se recuperou e voltou à entrada da Clareira.");
+  return result;
+};
+
+const handleInteraction = async () => {
+  if (!active || !activeInteraction || touchEncounterPending || !teamPanel.hidden) return;
+  input?.reset?.();
+  await entities?.interact?.();
+};
+
 const closeTeam = () => {
   teamPanel.hidden = true;
+  setPrompt(null);
   viewport?.focus();
 };
 
@@ -108,6 +155,7 @@ const returnToMap = () => {
   active = false;
   input?.reset?.();
   teamPanel.hidden = true;
+  setPrompt(null);
   engine?.stop?.();
   screen.hidden = true;
   worldMap.hidden = false;
@@ -125,7 +173,7 @@ const createScene = () => {
 
   input = new OverworldInput({
     isActive: () => active && !screen.hidden && teamPanel.hidden,
-    onInteract: () => {},
+    onInteract: handleInteraction,
     onMenu: openTeam,
     onEscape: returnToMap,
     elements: {
@@ -153,15 +201,38 @@ const createScene = () => {
   });
   camera.setPlayerObject(player.group);
 
-  engine.addUpdater((delta) => {
+  entities = new OverworldEntities({
+    scene: engine.scene,
+    collision: mapBuild.collision,
+    forms: window.__naturionEcho?.forms || {},
+    onEncounter: runEncounter
+  });
+  entities.spawn({ naturions: clareiraDosEcosNaturions });
+
+  engine.addUpdater((delta, elapsed) => {
     const movement = player.update(delta);
     camera.update(delta, movement.velocity);
+    const entityInteraction = entities.update(delta, elapsed, player.group.position);
+    const nextInteraction = entityInteraction ? entities.getInteraction() : null;
+    if (nextInteraction?.id !== activeInteraction?.id || nextInteraction?.type !== activeInteraction?.type) {
+      setPrompt(nextInteraction);
+    }
     stateLabel.textContent = movement.state === "running"
       ? "Correndo"
       : movement.state === "walking"
         ? "Caminhando"
         : "Parado";
     savePosition();
+    if (
+      !touchEncounterPending
+      && performance.now() >= encounterCooldownUntil
+      && entities.touchTarget
+      && active
+      && teamPanel.hidden
+    ) {
+      touchEncounterPending = true;
+      entities.consumeTouchEncounter().finally(() => { touchEncounterPending = false; });
+    }
   });
 };
 
@@ -170,6 +241,7 @@ const recoverFromMapError = (error) => {
   active = false;
   try { input?.reset?.(); } catch {}
   try { engine?.stop?.(); } catch {}
+  setPrompt(null);
   screen.hidden = true;
   worldMap.hidden = false;
   bridge()?.returnEchoMapToWorld?.();
@@ -182,6 +254,7 @@ const enterClareira = () => {
     bridge()?.prepareEchoMapEntry?.();
     worldMap.hidden = true;
     teamPanel.hidden = true;
+    setPrompt(null);
     screen.hidden = false;
     objective.textContent = clareiraDosEcosMap.objective;
     if (!engine) createScene();

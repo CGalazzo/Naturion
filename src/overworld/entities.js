@@ -156,11 +156,21 @@ export class OverworldEntities {
           entity.scale * (1 + Math.abs(flap) * .032),
           1
         );
+        entity.visual.rotation.z = Math.sin(elapsed * 3.2 + entity.phase) * .025;
         entity.shadow.scale.setScalar(.76 + bob * .05);
       } else {
         const gait = Math.sin(elapsed * 7 + entity.phase);
-        entity.root.position.y = .04 + Math.round(Math.abs(gait) * 4) / 64;
-        entity.visual.scale.set((entity.direction.x < 0 ? -1 : 1) * entity.scale, entity.scale * (1 + Math.abs(gait) * .016), 1);
+        // Naturions terrestres mantêm os pés presos ao chão. A sensação de
+        // passada vem de inclinação e compressão horizontal, nunca de elevar
+        // o sprite inteiro como se estivesse flutuando.
+        entity.root.position.y = .04;
+        entity.visual.rotation.z = gait * .026;
+        entity.visual.position.x = gait * .035;
+        entity.visual.scale.set(
+          (entity.direction.x < 0 ? -1 : 1) * entity.scale * (1 + Math.abs(gait) * .012),
+          entity.scale * (1 - Math.abs(gait) * .01),
+          1
+        );
       }
 
       entity.shadow.position.set(entity.root.position.x, .025, entity.root.position.z);
@@ -207,7 +217,7 @@ export class OverworldEntities {
     const speed = entity.speed || .85;
     const nextX = entity.root.position.x + direction.x * speed * delta;
     const nextZ = entity.root.position.z + direction.z * speed * delta;
-    if (!this.collision.collides(nextX, nextZ, .44)) {
+    if (this.canMove(entity, nextX, nextZ, .44)) {
       entity.root.position.x = nextX;
       entity.root.position.z = nextZ;
       entity.direction.copy(direction);
@@ -231,13 +241,26 @@ export class OverworldEntities {
     direction.normalize();
     const nextX = entity.root.position.x + direction.x * (entity.speed || 1.2) * delta;
     const nextZ = entity.root.position.z + direction.z * (entity.speed || 1.2) * delta;
-    if (entity.flying || !this.collision.collides(nextX, nextZ, .4)) {
+    if (entity.flying || this.canMove(entity, nextX, nextZ, .4)) {
       entity.root.position.x = nextX;
       entity.root.position.z = nextZ;
       entity.direction.copy(direction);
     } else {
       entity.patrolIndex = (entity.patrolIndex + 1) % entity.path.length;
     }
+  }
+
+  canMove(entity, nextX, nextZ, radius) {
+    if (typeof this.collision.canTraverse === "function") {
+      return this.collision.canTraverse(
+        entity.root.position.x,
+        entity.root.position.z,
+        nextX,
+        nextZ,
+        radius
+      );
+    }
+    return !this.collision.collides(nextX, nextZ, radius);
   }
 
   async startEncounter(entity) {
