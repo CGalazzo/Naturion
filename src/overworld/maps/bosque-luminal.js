@@ -1,5 +1,5 @@
 import { THREE } from "../engine.js";
-import { CollisionWorld } from "../collision.js";
+import { createMapCollisionWorld } from "../collision.js";
 import { createOverworldTextures } from "../textures.js";
 import {
   createEnvironmentMaterials,
@@ -37,59 +37,6 @@ const PATH_SEGMENTS = [
 const isPath = (x, z) => PATH_SEGMENTS.some(([ax, az, bx, bz, width]) => distanceToSegment(x, z, ax, az, bx, bz) <= width);
 const pondMetric = (x, z) => ((x + 17) ** 2) / 27 + ((z + 5) ** 2) / 17;
 
-const WALKABLE_POLYGONS = Object.freeze([
-  Object.freeze([
-    [608, 1024], [918, 1024], [892, 900], [870, 770], [890, 662],
-    [958, 560], [920, 478], [840, 402], [854, 304], [842, 206],
-    [694, 202], [675, 302], [690, 402], [610, 480], [565, 558],
-    [602, 662], [625, 770], [615, 900]
-  ]),
-  Object.freeze([
-    [0, 786], [128, 778], [278, 700], [420, 595], [570, 515],
-    [676, 548], [650, 660], [500, 722], [350, 815], [255, 930],
-    [250, 1024], [0, 1024]
-  ]),
-  Object.freeze([
-    [292, 408], [515, 402], [650, 455], [748, 510], [685, 600],
-    [550, 565], [410, 535], [290, 520]
-  ]),
-  Object.freeze([
-    [820, 465], [980, 430], [1135, 420], [1365, 492], [1352, 590],
-    [1170, 595], [1005, 582], [855, 560]
-  ])
-]);
-
-const pointInPolygon = (point, polygon) => {
-  let inside = false;
-  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
-    const currentPoint = polygon[index];
-    const previousPoint = polygon[previous];
-    const intersects = ((currentPoint[1] > point.y) !== (previousPoint[1] > point.y))
-      && (point.x < ((previousPoint[0] - currentPoint[0]) * (point.y - currentPoint[1]))
-        / ((previousPoint[1] - currentPoint[1]) || Number.EPSILON) + currentPoint[0]);
-    if (intersects) inside = !inside;
-  }
-  return inside;
-};
-
-const worldToApprovedPixel = (x, z) => ({
-  x: ((x / APPROVED_BOSQUE_WORLD_SIZE.width) + 0.5) * APPROVED_BOSQUE_WORLD_SIZE.sourceWidth,
-  y: ((z / APPROVED_BOSQUE_WORLD_SIZE.depth) + 0.5) * APPROVED_BOSQUE_WORLD_SIZE.sourceHeight
-});
-
-const pointIsWalkable = (x, z) => {
-  const point = worldToApprovedPixel(x, z);
-  return WALKABLE_POLYGONS.some((polygon) => pointInPolygon(point, polygon));
-};
-
-export const isBosqueLuminalWalkable = (x, z, radius = 0.56) => {
-  const diagonal = radius * 0.72;
-  return [
-    [0, 0], [radius, 0], [-radius, 0], [0, radius], [0, -radius],
-    [diagonal, diagonal], [-diagonal, diagonal], [diagonal, -diagonal], [-diagonal, -diagonal]
-  ].every(([offsetX, offsetZ]) => pointIsWalkable(x + offsetX, z + offsetZ));
-};
-
 export const bosqueLuminalMap = Object.freeze({
   id: "bosque-luminal-overworld",
   name: "Bosque Luminal",
@@ -124,7 +71,9 @@ export const buildBosqueLuminal = ({ scene, engine }) => {
   scene.add(root);
   const textures = createOverworldTextures();
   const materials = createEnvironmentMaterials(textures);
-  const collision = new CollisionWorld(bosqueLuminalMap.bounds);
+  // Terreno, caminhos e mato são livres. Somente os elementos visuais
+  // sólidos cadastrados abaixo bloqueiam o protagonista.
+  const collision = createMapCollisionWorld({ bounds: bosqueLuminalMap.bounds });
   const interactions = [];
 
   const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(120, 100), materials.grass);

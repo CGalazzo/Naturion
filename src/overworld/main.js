@@ -6,8 +6,7 @@ import { OverworldEntities } from "./entities.js";
 import { OverworldBattleBridge } from "./battle-bridge.js";
 import {
   bosqueLuminalMap,
-  buildBosqueLuminal,
-  isBosqueLuminalWalkable
+  buildBosqueLuminal
 } from "./maps/bosque-luminal.js";
 
 const TUTORIAL_OBJECTIVE = "Siga a orientação da Dra. Íris e encontre Plumirel.";
@@ -273,12 +272,6 @@ const runEncounter = async (entity) => {
   return result;
 };
 
-const applyApprovedMapCollision = (collision) => {
-  if (!collision) return collision;
-  collision.collides = (x, z, radius = 0.56) => !isBosqueLuminalWalkable(x, z, radius);
-  return collision;
-};
-
 const createScene = () => {
   const playerData = getPlayerSnapshot();
   const startPosition = bosqueLuminalMap.startPosition;
@@ -286,7 +279,6 @@ const createScene = () => {
   engine = new OverworldEngine({ container: viewport, map: bosqueLuminalMap });
   camera = new OverworldCamera({ engine, map: bosqueLuminalMap });
   mapBuild = buildBosqueLuminal({ scene: engine.scene, engine });
-  applyApprovedMapCollision(mapBuild.collision);
 
   input = new OverworldInput({
     isActive: () => active && !screen.hidden && teamPanel.hidden && dialogue.hidden,
