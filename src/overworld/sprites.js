@@ -19,11 +19,11 @@ const DIRECTION_COLUMN = Object.freeze(Object.fromEntries(
 const NPC_ROWS_BY_ROLE = Object.freeze({ story: 0, resident: 4, researcher: 8, merchant: 0 });
 const HERO_SHEETS = Object.freeze({
   male: Object.freeze({
-    url: "assets/overworld/characters/hero-male/hero-male-overworld.webp",
+    url: "assets/overworld/characters/hero-male/hero-male-overworld.webp?v=3",
     frameAspect: 209 / 314
   }),
   female: Object.freeze({
-    url: "assets/overworld/characters/hero-female/hero-female-overworld.webp",
+    url: "assets/overworld/characters/hero-female/hero-female-overworld.webp?v=3",
     frameAspect: 222 / 296
   })
 });
