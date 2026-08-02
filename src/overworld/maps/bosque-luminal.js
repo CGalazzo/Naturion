@@ -1,5 +1,5 @@
 import { THREE } from "../engine.js";
-import { createMapCollisionWorld } from "../collision.js";
+import { createBosqueLuminalCollision } from "./bosque-luminal-collision.js";
 import { createOverworldTextures } from "../textures.js";
 import {
   createEnvironmentMaterials,
@@ -59,21 +59,21 @@ export const bosqueLuminalMap = Object.freeze({
   focusPoints: Object.freeze({ gate: { x: 0, y: 1.8, z: -20 }, puzzle: { x: -13, y: 1.5, z: -13 } })
 });
 
-const addFenceCollision = (collision, { id, x, z, length, rotationY }) => {
-  const horizontal = Math.abs(Math.cos(rotationY)) > .7;
-  if (horizontal) collision.addRect({ id, minX: x - length / 2, maxX: x + length / 2, minZ: z - .22, maxZ: z + .22 });
-  else collision.addRect({ id, minX: x - .22, maxX: x + .22, minZ: z - length / 2, maxZ: z + length / 2 });
-};
-
 export const buildBosqueLuminal = ({ scene, engine }) => {
   const root = new THREE.Group();
   root.name = "BosqueLuminalOverworld";
   scene.add(root);
   const textures = createOverworldTextures();
   const materials = createEnvironmentMaterials(textures);
-  // Terreno, caminhos e mato são livres. Somente os elementos visuais
-  // sólidos cadastrados abaixo bloqueiam o protagonista.
-  const collision = createMapCollisionWorld({ bounds: bosqueLuminalMap.bounds });
+  // Terreno, caminhos e mato são livres. A camada visual compartilhada
+  // bloqueia somente os sólidos marcados sobre a arte aprovada.
+  const collision = createBosqueLuminalCollision({
+    bounds: bosqueLuminalMap.bounds,
+    artwork: {
+      width: APPROVED_BOSQUE_WORLD_SIZE.sourceWidth,
+      height: APPROVED_BOSQUE_WORLD_SIZE.sourceHeight
+    }
+  });
   const interactions = [];
 
   const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(120, 100), materials.grass);
@@ -102,7 +102,6 @@ export const buildBosqueLuminal = ({ scene, engine }) => {
   createTileInstances({ parent: root, name: "ShoreTiles", cells: shoreCells, material: materials.shore });
   createTileInstances({ parent: root, name: "StoneTiles", cells: stoneCells, material: materials.stone });
   createWaterSurface({ parent: root, engine, materials, cells: waterCells });
-  collision.addRect({ id: "pond", type: "water", minX: -22.4, maxX: -11.6, minZ: -9.2, maxZ: -.8 });
 
   const treePositions = [
     [-27, -21, 1.05, 0], [-22, -22, .95, 1], [-16, -22, 1.08, 2], [-9, -22, .92, 3], [9, -22, 1, 1], [16, -22, .94, 2], [22, -22, 1.1, 3], [27, -20, 1, 0],
@@ -111,18 +110,15 @@ export const buildBosqueLuminal = ({ scene, engine }) => {
     [-22, 22, .94, 1], [-16, 22, 1.06, 3], [-10, 22, .9, 0], [10, 22, .94, 2], [16, 22, 1.05, 1], [22, 22, .92, 3],
     [-22, 11, 1.06, 0], [-20, 4, .9, 2], [-12, 14, .96, 1], [17, 16, 1.02, 3], [21, 10, .94, 0], [18, -5, 1.08, 2], [21, -12, .92, 1], [-9, -15, 1.04, 3]
   ];
-  treePositions.forEach(([x, z, scale, variant], index) => {
+  treePositions.forEach(([x, z, scale, variant]) => {
     createTree({ parent: root, materials, x, z, scale, variant });
-    collision.addCircle({ id: `tree-${index}`, x, z, radius: .72 * scale });
   });
   [[-33, -18], [-34, -7], [-33, 7], [-32, 18], [33, -17], [34, -5], [33, 8], [32, 19], [-20, -28], [-8, -28], [8, -28], [20, -28], [-20, 28], [-8, 28], [8, 28], [20, 28]].forEach(([x, z], index) => createTree({ parent: root, materials, x, z, scale: 1.1 + (index % 3) * .08, variant: index % 4 }));
 
   createHouse({ parent: root, materials, x: -9, z: 5, accent: "red" });
-  collision.addRect({ id: "house-west", minX: -12.8, maxX: -5.2, minZ: 2, maxZ: 8 });
   interactions.push({ id: "door-west", type: "door", position: { x: -9, z: 8.6 }, label: "E · Examinar a porta", message: "O interior desta casa será adicionado em uma próxima etapa." });
 
   createHouse({ parent: root, materials, x: 9, z: 1, accent: "blue" });
-  collision.addRect({ id: "house-east", minX: 5.2, maxX: 12.8, minZ: -2, maxZ: 4 });
   interactions.push({ id: "door-east", type: "door", position: { x: 9, z: 4.6 }, label: "E · Examinar a porta", message: "A casa está fechada. O interior será construído futuramente." });
 
   const fences = [
@@ -135,7 +131,6 @@ export const buildBosqueLuminal = ({ scene, engine }) => {
   ];
   fences.forEach((fence) => {
     createFenceSegment({ parent: root, materials, ...fence });
-    addFenceCollision(collision, fence);
   });
 
   createSign({ parent: root, materials, x: 3.5, z: 16.5, rotationY: -.2 });
@@ -147,13 +142,11 @@ export const buildBosqueLuminal = ({ scene, engine }) => {
   createTallGrassPatch({ parent: root, materials, x: -16, z: 13, columns: 4, rows: 4, spacing: 1.18 });
   [[-12, 10, 4], [-5, 12, 3], [6, 13, 4], [13, 6, 3], [-22, -1, 4], [-10, -8, 3], [11, -8, 4], [18, -15, 3]].forEach(([x, z, count]) => createFlowerCluster({ parent: root, materials, x, z, count }));
 
-  [[-23, -12, .8], [-8, -7, .65], [14, 17, .7], [20, 5, .75], [-15, -16, .86], [12, -14, .62]].forEach(([x, z, scale], index) => {
+  [[-23, -12, .8], [-8, -7, .65], [14, 17, .7], [20, 5, .75], [-15, -16, .86], [12, -14, .62]].forEach(([x, z, scale]) => {
     createRock({ parent: root, materials, x, z, scale });
-    collision.addCircle({ id: `rock-${index}`, x, z, radius: .55 * scale });
   });
 
   const puzzle = createPuzzleMarker({ parent: root, materials, x: -13, z: -13 });
-  collision.addCircle({ id: "puzzle-marker", x: -13, z: -13, radius: 1.6 });
   interactions.push({ id: "puzzle-space", type: "puzzle", position: { x: -13, z: -13 }, label: "E · Examinar o altar", message: "As runas ainda estão adormecidas. Um puzzle será adicionado aqui futuramente.", focus: bosqueLuminalMap.focusPoints.puzzle });
   engine.addUpdater((delta, elapsed) => {
     puzzle.crystal.rotation.y = Math.floor(elapsed * 6) * .08;
@@ -161,7 +154,6 @@ export const buildBosqueLuminal = ({ scene, engine }) => {
   });
 
   createRootGate({ parent: root, materials, x: 0, z: -20 });
-  collision.addRect({ id: "root-gate", type: "gate", minX: -4.1, maxX: 4.1, minZ: -21.2, maxZ: -18.5 });
   interactions.push({ id: "root-gate", type: "gate", position: { x: 0, z: -18 }, label: "E · Examinar o portão", message: "O portão está selado. É necessário concluir um desafio ou puzzle para abrir a passagem.", focus: bosqueLuminalMap.focusPoints.gate });
 
   const futurePath = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 12), materials.path);
