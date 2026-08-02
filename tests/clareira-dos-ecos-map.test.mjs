@@ -18,6 +18,31 @@ const fromPixel = (x, y) => ({
 });
 const collision = createClareiraDosEcosCollision({ bounds, artwork });
 
+const buildReachablePixelGrid = ({ step = 8, start = [768, 946] } = {}) => {
+  const columns = Math.floor(artwork.width / step) + 1;
+  const rows = Math.floor(artwork.height / step) + 1;
+  const reachable = new Uint8Array(columns * rows);
+  const queue = [[Math.round(start[0] / step), Math.round(start[1] / step)]];
+  const key = (x, y) => y * columns + x;
+  reachable[key(...queue[0])] = 1;
+
+  for (let cursor = 0; cursor < queue.length; cursor += 1) {
+    const [x, y] = queue[cursor];
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([offsetX, offsetY]) => {
+      const nextX = x + offsetX;
+      const nextY = y + offsetY;
+      if (nextX < 0 || nextY < 0 || nextX >= columns || nextY >= rows) return;
+      if (reachable[key(nextX, nextY)]) return;
+      const point = fromPixel(nextX * step, nextY * step);
+      if (collision.collides(point.x, point.z, playerRadius)) return;
+      reachable[key(nextX, nextY)] = 1;
+      queue.push([nextX, nextY]);
+    });
+  }
+
+  return (x, y) => Boolean(reachable[key(Math.round(x / step), Math.round(y / step))]);
+};
+
 [
   ["entrada inferior", fromPixel(768, 946)],
   ["clareira central", fromPixel(770, 500)],
@@ -71,5 +96,21 @@ assert.equal(
 ].forEach(([x, y], index) => {
   const point = fromPixel(x, y);
   assert.equal(collision.collides(point.x, point.z, playerRadius), false, `trecho ${index + 1} da ponte leste deve ser caminhável`);
+});
+
+const isReachableFromSpawn = buildReachablePixelGrid();
+[
+  ["círculo de ruínas", 230, 170],
+  ["ponte oeste, entrada", 500, 550],
+  ["ponte oeste, saída", 620, 550],
+  ["ponte leste, entrada", 1390, 595],
+  ["ponte leste, saída", 1510, 595],
+  ["escada da ruína superior", 1110, 235],
+  ["piso da ruína superior", 1200, 170],
+  ["escada do puzzle inferior", 1040, 780],
+  ["piso do puzzle inferior", 1055, 735],
+  ["centro do puzzle inferior", 1150, 735]
+].forEach(([name, x, y]) => {
+  assert.equal(isReachableFromSpawn(x, y), true, `${name} precisa ter uma rota contínua desde o spawn`);
 });
 console.log(`Clareira dos Ecos validada: ${collision.shapes.length} obstáculos alinhados à arte.`);

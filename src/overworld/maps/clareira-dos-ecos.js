@@ -1,5 +1,5 @@
-import { buildArtworkScene, createArtworkWorldSize, ARTWORK_DEPTH_PROJECTION } from "../artwork-scene.js";
-import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js";
+import { buildArtworkScene, createArtworkWorldSize, ARTWORK_DEPTH_PROJECTION } from "../artwork-scene.js?v=2";
+import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=2";
 
 const SOURCE_WIDTH = 1536;
 const SOURCE_HEIGHT = 1024;
@@ -48,7 +48,8 @@ export const buildClareiraDosEcos = ({ scene }) => {
     groundUrl: "assets/overworld/clareira-dos-ecos/ground-v2.webp",
     foregroundUrl: "assets/overworld/clareira-dos-ecos/foreground-v2.webp",
     assetVersion: "2",
-    foregroundBands: 24
+    foregroundBands: 64,
+    foregroundDepthBias: -0.55
   });
 
   return {
