@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import {
   createClareiraDosEcosCollision,
   clareiraDosEcosTerrainLevels,
-  clareiraDosEcosTerrainTransitions
+  clareiraDosEcosTerrainTransitions,
+  clareiraDosEcosWalkableChannels
 } from "../src/overworld/maps/clareira-dos-ecos-collision.js";
 import { clareiraDosEcosNaturions } from "../src/overworld/maps/clareira-dos-ecos-content.js";
 
@@ -50,23 +51,33 @@ const buildReachablePixelGrid = ({ step = 8, start = [768, 946] } = {}) => {
   return (x, y) => Boolean(reachable[key(Math.round(x / step), Math.round(y / step))]);
 };
 
-// Todo chão real — terra, grama, clareira, ponte, escada e piso — permanece livre.
+// Todo chão real — terra, grama, capim, clareira, ponte, escada e piso —
+// permanece livre. A amostragem percorre o mapa inteiro, não apenas o centro.
 [
   ["entrada inferior", 768, 946],
+  ["trilha inferior 1", 768, 875],
+  ["trilha inferior 2", 730, 810],
+  ["trilha inferior 3", 700, 735],
   ["clareira central", 770, 500],
+  ["trilha central norte", 770, 340],
+  ["trilha central superior", 770, 190],
+  ["passagem do portão superior", 780, 80],
   ["clareira oeste", 220, 680],
+  ["gramado oeste", 170, 455],
   ["trilha superior oeste", 525, 177],
-  ["clareira leste", 1250, 390],
-  ["trilha inferior", 760, 800],
+  ["clareira leste", 1280, 410],
+  ["gramado leste", 1330, 365],
   ["piso do santuário oeste", 230, 170],
-  ["ponte oeste", 520, 535],
-  ["ponte leste", 1435, 600],
+  ["ponte central", 550, 528],
+  ["ponte leste", 1450, 630],
   ["piso do terraço nordeste", 1215, 166],
-  ["escada do terraço nordeste", 1160, 234],
-  ["entrada da arena sudeste", 1038, 787],
+  ["base da escada do terraço nordeste", 1045, 280],
+  ["escada do terraço nordeste", 1090, 230],
+  ["entrada da arena sudeste", 955, 820],
+  ["escada da arena sudeste", 1005, 780],
   ["piso da arena sudeste", 1148, 735],
-  ["gramado lateral oeste", 125, 440],
-  ["gramado lateral leste", 1380, 365]
+  ["gramado sudoeste", 300, 710],
+  ["gramado sudeste", 1350, 700]
 ].forEach(([name, x, y]) => {
   const point = fromPixel(x, y);
   assert.equal(collision.collides(point.x, point.z, playerRadius), false, `${name} deve ser caminhável`);
@@ -78,17 +89,18 @@ const buildReachablePixelGrid = ({ step = 8, start = [768, 946] } = {}) => {
   ["floresta no limite oeste", 38, 410],
   ["floresta no limite sul", 360, 970],
   ["cabana abandonada", 930, 380],
-  ["água oeste", 430, 430],
-  ["árvore superior esquerda", 603, 169],
-  ["árvore superior central", 698, 253],
-  ["árvore central direita", 1120, 502],
-  ["árvore inferior esquerda", 439, 744],
-  ["árvore inferior direita", 944, 858],
-  ["rocha central", 750, 274],
+  ["água central superior", 535, 455],
+  ["água central inferior", 610, 600],
+  ["água do leste", 1460, 300],
+  ["árvore superior central", 875, 202],
+  ["árvore central direita", 1088, 548],
+  ["mata rochosa inferior esquerda", 445, 805],
+  ["mata inferior direita", 1325, 795],
+  ["rocha no caminho superior", 742, 264],
   ["parede do terraço nordeste", 1318, 174],
   ["parede da arena sudeste", 1278, 730],
-  ["pilar do santuário oeste", 95, 170],
-  ["poça da arena sudeste", 1132, 646]
+  ["pilar do santuário oeste", 126, 170],
+  ["poça da arena sudeste", 1140, 650]
 ].forEach(([name, x, y]) => {
   const point = fromPixel(x, y);
   assert.equal(collision.collides(point.x, point.z, playerRadius), true, `${name} deve bloquear o protagonista`);
@@ -96,21 +108,22 @@ const buildReachablePixelGrid = ({ step = 8, start = [768, 946] } = {}) => {
 
 assert.ok(collision.shapes.length >= 45, "a arte precisa ter cobertura completa de sólidos visíveis");
 assert.equal(new Set(collision.shapes.map(({ id }) => id)).size, collision.shapes.length, "cada sólido precisa de id único");
-const allowedSolidId = /^(edge-|water-|ruin-puddle-|research-cabin$|tree-|rock-|ruin-left-|upper-right-ruin-|lower-right-ruin-|upper-gate-|fence-)/;
-collision.shapes.forEach(({ id }) => assert.match(id, allowedSolidId, `${id} não pertence a uma categoria sólida permitida`));
+const allowedAlignedSolidId = /^(edge-|water-|research-cabin$|tree-|rock-|west-sanctuary-|terrace-northeast-|arena-southeast-|upper-gate-|fence-)/;
+collision.shapes.forEach(({ id }) => assert.match(id, allowedAlignedSolidId, `${id} não pertence a uma categoria sólida permitida`));
 
 // Pontes inteiras continuam atravessáveis.
-[[500, 550], [540, 550], [580, 550], [620, 550]].forEach(([x, y], index) => {
+[[490, 520], [520, 515], [550, 515], [580, 515], [610, 520]].forEach(([x, y], index) => {
   const point = fromPixel(x, y);
   assert.equal(collision.collides(point.x, point.z, playerRadius), false, `trecho ${index + 1} da ponte oeste deve ser livre`);
 });
-[[1390, 595], [1430, 595], [1470, 595], [1510, 595]].forEach(([x, y], index) => {
+[[1395, 628], [1430, 630], [1470, 632], [1500, 635]].forEach(([x, y], index) => {
   const point = fromPixel(x, y);
   assert.equal(collision.collides(point.x, point.z, playerRadius), false, `trecho ${index + 1} da ponte leste deve ser livre`);
 });
 
 assert.equal(clareiraDosEcosTerrainLevels.length, 2, "os dois pisos com escadas precisam de nível próprio");
 assert.equal(clareiraDosEcosTerrainTransitions.length, 2, "cada piso elevado precisa de uma entrada válida");
+assert.equal(clareiraDosEcosWalkableChannels.length, 4, "pontes e escadas precisam de corredores que recortam água e muros");
 [
   ["terraço nordeste", 1215, 166],
   ["arena sudeste", 1148, 735]
@@ -131,8 +144,8 @@ assert.equal(clareiraDosEcosTerrainTransitions.length, 2, "cada piso elevado pre
 
 // A mudança de nível funciona em duas etapas: piso ↔ escada ↔ chão.
 [
-  ["terraço nordeste", [1210, 170], [1162, 232], [1164, 286]],
-  ["arena sudeste", [1145, 735], [1035, 780], [1035, 850]]
+  ["terraço nordeste", [1210, 170], [1090, 230], [1035, 285]],
+  ["arena sudeste", [1145, 735], [1005, 780], [970, 850]]
 ].forEach(([name, highPixel, stairsPixel, lowPixel]) => {
   const high = fromPixel(...highPixel);
   const stairs = fromPixel(...stairsPixel);
@@ -142,15 +155,38 @@ assert.equal(clareiraDosEcosTerrainTransitions.length, 2, "cada piso elevado pre
   assert.equal(collision.canTraverse(low.x, low.z, stairs.x, stairs.z, playerRadius), true, `${name}: deve subir pela mesma escada`);
 });
 
+[
+  ["ponte central", 550, 515, "central-water-bridge"],
+  ["ponte leste", 1460, 630, "east-water-bridge"],
+  ["escada nordeste", 1090, 230, "terrace-northeast-stair-channel"],
+  ["escada sudeste", 1005, 780, "arena-southeast-stair-channel"]
+].forEach(([name, x, y, expectedChannel]) => {
+  const point = fromPixel(x, y);
+  assert.equal(collision.walkableChannelAt(point.x, point.z)?.id, expectedChannel, `${name} precisa usar o corredor correto`);
+  assert.equal(collision.collides(point.x, point.z, playerRadius), false, `${name} não pode conter bloqueio invisível`);
+});
+
 const reachableFromSpawn = buildReachablePixelGrid();
 [
+  ["entrada inferior", 768, 946],
+  ["trilha inferior", 730, 810],
+  ["entroncamento inferior", 700, 735],
+  ["clareira central", 770, 500],
+  ["trilha central superior", 790, 320],
+  ["portão superior", 780, 80],
   ["santuário oeste", 230, 170],
-  ["ponte oeste", 560, 550],
-  ["ponte leste", 1470, 595],
+  ["ponte central", 560, 515],
+  ["gramado oeste superior", 350, 320],
+  ["gramado oeste central", 210, 440],
+  ["clareira oeste", 220, 680],
+  ["gramado sudoeste", 300, 710],
+  ["gramado leste central", 1220, 420],
+  ["clareira leste", 1320, 420],
+  ["ponte leste", 1470, 632],
   ["terraço nordeste", 1215, 166],
   ["arena sudeste", 1148, 735],
-  ["clareira oeste", 220, 680],
-  ["clareira leste", 1250, 390]
+  ["base da escada nordeste", 1045, 280],
+  ["base da escada sudeste", 955, 820]
 ].forEach(([name, x, y]) => assert.equal(reachableFromSpawn(x, y), true, `${name} precisa ter rota válida desde a entrada`));
 
 // População moderada, somente primeiras formas e com movimento configurado.

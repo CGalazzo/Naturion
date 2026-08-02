@@ -8,7 +8,7 @@ import {
   clareiraDosEcosMap,
   buildClareiraDosEcos,
   clareiraDosEcosNaturions
-} from "./maps/clareira-dos-ecos.js?v=4";
+} from "./maps/clareira-dos-ecos.js?v=5";
 
 const screen = document.getElementById("echoOverworldScreen");
 const viewport = document.getElementById("echoOverworldViewport");
