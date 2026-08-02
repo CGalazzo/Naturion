@@ -1,5 +1,5 @@
 import { buildArtworkScene, createArtworkWorldSize, ARTWORK_DEPTH_PROJECTION } from "../artwork-scene.js?v=2";
-import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=4";
+import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=5";
 export { clareiraDosEcosNaturions } from "./clareira-dos-ecos-content.js?v=1";
 
 const SOURCE_WIDTH = 1536;
