@@ -1,5 +1,5 @@
 import { buildArtworkScene, createArtworkWorldSize, ARTWORK_DEPTH_PROJECTION } from "../artwork-scene.js?v=2";
-import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=5";
+import { createClareiraDosEcosCollision } from "./clareira-dos-ecos-collision.js?v=6";
 export { clareiraDosEcosNaturions } from "./clareira-dos-ecos-content.js?v=1";
 
 const SOURCE_WIDTH = 1536;
@@ -19,9 +19,8 @@ const bounds = Object.freeze({
   maxZ: WORLD_DEPTH / 2
 });
 
-// Corredores visuais de chão que precisam prevalecer sobre máscaras de água
-// conservadoras. Cada corredor remove somente os obstáculos explicitamente
-// listados e nunca desativa colisões fora do próprio traçado caminhável.
+// Corredores visuais de chão que sempre prevalecem sobre máscaras conservadoras.
+// A regra é simples: onde a arte mostra uma trilha contínua, o jogador passa.
 const WALKABLE_PATH_OVERRIDES = Object.freeze([
   Object.freeze({
     id: "central-upper-shore-path",
@@ -40,39 +39,26 @@ const WALKABLE_PATH_OVERRIDES = Object.freeze([
   }),
   Object.freeze({
     id: "west-sanctuary-full-access-path",
-    clearIds: Object.freeze([
-      "west-sanctuary-pillar-07",
-      "west-sanctuary-pillar-08",
-      "west-sanctuary-stair-rock-left",
-      "west-sanctuary-stair-rock-right"
-    ]),
-    // Acompanha a trilha clara inteira desenhada na arte: começa na abertura
-    // dos degraus do santuário e termina somente depois de alcançar o caminho
-    // largo. O recorte anterior estava deslocado para a direita e deixava a
-    // metade esquerda da passagem bloqueada.
+    forceWalkable: true,
+    // Corredor medido sobre o caminho visível da captura: começa na saída dos
+    // degraus do santuário oeste e termina já dentro da trilha principal.
+    // Dentro desta faixa não existe colisão invisível de água, pedras, pilares
+    // ou mudança de nível. Fora dela, todas as colisões normais permanecem.
     points: Object.freeze([
-      [292, 220],
-      [310, 216],
-      [324, 235],
-      [333, 250],
-      [343, 262],
-      [354, 274],
-      [367, 285],
-      [380, 300],
-      [394, 318],
-      [398, 333],
-      [389, 348],
-      [375, 358],
-      [359, 352],
-      [350, 337],
-      [342, 321],
-      [331, 308],
-      [320, 296],
-      [310, 285],
-      [299, 274],
-      [290, 261],
-      [281, 247],
-      [278, 232]
+      [289, 278],
+      [299, 307],
+      [321, 332],
+      [349, 351],
+      [385, 363],
+      [424, 373],
+      [436, 327],
+      [399, 317],
+      [371, 307],
+      [353, 296],
+      [341, 283],
+      [335, 262],
+      [314, 211],
+      [270, 229]
     ])
   })
 ]);
@@ -94,32 +80,45 @@ const worldToArtwork = (x, z) => ({
   y: ((z - bounds.minZ) / (bounds.maxZ - bounds.minZ)) * SOURCE_HEIGHT
 });
 
+const pathOverrideAt = (x, z) => {
+  const artworkPoint = worldToArtwork(x, z);
+  return WALKABLE_PATH_OVERRIDES.find((item) => (
+    pointInPolygon(artworkPoint.x, artworkPoint.y, item.points)
+  )) || null;
+};
+
 const applyWalkablePathOverrides = (collision) => {
   const baseCollides = collision.collides.bind(collision);
+  const baseCanTraverse = collision.canTraverse?.bind(collision);
 
   collision.collides = (x, z, radius = 0.5, { ignore = null } = {}) => {
-    const artworkPoint = worldToArtwork(x, z);
-    const channel = WALKABLE_PATH_OVERRIDES.find((item) => (
-      pointInPolygon(artworkPoint.x, artworkPoint.y, item.points)
-    ));
-
+    const channel = pathOverrideAt(x, z);
     if (!channel) return baseCollides(x, z, radius, { ignore });
     if (!collision.insideBounds(x, z, radius)) return true;
 
+    // Este é o ponto que faltava nas tentativas anteriores: o caminho do
+    // santuário é caminhável por definição, sem depender do id do obstáculo
+    // invisível que por acaso esteja avançando sobre a arte.
+    if (channel.forceWalkable) return false;
+
     return collision.shapes.some((shape) => {
       if (shape === ignore) return false;
-      if (channel.clearIds.includes(shape.id)) return false;
+      if (channel.clearIds?.includes(shape.id)) return false;
       return collision.intersectsShape(shape, x, z, radius);
     });
   };
 
-  collision.walkablePathOverrideAt = (x, z) => {
-    const artworkPoint = worldToArtwork(x, z);
-    return WALKABLE_PATH_OVERRIDES.find((item) => (
-      pointInPolygon(artworkPoint.x, artworkPoint.y, item.points)
-    )) || null;
+  collision.canTraverse = (fromX, fromZ, toX, toZ, radius = 0.5) => {
+    const targetChannel = pathOverrideAt(toX, toZ);
+    if (targetChannel?.forceWalkable) {
+      return collision.insideBounds(toX, toZ, radius);
+    }
+    return baseCanTraverse
+      ? baseCanTraverse(fromX, fromZ, toX, toZ, radius)
+      : !collision.collides(toX, toZ, radius);
   };
 
+  collision.walkablePathOverrideAt = pathOverrideAt;
   return collision;
 };
 
@@ -152,7 +151,7 @@ export const buildClareiraDosEcos = ({ scene }) => {
     size: CLAREIRA_DOS_ECOS_WORLD_SIZE,
     groundUrl: "assets/overworld/clareira-dos-ecos/ground-v2.webp",
     foregroundUrl: "assets/overworld/clareira-dos-ecos/foreground-v2.webp",
-    assetVersion: "2",
+    assetVersion: "3",
     foregroundBands: 64,
     foregroundDepthBias: -0.55
   });
