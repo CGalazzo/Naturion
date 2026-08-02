@@ -98,12 +98,12 @@ export const configureAtlasFrame = (texture, {
 
 export const createOverworldTextures = () => ({
   ground: loadPixelCanvasTexture(
-    "bosque-approved-ground-v2",
-    "assets/overworld/bosque-luminal/approved-ground.webp"
+    "bosque-approved-ground-v3",
+    "assets/overworld/bosque-luminal/approved-ground.webp?v=3"
   ),
   foreground: loadPixelCanvasTexture(
-    "bosque-approved-foreground-v2",
-    "assets/overworld/bosque-luminal/approved-foreground.webp",
+    "bosque-approved-foreground-v3",
+    "assets/overworld/bosque-luminal/approved-foreground.webp?v=3",
     { transparent: true }
   )
 });
