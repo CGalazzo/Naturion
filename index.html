@@ -8788,8 +8788,9 @@
         <button class="overworld-tool" id="echoOverworldBackMap" type="button">Mapa-múndi</button>
       </nav>
       <aside class="overworld-controls-help" aria-label="Controles">
-        <span>WASD / Setas · Mover</span><span>Shift · Correr</span><span>Esc · Voltar</span>
+        <span>WASD / Setas · Mover</span><span>Shift · Correr</span><span>E · Interagir</span><span>Esc · Voltar</span>
       </aside>
+      <div class="overworld-interaction" id="echoOverworldInteraction" hidden></div>
       <section class="overworld-mobile-controls" aria-label="Controles de toque">
         <div class="overworld-joystick" id="echoOverworldJoystick" aria-label="Direcional"><span class="overworld-joystick-knob" id="echoOverworldJoystickKnob"></span></div>
         <div class="overworld-mobile-actions">
@@ -12707,8 +12708,11 @@ if (wild) echoWilds.push(wild);
         echoEncounter = null;
         echoClearing.hidden = true;
         echoClearing.classList.remove("overworld-battle-only");
-        const overworldScreen = document.getElementById("overworldScreen");
-        if (overworldScreen) overworldScreen.hidden = false;
+        const returnScreenId = context.stageId === "clareira-dos-ecos-overworld"
+          ? "echoOverworldScreen"
+          : "overworldScreen";
+        const returnScreen = document.getElementById(returnScreenId);
+        if (returnScreen) returnScreen.hidden = false;
         const detail = { encounterId: context.encounterId, ...result };
         context.resolve(detail);
         window.dispatchEvent(new CustomEvent("naturion:overworld-battle-finished", { detail }));
@@ -12737,8 +12741,11 @@ if (wild) echoWilds.push(wild);
             stageId: payload.stageId || "bosque-luminal-overworld",
             result: { outcome: "victory", captured: false }
           };
-          const overworldScreen = document.getElementById("overworldScreen");
-          if (overworldScreen) overworldScreen.hidden = true;
+          const sourceScreenId = overworldBattleContext.stageId === "clareira-dos-ecos-overworld"
+            ? "echoOverworldScreen"
+            : "overworldScreen";
+          const sourceScreen = document.getElementById(sourceScreenId);
+          if (sourceScreen) sourceScreen.hidden = true;
           openForestMap.hidden = true;
           echoClearing.hidden = false;
           echoClearing.classList.add("overworld-battle-only");
@@ -13864,6 +13871,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js"></script>
-  <script type="module" src="src/overworld/echo-main.js?v=3"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=4"></script>
 </body>
 </html>

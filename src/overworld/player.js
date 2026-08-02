@@ -30,7 +30,10 @@ export class OverworldPlayer {
     scene.add(this.group);
   }
 
-  canOccupy(x, z) {
+  canOccupy(x, z, fromX = this.group.position.x, fromZ = this.group.position.z) {
+    if (typeof this.collision.canTraverse === "function") {
+      return this.collision.canTraverse(fromX, fromZ, x, z, this.radius);
+    }
     return !this.collision.collides(x, z, this.radius);
   }
 
@@ -50,13 +53,13 @@ export class OverworldPlayer {
     const candidateX = position.x + this.velocity.x * delta;
     const candidateZ = position.z + this.velocity.z * delta;
     let moved = false;
-    if (this.canOccupy(candidateX, position.z)) {
+    if (this.canOccupy(candidateX, position.z, position.x, position.z)) {
       position.x = candidateX;
       moved = true;
     } else {
       this.velocity.x *= .24;
     }
-    if (this.canOccupy(position.x, candidateZ)) {
+    if (this.canOccupy(position.x, candidateZ, position.x, position.z)) {
       position.z = candidateZ;
       moved = true;
     } else {
@@ -71,6 +74,10 @@ export class OverworldPlayer {
       this.lastSafe.copy(position);
     }
 
+    const terrain = this.collision.terrainAt?.(position.x, position.z);
+    this.group.userData.terrain = terrain?.id || "ground";
+    this.group.userData.terrainLevel = terrain?.level ?? this.group.userData.terrainLevel ?? 0;
+
     const planarSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     this.state = planarSpeed < .18 ? "idle" : movement.running && planarSpeed > this.walkSpeed * .82 ? "running" : "walking";
     this.rig.update({ state: this.state, velocity: this.velocity, delta, worldZ: position.z });
@@ -83,6 +90,9 @@ export class OverworldPlayer {
     this.group.position.set(position.x, GROUND_HEIGHT, position.z);
     this.lastSafe.copy(this.group.position);
     this.velocity.set(0, 0, 0);
+    const terrain = this.collision.terrainAt?.(position.x, position.z);
+    this.group.userData.terrain = terrain?.id || "ground";
+    this.group.userData.terrainLevel = terrain?.level ?? 0;
   }
 
   dispose() {
