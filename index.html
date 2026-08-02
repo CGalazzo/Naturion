@@ -10162,12 +10162,12 @@
             action: "Observar bosque"
           },
           {
-            text: `Antes de investigar a instabilidade, aprenda a se mover com ${starter.name}. Ande para os lados e use o pulo para vencer obstáculos.`,
+            text: `Antes de investigar a instabilidade, aprenda a explorar com ${starter.name}. Use WASD ou as setas para caminhar em todas as direções e Shift para correr.`,
             action: "Aprender movimento"
           },
           {
-            text: "Alguns cristais ficam instáveis e fazem o Naturion reagir de forma agressiva. O relógio detectou um cristal Voador instável à frente; há um Plumirel dentro dele.",
-            action: "Começar exploração"
+            text: "O Relógio Cristalíneo detectou um Plumirel agitado perto da casa ao lado do lago. Vou acompanhá-lo pelo bosque; aproxime-se com calma para iniciarmos o primeiro encontro.",
+            action: "Explorar o Bosque Luminal"
           }
         ];
 
@@ -10472,6 +10472,20 @@
         tutorialFrame = window.requestAnimationFrame(stepTutorialMovement);
       };
 
+      const beginForestOverworldTutorial = () => {
+        clearInterval(typingTimer);
+        forestExploring = false;
+        stopTutorialMovement();
+        forestIntro.hidden = true;
+        forestExploration.hidden = true;
+        forestObjective.textContent = "Encontre Plumirel com a Dra. Íris";
+        forestScreen.classList.remove("side-scroll-test", "world-map-open");
+        playSequence([392, 494, 587], .07);
+        window.dispatchEvent(new CustomEvent("naturion:open-overworld-tutorial", {
+          detail: { player: currentPlayer, starter: selectedStarter }
+        }));
+      };
+
       const triggerPlumirelEncounter = async () => {
         if (!forestExploring) return;
         forestExploring = false;
@@ -10484,6 +10498,18 @@
         await forestPause(1050);
         encounterBanner.hidden = true;
         startBattleTutorial();
+      };
+
+      const startPlumirelBattleFromOverworld = async () => {
+        forestExploring = false;
+        stopTutorialMovement();
+        forestScreen.classList.remove("side-scroll-test", "world-map-open");
+        forestIntro.hidden = true;
+        forestExploration.hidden = true;
+        forestObjective.textContent = "Plumirel apareceu!";
+        encounterBanner.hidden = true;
+        startBattleTutorial();
+        return { outcome: "tutorial-started" };
       };
 
       const updateBattleBars = () => {
@@ -11320,7 +11346,7 @@
         showToast("Destino alcançado: Clareira dos Ecos!");
         worldFirstDestination.disabled = false;
         await forestPause(prefersLessMotion() ? 90 : 520);
-        openEchoEntryConfirmation();
+        showToast("O novo mapa ampliado da Clareira dos Ecos será adicionado na próxima etapa.");
       };
 
       const echoRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -13019,6 +13045,32 @@ if (wild) echoWilds.push(wild);
 
       window.NaturionOverworldBridge = {
         getPlayer: () => JSON.parse(JSON.stringify(currentPlayer || {})),
+        prepareTutorialEntry: () => {
+          selectedStarter ||= currentPlayer?.starter?.id || "axolume";
+          forestExploring = false;
+          stopTutorialMovement();
+          forestIntro.hidden = true;
+          forestExploration.hidden = true;
+          forestBattle.hidden = true;
+          forestObjective.textContent = "Encontre Plumirel com a Dra. Íris";
+          return true;
+        },
+        startTutorialBattle: startPlumirelBattleFromOverworld,
+        recoverTutorialEntry: () => {
+          forestScreen.hidden = false;
+          forestIntro.hidden = false;
+          forestExploration.hidden = true;
+          forestObjective.textContent = "Ouça a Dra. Íris";
+          renderForestDialogue();
+        },
+        showEchoMapPending: async () => {
+          if (!firstWorldDestinationReached) {
+            await travelToFirstWorldDestination();
+            return true;
+          }
+          showToast("A nova Clareira dos Ecos ampliada será construída na próxima etapa.");
+          return false;
+        },
         requestMapEntry: async () => {
           if (!firstWorldDestinationReached) await travelToFirstWorldDestination();
           echoEntryConfirm.hidden = true;
@@ -13331,7 +13383,7 @@ if (wild) echoWilds.push(wild);
           forestDialogueIndex += 1;
           renderForestDialogue();
         } else {
-          beginForestExploration();
+          beginForestOverworldTutorial();
         }
       });
 

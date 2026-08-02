@@ -10,9 +10,39 @@ import {
   isBosqueLuminalWalkable
 } from "./maps/bosque-luminal.js";
 
-const PHASE_ONE = true;
-const PHASE_ONE_OBJECTIVE = "Fase 1: teste o terreno, os caminhos, a câmera e a movimentação.";
-const PHASE_ONE_BOUNDS = bosqueLuminalMap.bounds;
+const TUTORIAL_OBJECTIVE = "Siga a orientação da Dra. Íris e encontre Plumirel.";
+const TUTORIAL_PLUMIREL = Object.freeze({
+  id: "plumirel",
+  name: "Plumirel",
+  type: "Voador",
+  image: "assets/map/plumirel.webp",
+  stage: 1
+});
+const TUTORIAL_NPCS = Object.freeze([
+  Object.freeze({
+    id: "dra-iris-tutorial",
+    name: "Dra. Íris",
+    image: "assets/story/dr-iris.webp",
+    aspect: 571 / 1090,
+    scale: 3.8,
+    steady: true,
+    position: Object.freeze({ x: -3.4, z: 8.2 }),
+    dialogue: "Muito bem! Siga o caminho central. Plumirel foi avistado perto da casa ao lado do lago. Aproxime-se com calma."
+  })
+]);
+const TUTORIAL_NATURIONS = Object.freeze([
+  Object.freeze({
+    id: "plumirel-tutorial",
+    formId: "plumirel",
+    level: 3,
+    behavior: "idle",
+    flying: true,
+    altitude: 2.5,
+    position: Object.freeze({ x: 13.8, z: 1.4 }),
+    speed: 0,
+    scale: 2.25
+  })
+]);
 
 const screen = document.getElementById("overworldScreen");
 const viewport = document.getElementById("overworldViewport");
@@ -43,6 +73,7 @@ let interactionLocked = false;
 let lastSaveAt = 0;
 let encounterCooldownUntil = 0;
 let touchEncounterPending = false;
+let tutorialActive = false;
 
 const bridge = () => window.NaturionOverworldBridge;
 
@@ -67,7 +98,7 @@ const setPrompt = (interaction) => {
   interactionPrompt.hidden = false;
 };
 
-const showDialogue = ({ name = "Clareira dos Ecos", message }) => {
+const showDialogue = ({ name = "Bosque Luminal", message }) => {
   input?.reset?.();
   dialogueName.textContent = name;
   dialogueText.textContent = message;
@@ -81,7 +112,7 @@ const closeDialogue = () => {
 };
 
 const recoverFromOverworldError = (error) => {
-  console.error("[Naturion Overworld] Falha ao carregar a Clareira dos Ecos:", error);
+  console.error("[Naturion Overworld] Falha ao carregar o tutorial do Bosque Luminal:", error);
   active = false;
   interactionLocked = false;
   try { input?.reset?.(); } catch (resetError) { console.warn(resetError); }
@@ -100,31 +131,20 @@ const recoverFromOverworldError = (error) => {
   dialogue.hidden = true;
   setPrompt(null);
   screen.hidden = true;
-  worldMap.hidden = false;
-  bridge()?.returnToWorldMap?.();
-  showToast("Não foi possível carregar a Clareira dos Ecos. Você voltou ao mapa-múndi.");
-  destinationButton?.focus();
+  bridge()?.recoverTutorialEntry?.();
+  showToast("Não foi possível carregar o Bosque Luminal. Tente iniciar o tutorial novamente.");
 };
 
 const getStaticInteraction = () => {
-  if (PHASE_ONE || !player || !mapBuild) return null;
-  const position = player.group.position;
-  let nearest = null;
-  let distance = Infinity;
-  mapBuild.interactions.forEach((interaction) => {
-    const currentDistance = Math.hypot(position.x - interaction.position.x, position.z - interaction.position.z);
-    if (currentDistance < distance) {
-      nearest = interaction;
-      distance = currentDistance;
-    }
-  });
-  return nearest && distance <= 2.45 ? nearest : null;
+  // O cenário aprovado é usado aqui somente no tutorial. Portas, puzzle e
+  // outros pontos do futuro mapa maior da Clareira permanecem desativados.
+  return null;
 };
 
 const handleEntityDialogue = (npc) => showDialogue({ name: npc.name, message: npc.dialogue });
 
 const handleStaticInteraction = (interaction) => {
-  if (PHASE_ONE) return;
+  if (tutorialActive) return;
   if (interaction.focus) camera.focusOn(interaction.focus, { duration: .65, zoom: 1.08 });
   if (interaction.type === "gate") objective.textContent = "O portão exige um desafio ainda não disponível.";
   showDialogue({
@@ -140,7 +160,7 @@ const handleStaticInteraction = (interaction) => {
   if (interaction.focus) {
     window.setTimeout(() => {
       camera.returnToPlayer();
-      objective.textContent = bosqueLuminalMap.objective;
+      objective.textContent = TUTORIAL_OBJECTIVE;
     }, 1500);
   }
 };
@@ -188,7 +208,7 @@ const openTeam = () => {
 };
 
 const savePosition = (force = false) => {
-  if (!player || !active) return;
+  if (tutorialActive || !player || !active) return;
   const now = performance.now();
   if (!force && now - lastSaveAt < 900) return;
   lastSaveAt = now;
@@ -204,6 +224,11 @@ const savePosition = (force = false) => {
 
 const returnToMap = () => {
   if (!active) return;
+  if (tutorialActive) {
+    input?.reset?.();
+    showToast("Conclua o encontro com Plumirel para avançar no tutorial.");
+    return;
+  }
   savePosition(true);
   active = false;
   input.reset();
@@ -218,7 +243,19 @@ const returnToMap = () => {
 };
 
 const runEncounter = async (entity) => {
-  if (PHASE_ONE) return { outcome: "disabled" };
+  if (tutorialActive) {
+    active = false;
+    input?.reset?.();
+    setPrompt(null);
+    engine.stop();
+    screen.hidden = true;
+    const result = await bridge()?.startTutorialBattle?.({
+      formId: entity.formId,
+      name: entity.form.name,
+      level: entity.level
+    });
+    return result || { outcome: "tutorial-started" };
+  }
   active = false;
   engine.stop();
   setPrompt(null);
@@ -236,36 +273,29 @@ const runEncounter = async (entity) => {
   return result;
 };
 
-const applyPhaseOneCollision = (collision) => {
-  if (!PHASE_ONE || !collision) return collision;
+const applyApprovedMapCollision = (collision) => {
+  if (!collision) return collision;
   collision.collides = (x, z, radius = 0.56) => !isBosqueLuminalWalkable(x, z, radius);
   return collision;
 };
 
 const createScene = () => {
   const playerData = getPlayerSnapshot();
-  const saved = playerData.overworldProgress?.mapId === bosqueLuminalMap.id
-    ? playerData.overworldProgress.position
-    : null;
-  const savedIsInsidePhaseOne = saved
-    && Number.isFinite(saved.x)
-    && Number.isFinite(saved.z)
-    && saved.x > PHASE_ONE_BOUNDS.minX + 1
-    && saved.x < PHASE_ONE_BOUNDS.maxX - 1
-    && saved.z > PHASE_ONE_BOUNDS.minZ + 1
-    && saved.z < PHASE_ONE_BOUNDS.maxZ - 1;
-  const startPosition = savedIsInsidePhaseOne ? saved : bosqueLuminalMap.startPosition;
+  const startPosition = bosqueLuminalMap.startPosition;
 
   engine = new OverworldEngine({ container: viewport, map: bosqueLuminalMap });
   camera = new OverworldCamera({ engine, map: bosqueLuminalMap });
   mapBuild = buildBosqueLuminal({ scene: engine.scene, engine });
-  applyPhaseOneCollision(mapBuild.collision);
+  applyApprovedMapCollision(mapBuild.collision);
 
   input = new OverworldInput({
     isActive: () => active && !screen.hidden && teamPanel.hidden && dialogue.hidden,
     onInteract: handleInteraction,
     onMenu: openTeam,
-    onEscape: returnToMap,
+    onEscape: () => {
+      input?.reset?.();
+      showToast("Conclua o encontro com Plumirel para avançar no tutorial.");
+    },
     elements: {
       joystickBase: document.getElementById("overworldJoystick"),
       joystickKnob: document.getElementById("overworldJoystickKnob"),
@@ -291,18 +321,19 @@ const createScene = () => {
   entities = new OverworldEntities({
     scene: engine.scene,
     collision: mapBuild.collision,
-    forms: window.__naturionEcho?.forms,
+    forms: {
+      ...(window.__naturionEcho?.forms || {}),
+      plumirel: TUTORIAL_PLUMIREL
+    },
     onEncounter: runEncounter,
     onDialogue: handleEntityDialogue
   });
-  entities.spawn({ naturions: [], npcs: [] });
+  entities.spawn({ naturions: TUTORIAL_NATURIONS, npcs: TUTORIAL_NPCS });
 
   engine.addUpdater((delta, elapsed) => {
     const movement = player.update(delta, elapsed);
     camera.update(delta, movement.velocity);
-    const entityInteraction = PHASE_ONE
-      ? null
-      : entities.update(delta, elapsed, player.group.position);
+    const entityInteraction = entities.update(delta, elapsed, player.group.position);
     const nextInteraction = entityInteraction ? entities.getInteraction() : getStaticInteraction();
     if (nextInteraction?.id !== activeInteraction?.id || nextInteraction?.type !== activeInteraction?.type) {
       setPrompt(nextInteraction);
@@ -314,8 +345,7 @@ const createScene = () => {
         : "Parado";
     savePosition();
     if (
-      !PHASE_ONE
-      && !touchEncounterPending
+      !touchEncounterPending
       && performance.now() >= encounterCooldownUntil
       && entities.touchTarget
       && active
@@ -331,21 +361,29 @@ const createScene = () => {
 const enterOverworld = async () => {
   if (active || !screen) return;
   try {
-    await bridge()?.requestMapEntry?.();
-    bridge()?.prepareMapEntry?.();
+    tutorialActive = true;
+    bridge()?.prepareTutorialEntry?.();
     worldMap.hidden = true;
     teamPanel.hidden = true;
     dialogue.hidden = true;
     screen.hidden = false;
-    objective.textContent = PHASE_ONE ? PHASE_ONE_OBJECTIVE : bosqueLuminalMap.objective;
+    backButton.hidden = true;
+    document.getElementById("overworldMobileMap").hidden = true;
+    objective.textContent = TUTORIAL_OBJECTIVE;
     if (!engine) createScene();
+    else player.teleport(bosqueLuminalMap.startPosition);
     active = true;
     input.enabled = true;
     engine.start();
     viewport.focus();
-    showToast(PHASE_ONE
-      ? "Fase 1 ativa · teste o chão, a câmera e a movimentação"
-      : "WASD ou setas para mover · Shift para correr · E para interagir");
+    showToast("WASD ou setas para mover · Shift para correr · E para falar");
+    window.setTimeout(() => {
+      if (!active || !tutorialActive || !dialogue.hidden) return;
+      showDialogue({
+        name: "Dra. Íris",
+        message: "Este é o Bosque Luminal. Use WASD ou as setas para caminhar, Shift para correr e siga pela trilha até Plumirel. Eu estarei logo à frente caso precise falar comigo."
+      });
+    }, 420);
   } catch (error) {
     recoverFromOverworldError(error);
   }
@@ -354,7 +392,7 @@ const enterOverworld = async () => {
 const handleDestination = async (event) => {
   event.preventDefault();
   event.stopImmediatePropagation();
-  await enterOverworld();
+  await bridge()?.showEchoMapPending?.();
 };
 
 destinationButton?.addEventListener("click", handleDestination, true);
@@ -385,5 +423,5 @@ window.addEventListener("keydown", (event) => {
     closeDialogue();
   }
 });
-window.addEventListener("naturion:open-overworld", enterOverworld);
+window.addEventListener("naturion:open-overworld-tutorial", enterOverworld);
 window.addEventListener("beforeunload", () => savePosition(true));
