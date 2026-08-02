@@ -11,9 +11,26 @@ const DIRECTIONS = Object.freeze([
   "front", "front-right", "right", "back-right",
   "back", "back-left", "left", "front-left"
 ]);
-const DIRECTION_COLUMN = Object.freeze(Object.fromEntries(
-  DIRECTIONS.map((direction, index) => [direction, index])
-));
+// Os atlas aprovados masculino e feminino foram exportados com ordens
+// horizontais opostas. Cada variante precisa do próprio mapeamento para que
+// ambos olhem para o lado real do deslocamento.
+const DIRECTION_COLUMNS = Object.freeze({
+  male: Object.freeze({
+    front: 0,
+    "front-right": 7,
+    right: 6,
+    "back-right": 5,
+    back: 4,
+    "back-left": 3,
+    left: 2,
+    "front-left": 1
+  }),
+  female: Object.freeze(Object.fromEntries(
+    DIRECTIONS.map((direction, index) => [direction, index])
+  ))
+});
+const WALK_CYCLE = Object.freeze([0, 1, 0, 2]);
+const HERO_HEIGHT = 3.25;
 const NPC_ROWS_BY_ROLE = Object.freeze({ story: 0, resident: 4, researcher: 8, merchant: 0 });
 const HERO_SHEETS = Object.freeze({
   male: Object.freeze({
@@ -60,6 +77,7 @@ const configureHeroFrame = (texture, sheet, column, row) => {
     (column * sheet.frameWidth + inset) / sheet.width,
     1 - (((row + 1) * sheet.frameHeight) / sheet.height) + inset / sheet.height
   );
+  texture.updateMatrix();
   texture.needsUpdate = true;
 };
 
@@ -89,10 +107,12 @@ export class DirectionalSpriteRig {
     this.variant = String(characterImage).includes("female") ? "female" : "male";
     this.direction = "back";
     this.lastFrameKey = "";
+    this.animationTime = 0;
     const sheet = HERO_SHEETS[this.variant];
     this.sheet = sheet;
+    this.directionColumns = DIRECTION_COLUMNS[this.variant];
     this.texture = createSheetInstance(sheet.url, `overworld-hero-${this.variant}`);
-    configureHeroFrame(this.texture, sheet, DIRECTION_COLUMN[this.direction], 0);
+    configureHeroFrame(this.texture, sheet, this.directionColumns[this.direction], 0);
     this.material = new THREE.SpriteMaterial({
       map: this.texture,
       transparent: true,
@@ -104,27 +124,30 @@ export class DirectionalSpriteRig {
     this.sprite = new THREE.Sprite(this.material);
     this.sprite.name = `OverworldApprovedHero-${this.variant}`;
     this.sprite.center.set(0.5, 0.045);
-    this.sprite.scale.set(4.8 * sheet.frameAspect, 4.8, 1);
+    this.sprite.scale.set(HERO_HEIGHT * sheet.frameAspect, HERO_HEIGHT, 1);
     this.sprite.frustumCulled = false;
     this.root = new THREE.Group();
     this.root.name = `OverworldApprovedHeroRig-${this.variant}`;
     this.root.add(this.sprite);
   }
 
-  update({ state, velocity, elapsed, worldZ = 0 }) {
+  update({ state, velocity, delta = 0, worldZ = 0 }) {
     this.direction = directionFromVelocity(velocity, this.direction);
     const walking = state === "walking";
     const running = state === "running";
     const moving = walking || running;
-    const frameRate = running ? 11 : 7;
-    const row = moving ? 1 + (Math.floor(elapsed * frameRate) % 2) : 0;
-    const column = DIRECTION_COLUMN[this.direction] ?? 0;
+    if (moving) this.animationTime += delta * (running ? 11 : 8);
+    else this.animationTime = 0;
+    const row = moving
+      ? WALK_CYCLE[Math.floor(this.animationTime) % WALK_CYCLE.length]
+      : 0;
+    const column = this.directionColumns[this.direction] ?? 0;
     const frameKey = `${column}:${row}`;
     if (frameKey !== this.lastFrameKey) {
       configureHeroFrame(this.texture, this.sheet, column, row);
       const idleFootY = this.sheet.footY[0][column];
       const frameFootY = this.sheet.footY[row][column];
-      const baseHeight = 4.8;
+      const baseHeight = HERO_HEIGHT;
       const topCrop = this.sheet.cropTop[row] || 0;
       const frameHeight = baseHeight * ((this.sheet.frameHeight - topCrop) / this.sheet.frameHeight);
       this.sprite.scale.set(baseHeight * this.sheet.frameAspect, frameHeight, 1);
