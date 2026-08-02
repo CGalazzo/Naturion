@@ -22,7 +22,7 @@ export const clareiraDosEcosMap = Object.freeze({
   id: "clareira-dos-ecos-overworld",
   name: "Clareira dos Ecos",
   objective: "Explore a clareira e reconheça os caminhos da região.",
-  sceneImage: "assets/overworld/clareira-dos-ecos/ground-v1.webp",
+  sceneImage: "assets/overworld/clareira-dos-ecos/ground-v2.webp",
   startPosition: Object.freeze({ x: 0, z: 36.45 }),
   bounds,
   cameraMode: "follow",
@@ -45,9 +45,9 @@ export const buildClareiraDosEcos = ({ scene }) => {
     scene,
     map: clareiraDosEcosMap,
     size: CLAREIRA_DOS_ECOS_WORLD_SIZE,
-    groundUrl: "assets/overworld/clareira-dos-ecos/ground-v1.webp",
-    foregroundUrl: "assets/overworld/clareira-dos-ecos/foreground-v1.webp",
-    assetVersion: "1",
+    groundUrl: "assets/overworld/clareira-dos-ecos/ground-v2.webp",
+    foregroundUrl: "assets/overworld/clareira-dos-ecos/foreground-v2.webp",
+    assetVersion: "2",
     foregroundBands: 24
   });
 
