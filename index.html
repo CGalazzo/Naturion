@@ -8719,11 +8719,11 @@
           <small>Região de exploração · Níveis 3–18</small>
           <img
             class="echo-entry-art"
-            src="assets/echo-scenes/clareira-1.webp"
-            alt="Ruínas verdes e luminosas da Clareira dos Ecos"
+            src="assets/overworld/clareira-dos-ecos/ground-v1.webp?v=1"
+            alt="Mapa amplo em 3D pixel art da Clareira dos Ecos"
           >
           <h2 id="echoEntryTitle">Entrar na Clareira dos Ecos?</h2>
-          <p>O Bosque Luminal é uma área compacta de exploração com casas, NPCs, Naturions selvagens e um portão bloqueado. Você poderá retornar ao mapa a qualquer momento.</p>
+          <p>Uma região ampla de caminhos, clareiras, água, ruínas e passagens aguarda sua exploração. Nesta primeira etapa, você poderá reconhecer o terreno e retornar ao mapa a qualquer momento.</p>
           <div class="echo-entry-actions">
             <button class="echo-button" id="confirmEchoEntry" type="button">Entrar na clareira</button>
             <button class="echo-button secondary" id="cancelEchoEntry" type="button">Permanecer no mapa</button>
@@ -8766,6 +8766,39 @@
       </section>
       <section class="overworld-dialogue" id="overworldDialogue" role="dialog" aria-modal="true" hidden>
         <article><header><span><small>Bosque Luminal</small><strong id="overworldDialogueName">Exploração</strong></span></header><p id="overworldDialogueText"></p><footer><button id="overworldDialogueClose" type="button">Continuar</button></footer></article>
+      </section>
+    </section>
+
+    <section
+      class="overworld-screen echo-overworld-screen"
+      id="echoOverworldScreen"
+      aria-label="Exploração superior da Clareira dos Ecos"
+      tabindex="-1"
+      hidden
+    >
+      <div class="overworld-viewport" id="echoOverworldViewport" tabindex="0"></div>
+      <header class="overworld-hud">
+        <small>Área de exploração</small>
+        <strong>Clareira dos Ecos</strong>
+        <em id="echoOverworldObjective">Explore a clareira e reconheça os caminhos da região.</em>
+      </header>
+      <nav class="overworld-status" aria-label="Ferramentas da exploração">
+        <span id="echoOverworldMovementState">Parado</span>
+        <button class="overworld-tool" id="echoOverworldTeamButton" type="button">Equipe</button>
+        <button class="overworld-tool" id="echoOverworldBackMap" type="button">Mapa-múndi</button>
+      </nav>
+      <aside class="overworld-controls-help" aria-label="Controles">
+        <span>WASD / Setas · Mover</span><span>Shift · Correr</span><span>Esc · Voltar</span>
+      </aside>
+      <section class="overworld-mobile-controls" aria-label="Controles de toque">
+        <div class="overworld-joystick" id="echoOverworldJoystick" aria-label="Direcional"><span class="overworld-joystick-knob" id="echoOverworldJoystickKnob"></span></div>
+        <div class="overworld-mobile-actions">
+          <button id="echoOverworldMobileRun" type="button">Correr</button><button id="echoOverworldMobileInteract" type="button">Interagir</button>
+          <button id="echoOverworldMobileTeam" type="button">Equipe</button><button id="echoOverworldMobileMap" type="button">Mapa</button>
+        </div>
+      </section>
+      <section class="overworld-team-panel" id="echoOverworldTeamPanel" aria-label="Equipe atual" hidden>
+        <article><header><span><small>Relógio Cristalíneo</small><strong>Equipe atual</strong></span><button id="echoOverworldTeamClose" type="button" aria-label="Fechar equipe">×</button></header><div class="overworld-team-grid" id="echoOverworldTeamGrid"></div></article>
       </section>
     </section>
 
@@ -13066,10 +13099,9 @@ if (wild) echoWilds.push(wild);
         showEchoMapPending: async () => {
           if (!firstWorldDestinationReached) {
             await travelToFirstWorldDestination();
-            return true;
           }
-          showToast("A nova Clareira dos Ecos ampliada será construída na próxima etapa.");
-          return false;
+          openEchoEntryConfirmation();
+          return true;
         },
         requestMapEntry: async () => {
           if (!firstWorldDestinationReached) await travelToFirstWorldDestination();
@@ -13114,6 +13146,49 @@ if (wild) echoWilds.push(wild);
           worldMapObjective.textContent = "Destino alcançado: Clareira dos Ecos";
           worldMapGuideText.textContent = "A Clareira dos Ecos conduz ao novo mapa de exploração do Bosque Luminal.";
           forestObjective.textContent = "Explore o Bosque Luminal";
+          currentPlayer.lastCheckpoint = "mundo-naturion-clareira-dos-ecos";
+          saveCurrentPlayer();
+        },
+        prepareEchoMapEntry: () => {
+          ensureEchoPlayerData();
+          currentPlayer = {
+            ...currentPlayer,
+            lastCheckpoint: "clareira-dos-ecos-overworld",
+            storyFlags: {
+              ...(currentPlayer.storyFlags || {}),
+              firstWorldDestinationReached: true,
+              echoOverworldUnlocked: true
+            },
+            activeMission: {
+              ...(currentPlayer.activeMission || {}),
+              location: "Clareira dos Ecos",
+              objective: "Explore a clareira e reconheça os caminhos da região.",
+              progress: "clareira-mapa-em-exploracao"
+            }
+          };
+          saveCurrentPlayer();
+          return true;
+        },
+        saveEchoMapState: (state) => {
+          currentPlayer = {
+            ...currentPlayer,
+            echoOverworldProgress: {
+              ...(currentPlayer.echoOverworldProgress || {}),
+              ...state,
+              savedAt: new Date().toISOString()
+            },
+            lastCheckpoint: "clareira-dos-ecos-overworld"
+          };
+          saveCurrentPlayer();
+          return currentPlayer.echoOverworldProgress;
+        },
+        returnEchoMapToWorld: () => {
+          openForestMap.hidden = false;
+          openMapExploring = true;
+          openMapPosition = { x: 29.3, y: 60.4 };
+          positionOpenMapParty();
+          worldMapObjective.textContent = "Destino alcançado: Clareira dos Ecos";
+          worldMapGuideText.textContent = "Clique na Clareira dos Ecos quando quiser continuar a exploração.";
           currentPlayer.lastCheckpoint = "mundo-naturion-clareira-dos-ecos";
           saveCurrentPlayer();
         },
@@ -13473,10 +13548,25 @@ if (wild) echoWilds.push(wild);
         void enterWorldThroughPassage();
       });
 
-      // Clareira dos Ecos sem conteúdo: o destino permanece visível, bloqueado e sem ação.
+      // A Clareira ampliada usa uma tela independente; o legado abaixo fica preservado
+      // para as batalhas e sistemas existentes, sem interferir nesta primeira etapa.
 
-      confirmEchoEntry.addEventListener("click", () => {
-        void beginEchoExploration();
+      confirmEchoEntry.addEventListener("click", async () => {
+        if (confirmEchoEntry.disabled) return;
+        confirmEchoEntry.disabled = true;
+        echoEntryConfirm.hidden = true;
+        openMapExploring = false;
+        worldDoorTransition.hidden = false;
+        worldDoorTransition.classList.remove("active");
+        void worldDoorTransition.offsetWidth;
+        worldDoorTransition.classList.add("active");
+        playSequence([392, 523, 659, 784, 1047], .075);
+        await forestPause(prefersLessMotion() ? 80 : 560);
+        window.dispatchEvent(new CustomEvent("naturion:open-echo-overworld"));
+        await forestPause(prefersLessMotion() ? 80 : 520);
+        worldDoorTransition.hidden = true;
+        worldDoorTransition.classList.remove("active");
+        confirmEchoEntry.disabled = false;
       });
 
       cancelEchoEntry.addEventListener("click", closeEchoEntryConfirmation);
@@ -13774,5 +13864,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=1"></script>
 </body>
 </html>
