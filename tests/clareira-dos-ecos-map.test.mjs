@@ -40,7 +40,19 @@ const buildReachablePixelGrid = ({ step = 8, start = [768, 946] } = {}) => {
     });
   }
 
-  return (x, y) => Boolean(reachable[key(Math.round(x / step), Math.round(y / step))]);
+  let walkableCount = 0;
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < columns; x += 1) {
+      const point = fromPixel(x * step, y * step);
+      if (!collision.collides(point.x, point.z, playerRadius)) walkableCount += 1;
+    }
+  }
+
+  return {
+    has: (x, y) => Boolean(reachable[key(Math.round(x / step), Math.round(y / step))]),
+    reachableCount: queue.length,
+    walkableCount
+  };
 };
 
 [
@@ -69,20 +81,44 @@ const buildReachablePixelGrid = ({ step = 8, start = [768, 946] } = {}) => {
   ["cabana abandonada", fromPixel(930, 380)],
   ["água esquerda", fromPixel(430, 500)],
   ["parede da ruína superior direita", fromPixel(1315, 150)],
-  ["árvore central", fromPixel(815, 235)],
+  ["núcleo do tronco superior", fromPixel(869, 278)],
+  ["núcleo do tronco inferior", fromPixel(436, 868)],
   ["poça do puzzle inferior", fromPixel(1132, 646)],
-  ["parede do puzzle inferior", fromPixel(1270, 700)],
-  ["mata lateral", fromPixel(45, 500)]
+  ["parede do puzzle inferior", fromPixel(1270, 700)]
 ].forEach(([name, point]) => {
   assert.equal(collision.collides(point.x, point.z, playerRadius), true, `${name} deve bloquear o protagonista`);
 });
 
-assert.ok(collision.shapes.length >= 30, "o mapa ampliado deve ter cobertura de colisão completa");
+assert.ok(collision.shapes.length >= 20, "o mapa ampliado deve preservar os sólidos visíveis essenciais");
 assert.equal(
   new Set(collision.shapes.map(({ id }) => id)).size,
   collision.shapes.length,
   "cada obstáculo precisa de um identificador único"
 );
+
+const allowedSolidId = /^(water-|ruin-puddle-|research-cabin$|upper-right-ruin-|lower-right-ruin-|ruin-left-|upper-gate-|trunk-|fence-)/;
+collision.shapes.forEach(({ id }) => {
+  assert.match(id, allowedSolidId, `${id} não pode criar colisão invisível sobre terreno natural`);
+});
+
+[
+  ["mata lateral oeste", 45, 500],
+  ["mata lateral leste", 1460, 800],
+  ["vegetação superior central", 815, 235],
+  ["vegetação superior direita", 965, 205],
+  ["vegetação central direita", 1090, 415],
+  ["vegetação inferior central", 850, 655],
+  ["vegetação inferior esquerda", 455, 785],
+  ["vegetação inferior direita", 940, 865],
+  ["antiga colisão de pedra à esquerda", 570, 395],
+  ["antiga colisão de pedra central", 750, 333],
+  ["antiga colisão de pedra à direita", 1125, 525],
+  ["antiga colisão de pedra inferior esquerda", 585, 865],
+  ["antiga colisão de pedra inferior direita", 980, 925]
+].forEach(([name, x, y]) => {
+  const point = fromPixel(x, y);
+  assert.equal(collision.collides(point.x, point.z, playerRadius), false, `${name} deve permanecer caminhável`);
+});
 
 [
   [500, 550], [540, 550], [580, 550], [620, 550]
@@ -98,7 +134,7 @@ assert.equal(
   assert.equal(collision.collides(point.x, point.z, playerRadius), false, `trecho ${index + 1} da ponte leste deve ser caminhável`);
 });
 
-const isReachableFromSpawn = buildReachablePixelGrid();
+const reachableFromSpawn = buildReachablePixelGrid();
 [
   ["círculo de ruínas", 230, 170],
   ["ponte oeste, entrada", 500, 550],
@@ -111,6 +147,11 @@ const isReachableFromSpawn = buildReachablePixelGrid();
   ["piso do puzzle inferior", 1055, 735],
   ["centro do puzzle inferior", 1150, 735]
 ].forEach(([name, x, y]) => {
-  assert.equal(isReachableFromSpawn(x, y), true, `${name} precisa ter uma rota contínua desde o spawn`);
+  assert.equal(reachableFromSpawn.has(x, y), true, `${name} precisa ter uma rota contínua desde o spawn`);
 });
+assert.equal(
+  reachableFromSpawn.reachableCount,
+  reachableFromSpawn.walkableCount,
+  "toda célula caminhável da Clareira precisa pertencer à mesma área conectada"
+);
 console.log(`Clareira dos Ecos validada: ${collision.shapes.length} obstáculos alinhados à arte.`);

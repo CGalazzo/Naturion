@@ -1,20 +1,10 @@
 import { createArtworkCollisionWorld } from "../collision.js";
 
 // Coordenadas medidas diretamente sobre ground-v2.webp (1536 × 1024).
-// Caminhos, gramado e capim permanecem livres; somente elementos visualmente
-// sólidos recebem colisão.
+// Política permanente da Clareira: caminhos, gramado, capim e toda vegetação
+// são navegáveis. Colisão existe somente em água, construções, paredes,
+// pilares, cercas e pequenos núcleos de troncos realmente visíveis.
 export const clareiraDosEcosCollisionLayout = Object.freeze([
-  // Mata fechada nas bordas, mantendo livres a entrada inferior e a passagem superior.
-  { id: "forest-northwest", kind: "polygon", points: [[0, 0], [690, 0], [690, 70], [620, 92], [520, 88], [430, 112], [340, 104], [245, 130], [150, 118], [75, 165], [0, 168]] },
-  { id: "forest-northeast", kind: "polygon", points: [[865, 0], [1536, 0], [1536, 155], [1450, 135], [1380, 165], [1300, 142], [1235, 115], [1110, 118], [1020, 94], [930, 118], [870, 82]] },
-  { id: "forest-west", kind: "polygon", points: [[0, 145], [82, 145], [118, 230], [105, 315], [130, 400], [112, 515], [88, 625], [118, 720], [155, 790], [140, 900], [0, 965]] },
-  { id: "forest-east-upper", kind: "polygon", points: [[1536, 125], [1450, 120], [1412, 190], [1435, 270], [1395, 345], [1420, 438], [1380, 535], [1455, 548], [1536, 525]] },
-  // A abertura entre as duas massas acompanha a ponte leste. A ponte e a
-  // continuação visual do caminho precisam permanecer transitáveis.
-  { id: "forest-east-lower", kind: "polygon", points: [[1536, 690], [1450, 685], [1395, 760], [1440, 865], [1392, 950], [1536, 995]] },
-  { id: "forest-southwest", kind: "polygon", points: [[0, 885], [150, 850], [250, 875], [350, 910], [455, 950], [585, 930], [690, 980], [700, 1024], [0, 1024]] },
-  { id: "forest-southeast", kind: "polygon", points: [[835, 1024], [845, 970], [940, 925], [1040, 915], [1130, 945], [1210, 895], [1325, 900], [1410, 950], [1536, 960], [1536, 1024]] },
-
   // Água, margens profundas e quedas d'água.
   // O lago oeste é dividido acima e abaixo da ponte. Isso preserva a água
   // como obstáculo sem transformar o tablado em uma parede invisível.
@@ -31,8 +21,9 @@ export const clareiraDosEcosCollisionLayout = Object.freeze([
   { id: "ruin-puddle-west", type: "water", kind: "ellipse", x: 1132, y: 646, radiusX: 19, radiusY: 11 },
   { id: "ruin-puddle-east", type: "water", kind: "ellipse", x: 1182, y: 663, radiusX: 27, radiusY: 14 },
 
-  // Cabana abandonada e grandes conjuntos de ruínas.
-  { id: "research-cabin", kind: "polygon", points: [[830, 310], [900, 285], [985, 310], [1048, 352], [1045, 455], [990, 492], [855, 470], [815, 410]] },
+  // Cabana abandonada: contorno justo ao telhado e às paredes, sem bloquear
+  // o gramado, as flores ou o caminho ao redor.
+  { id: "research-cabin", kind: "polygon", points: [[862, 330], [920, 300], [1012, 335], [1022, 408], [986, 445], [885, 435], [858, 390]] },
   // As plataformas de ruínas são áreas jogáveis. Somente suas paredes e
   // pilares bloqueiam; pisos, escadas e entradas ficam livres para puzzles.
   { id: "upper-right-ruin-west", kind: "polygon", points: [[1080, 72], [1140, 72], [1140, 170], [1110, 208], [1070, 185]] },
@@ -55,18 +46,10 @@ export const clareiraDosEcosCollisionLayout = Object.freeze([
   { id: "upper-gate-left", kind: "polygon", points: [[680, 0], [744, 0], [744, 105], [704, 128], [668, 88]] },
   { id: "upper-gate-right", kind: "polygon", points: [[835, 0], [900, 0], [905, 92], [868, 128], [830, 104]] },
 
-  // Árvores, rochedos e ilhas de vegetação sólidas no interior.
-  { id: "tree-upper-center", kind: "ellipse", x: 815, y: 235, radiusX: 76, radiusY: 68 },
-  { id: "tree-upper-right", kind: "ellipse", x: 965, y: 205, radiusX: 66, radiusY: 58 },
-  { id: "tree-middle-right", kind: "ellipse", x: 1090, y: 415, radiusX: 58, radiusY: 54 },
-  { id: "tree-lower-center", kind: "ellipse", x: 850, y: 655, radiusX: 86, radiusY: 78 },
-  { id: "tree-lower-left", kind: "ellipse", x: 455, y: 785, radiusX: 66, radiusY: 56 },
-  { id: "tree-lower-right", kind: "ellipse", x: 940, y: 865, radiusX: 66, radiusY: 52 },
-  { id: "rock-center-left", kind: "ellipse", x: 570, y: 395, radiusX: 28, radiusY: 22 },
-  { id: "rock-center", kind: "ellipse", x: 750, y: 333, radiusX: 26, radiusY: 20 },
-  { id: "rock-center-right", kind: "ellipse", x: 1125, y: 525, radiusX: 28, radiusY: 22 },
-  { id: "rock-south-left", kind: "ellipse", x: 585, y: 865, radiusX: 30, radiusY: 22 },
-  { id: "rock-south-right", kind: "ellipse", x: 980, y: 925, radiusX: 30, radiusY: 22 },
+  // Copas, arbustos, capim e flores nunca bloqueiam. Somente o pequeno núcleo
+  // de troncos nitidamente visíveis recebe colisão, alinhada à base desenhada.
+  { id: "trunk-upper-center", kind: "ellipse", x: 869, y: 278, radiusX: 10, radiusY: 8 },
+  { id: "trunk-lower-left", kind: "ellipse", x: 436, y: 868, radiusX: 10, radiusY: 8 },
 
   // Cercas visíveis próximas à clareira inferior e às margens.
   { id: "fence-lower-left", kind: "polygon", points: [[90, 604], [360, 590], [365, 620], [96, 637]] },
