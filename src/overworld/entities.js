@@ -98,7 +98,23 @@ export class OverworldEntities {
     const root = new THREE.Group();
     root.name = `OverworldNpc-${definition.id}`;
     root.position.set(definition.position.x, .04, definition.position.z);
-    const visual = createNpcSprite(definition.role || "story");
+    let visual;
+    if (definition.image) {
+      const texture = this.getNaturionTexture(definition.image);
+      const material = createSpriteMaterial(texture, { depthWrite: false });
+      const sprite = new THREE.Sprite(material);
+      const height = definition.scale || 3.7;
+      sprite.name = `OverworldNpcSprite-${definition.id}`;
+      sprite.center.set(.5, .035);
+      sprite.scale.set(height * (definition.aspect || .521), height, 1);
+      sprite.frustumCulled = true;
+      sprite.userData.updateFrame = (_elapsed, worldZ = 0) => {
+        sprite.renderOrder = depthOrderForZ(worldZ, 18);
+      };
+      visual = { sprite, material, texture, cachedTexture: true };
+    } else {
+      visual = createNpcSprite(definition.role || "story");
+    }
     root.add(visual.sprite);
     const shadow = createGroundShadow({ width: 1.35, depth: .52, opacity: .32 });
     shadow.mesh.position.y = .025;
@@ -113,6 +129,7 @@ export class OverworldEntities {
       texture: visual.texture,
       shadow: shadow.mesh,
       shadowMaterial: shadow.material,
+      cachedTexture: Boolean(visual.cachedTexture),
       phase: hashText(definition.id) * .17
     };
     this.npcs.push(npc);
@@ -128,7 +145,7 @@ export class OverworldEntities {
       if (entity.defeated || !entity.root.visible) return;
       entity.touchCooldown = Math.max(0, entity.touchCooldown - delta);
       if (entity.behavior === "patrol") this.updatePatrol(entity, delta);
-      else this.updateWander(entity, delta, elapsed);
+      else if (entity.behavior !== "idle") this.updateWander(entity, delta, elapsed);
 
       if (entity.flying) {
         const bob = Math.round(Math.sin(elapsed * 2.4 + entity.phase) * 8) / 32;
@@ -159,7 +176,9 @@ export class OverworldEntities {
     });
 
     this.npcs.forEach((npc) => {
-      npc.sprite.position.y = Math.round(Math.sin(elapsed * 2 + npc.phase) * 2) / 64;
+      npc.sprite.position.y = npc.steady
+        ? 0
+        : Math.round(Math.sin(elapsed * 2 + npc.phase) * 2) / 64;
       npc.sprite.userData.updateFrame?.(elapsed, npc.root.position.z);
       const distance = Math.hypot(playerPosition.x - npc.root.position.x, playerPosition.z - npc.root.position.z);
       if (distance < nearestDistance) {
@@ -267,7 +286,7 @@ export class OverworldEntities {
       entity.shadow.removeFromParent();
     });
     this.npcs.forEach((npc) => {
-      npc.texture?.dispose?.();
+      if (!npc.cachedTexture) npc.texture?.dispose?.();
       npc.material.dispose();
       npc.shadow.geometry.dispose();
       npc.shadowMaterial.dispose();

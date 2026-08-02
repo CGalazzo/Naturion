@@ -2,8 +2,6 @@ import { THREE } from "./engine.js";
 import { configureAtlasFrame } from "./textures.js";
 import { depthOrderForZ } from "./depth.js";
 
-const HERO_COLUMNS = 8;
-const HERO_ROWS = 3;
 const NPC_COLUMNS = 4;
 const NPC_ROWS = 12;
 const textureLoader = new THREE.TextureLoader();
@@ -20,13 +18,50 @@ const NPC_ROWS_BY_ROLE = Object.freeze({ story: 0, resident: 4, researcher: 8, m
 const HERO_SHEETS = Object.freeze({
   male: Object.freeze({
     url: "assets/overworld/characters/hero-male/hero-male-overworld.webp?v=3",
-    frameAspect: 209 / 314
+    frameAspect: 209 / 314,
+    width: 1672,
+    height: 942,
+    frameWidth: 209,
+    frameHeight: 314,
+    cropTop: Object.freeze([0, 24, 0]),
+    footY: Object.freeze([
+      Object.freeze([289, 289, 289, 287, 289, 289, 288, 289]),
+      Object.freeze([309, 309, 308, 306, 308, 308, 308, 309]),
+      Object.freeze([267, 267, 265, 261, 265, 263, 263, 265])
+    ])
   }),
   female: Object.freeze({
     url: "assets/overworld/characters/hero-female/hero-female-overworld.webp?v=3",
-    frameAspect: 222 / 296
+    frameAspect: 222 / 296,
+    width: 1776,
+    height: 888,
+    frameWidth: 222,
+    frameHeight: 296,
+    cropTop: Object.freeze([0, 0, 0]),
+    footY: Object.freeze([
+      Object.freeze([278, 278, 280, 275, 278, 276, 280, 281]),
+      Object.freeze([265, 263, 264, 263, 264, 264, 264, 266]),
+      Object.freeze([262, 260, 263, 262, 263, 262, 262, 263])
+    ])
   })
 });
+
+const configureHeroFrame = (texture, sheet, column, row) => {
+  // A primeira linha de caminhada masculina contém 24 px residuais dos pés
+  // da linha anterior. O recorte por linha remove esse resíduo, enquanto o
+  // pequeno recuo nas bordas impede vazamento entre quadros do atlas.
+  const inset = 1;
+  const topCrop = sheet.cropTop[row] || 0;
+  texture.repeat.set(
+    (sheet.frameWidth - inset * 2) / sheet.width,
+    (sheet.frameHeight - topCrop - inset * 2) / sheet.height
+  );
+  texture.offset.set(
+    (column * sheet.frameWidth + inset) / sheet.width,
+    1 - (((row + 1) * sheet.frameHeight) / sheet.height) + inset / sheet.height
+  );
+  texture.needsUpdate = true;
+};
 
 const configureSheet = (texture, name) => {
   texture.name = name;
@@ -55,13 +90,9 @@ export class DirectionalSpriteRig {
     this.direction = "back";
     this.lastFrameKey = "";
     const sheet = HERO_SHEETS[this.variant];
+    this.sheet = sheet;
     this.texture = createSheetInstance(sheet.url, `overworld-hero-${this.variant}`);
-    configureAtlasFrame(this.texture, {
-      columns: HERO_COLUMNS,
-      rows: HERO_ROWS,
-      column: DIRECTION_COLUMN[this.direction],
-      row: 0
-    });
+    configureHeroFrame(this.texture, sheet, DIRECTION_COLUMN[this.direction], 0);
     this.material = new THREE.SpriteMaterial({
       map: this.texture,
       transparent: true,
@@ -90,22 +121,23 @@ export class DirectionalSpriteRig {
     const column = DIRECTION_COLUMN[this.direction] ?? 0;
     const frameKey = `${column}:${row}`;
     if (frameKey !== this.lastFrameKey) {
-      configureAtlasFrame(this.texture, {
-        columns: HERO_COLUMNS,
-        rows: HERO_ROWS,
-        column,
-        row
-      });
+      configureHeroFrame(this.texture, this.sheet, column, row);
+      const idleFootY = this.sheet.footY[0][column];
+      const frameFootY = this.sheet.footY[row][column];
+      const baseHeight = 4.8;
+      const topCrop = this.sheet.cropTop[row] || 0;
+      const frameHeight = baseHeight * ((this.sheet.frameHeight - topCrop) / this.sheet.frameHeight);
+      this.sprite.scale.set(baseHeight * this.sheet.frameAspect, frameHeight, 1);
+      this.sprite.position.y = ((frameFootY - idleFootY) / this.sheet.frameHeight) * baseHeight
+        + this.sprite.center.y * (frameHeight - baseHeight);
       this.lastFrameKey = frameKey;
     }
 
-    const phase = Math.sin(elapsed * (running ? 11 : walking ? 7 : 2));
-    this.root.position.y = moving
-      ? Math.abs(phase) * (running ? 0.055 : 0.028)
-      : Math.sin(elapsed * 2) * 0.008;
-    const stretch = running ? 1 + Math.abs(phase) * 0.018 : 1;
-    this.root.scale.set(1 / stretch, stretch, 1);
-    this.material.rotation = moving ? phase * (running ? 0.018 : 0.008) : 0;
+    // Os pés já são alinhados quadro a quadro; não adicionar balanço vertical,
+    // alongamento ou rotação que façam a caminhada parecer um salto.
+    this.root.position.y = 0;
+    this.root.scale.set(1, 1, 1);
+    this.material.rotation = 0;
     this.sprite.renderOrder = depthOrderForZ(worldZ, 18);
   }
 

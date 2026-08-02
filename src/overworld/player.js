@@ -75,8 +75,7 @@ export class OverworldPlayer {
     this.state = planarSpeed < .18 ? "idle" : movement.running && planarSpeed > this.walkSpeed * .82 ? "running" : "walking";
     this.rig.update({ state: this.state, velocity: this.velocity, elapsed, worldZ: position.z });
     this.shadow.renderOrder = depthOrderForZ(position.z, 4);
-    const shadowPulse = this.state === "running" ? .94 + Math.abs(Math.sin(elapsed * 11)) * .08 : 1;
-    this.shadow.scale.set(shadowPulse, shadowPulse, 1);
+    this.shadow.scale.set(1, 1, 1);
     return { moved, velocity: this.velocity, state: this.state };
   }
 
