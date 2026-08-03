@@ -1,0 +1,156 @@
+/* Ajuste isolado solicitado: nova arte da esteira e recorte do herói. */
+.idle-scene[data-treadmill-ready="true"] .idle-hero-box {
+  position: relative;
+  width: clamp(112px, 12vw, 165px);
+  height: auto;
+  transform-origin: 50% 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-box[data-variant="male"] {
+  aspect-ratio: 209 / 314;
+  --hero-sheet: url("/assets/overworld/characters/hero-male/hero-male-overworld.webp?v=4");
+  --hero-column: 85.714286%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-box[data-variant="female"] {
+  aspect-ratio: 222 / 296;
+  --hero-sheet: url("/assets/overworld/characters/hero-female/hero-female-overworld.webp?v=4");
+  --hero-column: 28.571429%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-static {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 1;
+  transition: opacity .08s linear;
+}
+
+.idle-hero-walk {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  background-image: var(--hero-sheet);
+  background-repeat: no-repeat;
+  background-position-x: var(--hero-column);
+  background-position-y: 0%;
+  background-size: 800% 300%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, .56));
+  transition: opacity .08s linear;
+  will-change: background-position, transform;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-static {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-walk {
+  opacity: 1;
+  animation:
+    idleHeroWalkFrames calc(.64s / var(--speed)) steps(1, end) infinite,
+    idleHeroWalkBob calc(.64s / var(--speed)) ease-in-out infinite;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-box {
+  animation: none;
+}
+
+.idle-treadmill-far {
+  z-index: 0;
+  clip-path: inset(0 0 42% 0);
+  filter: brightness(.72) saturate(.95);
+}
+
+.idle-treadmill-far .idle-treadmill-strip {
+  animation-name: idleTreadmillFar;
+  animation-duration: calc(70s / var(--speed));
+}
+
+.idle-treadmill-far span {
+  background-image: var(--treadmill-image);
+  background-position: center top;
+  background-size: cover;
+}
+
+.idle-treadmill-mid {
+  z-index: 1;
+  clip-path: inset(28% 0 12% 0);
+  filter: brightness(.88) saturate(1.02);
+}
+
+.idle-treadmill-mid .idle-treadmill-strip {
+  animation-name: idleTreadmillMid;
+  animation-duration: calc(32s / var(--speed));
+}
+
+.idle-treadmill-mid span {
+  background-image: var(--treadmill-image);
+  background-position: center center;
+  background-size: cover;
+}
+
+.idle-treadmill-near {
+  z-index: 5;
+  clip-path: inset(68% 0 0 0);
+  opacity: 1;
+  filter: brightness(.96) saturate(1.08);
+}
+
+.idle-treadmill-near .idle-treadmill-strip {
+  animation-name: idleTreadmillNear;
+  animation-duration: calc(16s / var(--speed));
+}
+
+.idle-treadmill-near span {
+  background-image: var(--treadmill-image);
+  background-position: center bottom;
+  background-size: cover;
+}
+
+.idle-app.running .idle-treadmill-strip {
+  animation-play-state: running;
+}
+
+@keyframes idleTreadmillFar {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes idleTreadmillMid {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes idleTreadmillNear {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes idleHeroWalkFrames {
+  0%, 24.99% { background-position: var(--hero-column) 0%; }
+  25%, 49.99% { background-position: var(--hero-column) 50%; }
+  50%, 74.99% { background-position: var(--hero-column) 0%; }
+  75%, 100% { background-position: var(--hero-column) 100%; }
+}
+
+@keyframes idleHeroWalkBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-walk {
+    animation: none;
+  }
+}
