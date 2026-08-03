@@ -135,13 +135,14 @@ const observeTotem = () => {
   sync();
 };
 
-let wrappedBridge = null;
-let originalStartBattle = null;
+let wrappedStartBattle = null;
 
 const installDefeatReset = () => {
   const currentBridge = bridge();
-  if (!currentBridge?.startBattle || currentBridge === wrappedBridge) return;
-  originalStartBattle = currentBridge.startBattle;
+  const currentStartBattle = currentBridge?.startBattle;
+  if (!currentStartBattle || currentStartBattle === wrappedStartBattle || currentStartBattle.__naturionIdleRunResetWrapper) return;
+
+  const originalStartBattle = currentStartBattle;
   const wrapped = async function startBattleWithRunReset(payload) {
     const result = await originalStartBattle.apply(this, arguments);
     const screen = document.getElementById(SCREEN_ID);
@@ -159,9 +160,10 @@ const installDefeatReset = () => {
     }
     return result;
   };
+
   wrapped.__naturionIdleRunResetWrapper = true;
   currentBridge.startBattle = wrapped;
-  wrappedBridge = currentBridge;
+  wrappedStartBattle = wrapped;
 };
 
 const handleMapExit = (event) => {
@@ -178,6 +180,7 @@ const refresh = () => {
 
 document.addEventListener("click", handleMapExit);
 window.addEventListener("naturion:open-echo-overworld", () => requestAnimationFrame(refresh));
-new MutationObserver(refresh).observe(document.documentElement, { subtree: true, childList: true });
-window.setInterval(installDefeatReset, 240);
+
+// O módulo é carregado somente ao entrar na Clareira. Não observar o documento
+// inteiro nem manter timers globais evita bloquear a tela inicial do jogo.
 refresh();
