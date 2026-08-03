@@ -2,16 +2,40 @@ const bridge = window.NaturionOverworldBridge;
 
 if (bridge?.getPlayer && bridge?.saveEchoMapState) {
   const originalSave = bridge.saveEchoMapState.bind(bridge);
-  bridge.saveEchoMapState = (payload = {}) => originalSave({
-    ...payload,
-    idleExpedition: payload.idleExpedition
-      ? { version: 1, ...payload.idleExpedition }
-      : payload.idleExpedition
-  });
+  let returnToWorldScheduled = false;
+
+  bridge.saveEchoMapState = (payload = {}) => {
+    const result = originalSave({
+      ...payload,
+      idleExpedition: payload.idleExpedition
+        ? { version: 1, ...payload.idleExpedition }
+        : payload.idleExpedition
+    });
+
+    // Ao concluir o Puzzle 1, a tela do desafio fecha primeiro e, em seguida,
+    // o jogador retorna automaticamente ao mapa-múndi com o save já gravado.
+    if (
+      !returnToWorldScheduled
+      && payload.puzzles?.echoesSolved
+      && payload.idleExpedition?.completed
+    ) {
+      returnToWorldScheduled = true;
+      window.setTimeout(() => {
+        document.querySelector("#echoOverworldScreen [data-action='map']")?.click();
+        returnToWorldScheduled = false;
+      }, 2300);
+    }
+
+    return result;
+  };
 
   const snapshot = bridge.getPlayer() || {};
   const progress = snapshot.echoOverworldProgress || {};
-  if (Number(progress.idleExpedition?.version) !== 1) {
+  const hasJourney = Boolean(snapshot.name || snapshot.starter || snapshot.journeyStarted);
+
+  // Migra somente um save de jornada real. Isso evita criar um jogador vazio
+  // enquanto a pessoa ainda está na tela inicial ou começando uma nova jornada.
+  if (hasJourney && Number(progress.idleExpedition?.version) !== 1) {
     originalSave({
       idleExpedition: {
         version: 1,
