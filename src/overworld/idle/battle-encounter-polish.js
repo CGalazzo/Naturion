@@ -54,7 +54,6 @@ const ensureExperienceBar = () => {
   const hpTrack = hpFill?.parentElement;
   const status = hpTrack?.closest(".echo-battle-status");
   if (!status) return null;
-
   let panel = status.querySelector(".echo-exp-panel");
   if (!panel) {
     panel = document.createElement("div");
@@ -112,7 +111,6 @@ const prepareWildApproach = (wild) => {
   const party = scene?.querySelector(".idle-party");
   const hero = scene?.querySelector(".idle-hero-box");
   if (!scene || !party || !hero) return;
-
   const sceneRect = scene.getBoundingClientRect();
   const partyRect = party.getBoundingClientRect();
   const heroRect = hero.getBoundingClientRect();
@@ -125,8 +123,7 @@ const prepareWildApproach = (wild) => {
   const flying = isFlyingForm(form);
   const lift = flying ? clamp(heroRect.height * .4, 55, 112) : 0;
   const duration = approachDuration();
-
-  wild.classList.remove("approaching", "contact", "is-flying");
+  wild.classList.remove("contact", "is-flying");
   wild.style.left = `${startLeft}px`;
   wild.style.right = "auto";
   wild.style.bottom = `${baseBottom + lift}px`;
@@ -153,7 +150,7 @@ const clearWildApproach = (wild) => {
   wild?.style.removeProperty("bottom");
   wild?.style.removeProperty("--wild-travel-x");
   wild?.style.removeProperty("--wild-approach-duration");
-  delete wild?.dataset.approachEndsAt;
+  if (wild?.dataset) delete wild.dataset.approachEndsAt;
   scene?.classList.remove("encounter-approach");
 };
 
@@ -162,11 +159,14 @@ const observeWild = () => {
   if (!wild || wild.dataset.approachObserver === "true") return;
   wild.dataset.approachObserver = "true";
   const sync = () => {
-    if (wild.classList.contains("visible")) prepareWildApproach(wild);
-    else clearWildApproach(wild);
+    if (wild.classList.contains("visible")) {
+      if (!wild.classList.contains("approaching")) prepareWildApproach(wild);
+    } else if (wild.classList.contains("approaching") || wild.classList.contains("contact")) {
+      clearWildApproach(wild);
+    }
   };
   new MutationObserver(sync).observe(wild, { attributes: true, attributeFilter: ["class"] });
-  if (wild.classList.contains("visible")) sync();
+  sync();
 };
 
 let wrappedBridge = null;
@@ -211,5 +211,4 @@ window.setInterval(() => {
   const battle = document.getElementById("echoBattle");
   if (battle && !battle.hidden) updateExperienceBar();
 }, 180);
-
 refresh();
