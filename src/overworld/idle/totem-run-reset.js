@@ -1,7 +1,6 @@
 const MAP_ID = "clareira-dos-ecos-overworld";
 const SCREEN_ID = "echoOverworldScreen";
 const STYLE_ID = "idleTotemRunResetCss";
-const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const bridge = () => window.NaturionOverworldBridge;
@@ -50,7 +49,7 @@ const resetPayload = (reason) => {
     completedEncounterIds: [],
     battlesWon: 0,
     captures: 0,
-    defeats: reason === "defeat" ? Math.max(1, Number(saved.defeats) || 0) : 0,
+    defeats: 0,
     puzzleUnlocked: false,
     completed: false,
     lastResetReason: reason,
@@ -79,6 +78,13 @@ const totemDuration = () => {
   return reducedMotion() ? 80 : Math.max(780, Math.round(2200 / speed));
 };
 
+const setSceneCopy = (scene, title, message) => {
+  const titleNode = scene?.querySelector("[data-scene-title]");
+  const messageNode = scene?.querySelector("[data-scene-message]");
+  if (titleNode) titleNode.textContent = title;
+  if (messageNode) messageNode.textContent = message;
+};
+
 const startTotemApproach = (totem) => {
   const scene = totem?.closest(".idle-scene");
   if (!scene || !totem.classList.contains("visible") || totem.dataset.approachState) return;
@@ -87,17 +93,21 @@ const startTotemApproach = (totem) => {
   if (!image || !copy) return;
 
   const duration = totemDuration();
+  const token = `${Date.now()}-${Math.random()}`;
   totem.dataset.approachState = "moving";
+  totem.dataset.approachToken = token;
   totem.style.setProperty("--totem-approach-duration", `${duration}ms`);
   totem.classList.add("approaching");
   scene.classList.add("totem-approach");
+  setSceneCopy(scene, "Santuário à frente", "A equipe se aproxima de uma presença ancestral.");
 
   window.setTimeout(() => {
-    if (!totem.isConnected || !totem.classList.contains("visible")) return;
+    if (!totem.isConnected || !totem.classList.contains("visible") || totem.dataset.approachToken !== token) return;
     totem.classList.remove("approaching");
     totem.classList.add("arrived");
     totem.dataset.approachState = "arrived";
     scene.classList.remove("totem-approach");
+    setSceneCopy(scene, "Santuário Oeste alcançado", "O Totem respondeu. Examine-o para iniciar o Puzzle 1.");
     copy.querySelector("button")?.focus?.();
   }, duration + (reducedMotion() ? 0 : 120));
 };
@@ -105,7 +115,10 @@ const startTotemApproach = (totem) => {
 const clearTotemApproach = (totem) => {
   const scene = totem?.closest(".idle-scene");
   totem?.classList.remove("approaching", "arrived");
-  if (totem?.dataset) delete totem.dataset.approachState;
+  if (totem?.dataset) {
+    delete totem.dataset.approachState;
+    delete totem.dataset.approachToken;
+  }
   totem?.style.removeProperty("--totem-approach-duration");
   scene?.classList.remove("totem-approach");
 };
