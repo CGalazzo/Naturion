@@ -1,0 +1,306 @@
+/*
+ * Esteira visual da Clareira dos Ecos.
+ * Somente a área central da expedição é alterada; HUD, cards, botões,
+ * progresso, batalha, captura, puzzle e demais telas permanecem intactos.
+ */
+.idle-scene[data-treadmill-ready="true"] {
+  isolation: isolate;
+  background: #092116;
+}
+
+.idle-scene[data-treadmill-ready="true"]::before {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(3, 13, 8, .22), transparent 34%),
+    linear-gradient(0deg, rgba(2, 12, 7, .52), transparent 44%),
+    radial-gradient(circle at 52% 60%, transparent 26%, rgba(1, 10, 6, .28) 76%);
+}
+
+.idle-scene[data-treadmill-ready="true"]::after {
+  z-index: 6;
+}
+
+.idle-treadmill {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.idle-treadmill-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.idle-treadmill-strip {
+  display: flex;
+  width: 400%;
+  height: 100%;
+  transform: translate3d(0, 0, 0);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+  will-change: transform;
+}
+
+.idle-treadmill-strip > span {
+  flex: 0 0 25%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
+}
+
+.idle-treadmill-strip > span:nth-child(even) {
+  transform: scaleX(-1);
+}
+
+.idle-treadmill-far {
+  z-index: 0;
+  clip-path: inset(0 0 66% 0);
+  filter: brightness(.56) saturate(.9) contrast(1.04);
+}
+
+.idle-treadmill-far .idle-treadmill-strip {
+  animation-name: idleTreadmillFar;
+  animation-duration: calc(76s / var(--speed));
+}
+
+.idle-treadmill-far span {
+  background-image: url("/assets/overworld/clareira-dos-ecos/ground-v2.webp?v=treadmill1");
+  background-position: center 4%;
+  background-size: 118% auto;
+}
+
+.idle-treadmill-mid {
+  z-index: 1;
+  clip-path: inset(26% 0 0 0);
+  filter: brightness(.83) saturate(1.08) contrast(1.07);
+}
+
+.idle-treadmill-mid .idle-treadmill-strip {
+  animation-name: idleTreadmillMid;
+  animation-duration: calc(31s / var(--speed));
+}
+
+.idle-treadmill-mid span {
+  background-image: url("/assets/overworld/clareira-dos-ecos/ground-v2.webp?v=treadmill1");
+  background-position: center 58%;
+  background-size: 112% auto;
+}
+
+.idle-treadmill-near {
+  z-index: 5;
+  clip-path: inset(60% 0 0 0);
+  opacity: .78;
+  filter: brightness(.7) saturate(1.05) contrast(1.08);
+}
+
+.idle-treadmill-near .idle-treadmill-strip {
+  animation-name: idleTreadmillNear;
+  animation-duration: calc(18s / var(--speed));
+}
+
+.idle-treadmill-near span {
+  background-image: url("/assets/overworld/clareira-dos-ecos/foreground-v2.webp?v=treadmill1");
+  background-position: center 76%;
+  background-size: 112% auto;
+}
+
+.idle-app.running .idle-treadmill-strip {
+  animation-play-state: running;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-path {
+  display: none;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-badge {
+  z-index: 10;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-wild {
+  z-index: 9;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-totem {
+  z-index: 12;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-party {
+  z-index: 7;
+  right: 8%;
+  bottom: 7%;
+  left: 8%;
+  justify-content: center;
+  gap: clamp(0px, 1.1vw, 14px);
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-followers {
+  order: -1;
+  margin-right: clamp(-18px, -1.2vw, -7px);
+  transform: translateY(8px);
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-follower:nth-child(n + 2) {
+  display: none;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-follower {
+  width: clamp(86px, 10vw, 132px);
+  transform-origin: 50% 100%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-follower img {
+  height: clamp(92px, 11vw, 142px);
+  transform: scaleX(-1);
+  transform-origin: 50% 100%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-box {
+  position: relative;
+  width: clamp(112px, 12vw, 165px);
+  height: auto;
+  transform-origin: 50% 100%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-box[data-variant="male"] {
+  aspect-ratio: 209 / 314;
+  --hero-sheet: url("/assets/overworld/characters/hero-male/hero-male-overworld.webp?v=3");
+  --hero-column: 85.714286%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-box[data-variant="female"] {
+  aspect-ratio: 222 / 296;
+  --hero-sheet: url("/assets/overworld/characters/hero-female/hero-female-overworld.webp?v=3");
+  --hero-column: 28.571429%;
+}
+
+.idle-scene[data-treadmill-ready="true"] .idle-hero-static {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 1;
+  transition: opacity .12s linear;
+}
+
+.idle-hero-walk {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  background-image: var(--hero-sheet);
+  background-repeat: no-repeat;
+  background-position-x: var(--hero-column);
+  background-position-y: 0%;
+  background-size: 800% 300%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, .56));
+  transition: opacity .12s linear;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-static {
+  opacity: 0;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-walk {
+  opacity: 1;
+  animation: idleHeroWalkFrames calc(.64s / var(--speed)) linear infinite;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-box {
+  animation: idleHeroStride calc(.64s / var(--speed)) steps(2, end) infinite;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-follower {
+  animation: idleFollowerStride calc(.72s / var(--speed)) steps(4, end) infinite;
+}
+
+.idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-follower img {
+  animation: idleFollowerBody calc(.72s / var(--speed)) steps(4, end) infinite;
+}
+
+@keyframes idleTreadmillFar {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes idleTreadmillMid {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes idleTreadmillNear {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes idleHeroWalkFrames {
+  0%, 24.999% { background-position-y: 0%; }
+  25%, 49.999% { background-position-y: 50%; }
+  50%, 74.999% { background-position-y: 0%; }
+  75%, 100% { background-position-y: 100%; }
+}
+
+@keyframes idleHeroStride {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes idleFollowerStride {
+  0%, 100% { transform: translate3d(0, 8px, 0) rotate(-1deg); }
+  25% { transform: translate3d(2px, 3px, 0) rotate(1deg); }
+  50% { transform: translate3d(5px, 8px, 0) rotate(-1deg); }
+  75% { transform: translate3d(2px, 4px, 0) rotate(1deg); }
+}
+
+@keyframes idleFollowerBody {
+  0%, 100% { transform: scaleX(-1) rotate(0deg); }
+  25% { transform: scaleX(-1) rotate(-2deg); }
+  50% { transform: scaleX(-1) rotate(1deg); }
+  75% { transform: scaleX(-1) rotate(-1deg); }
+}
+
+@media (max-width: 820px) {
+  .idle-scene[data-treadmill-ready="true"] .idle-party {
+    right: 3%;
+    left: 3%;
+  }
+
+  .idle-scene[data-treadmill-ready="true"] .idle-hero-box {
+    width: clamp(108px, 19vw, 146px);
+  }
+}
+
+@media (max-width: 560px) {
+  .idle-scene[data-treadmill-ready="true"] .idle-hero-box {
+    width: 112px;
+  }
+
+  .idle-scene[data-treadmill-ready="true"] .idle-follower {
+    width: 74px;
+  }
+
+  .idle-scene[data-treadmill-ready="true"] .idle-followers {
+    margin-right: -12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idle-treadmill-strip,
+  .idle-hero-walk,
+  .idle-hero-box,
+  .idle-follower,
+  .idle-follower img {
+    animation: none !important;
+  }
+}
