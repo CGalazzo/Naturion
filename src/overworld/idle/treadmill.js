@@ -1,4 +1,4 @@
-import { getTreadmillImageUrl } from "./treadmill-image.js?v=1";
+import { getTreadmillImageUrl } from "./treadmill-image.js?v=2";
 
 const STYLE_ID = "idleTreadmillCss";
 const PATCH_STYLE_ID = "idleTreadmillPatchCss";
@@ -7,7 +7,11 @@ const SCREEN_ID = "echoOverworldScreen";
 const bridge = () => window.NaturionOverworldBridge;
 
 const appendStylesheet = (id, href) => {
-  if (document.getElementById(id)) return;
+  const existing = document.getElementById(id);
+  if (existing) {
+    if (existing.getAttribute("href") !== href) existing.setAttribute("href", href);
+    return;
+  }
   const link = document.createElement("link");
   link.id = id;
   link.rel = "stylesheet";
@@ -16,8 +20,8 @@ const appendStylesheet = (id, href) => {
 };
 
 const ensureStyles = () => {
-  appendStylesheet(STYLE_ID, "src/overworld/idle/treadmill.css?v=1");
-  appendStylesheet(PATCH_STYLE_ID, "src/overworld/idle/treadmill-patch.css?v=1");
+  appendStylesheet(STYLE_ID, "src/overworld/idle/treadmill.css?v=2");
+  appendStylesheet(PATCH_STYLE_ID, "src/overworld/idle/treadmill-patch.css?v=2");
 };
 
 const layerMarkup = (depth) => `
@@ -38,7 +42,9 @@ const enhanceScene = () => {
 
   try {
     scene.style.setProperty("--treadmill-image", `url("${getTreadmillImageUrl()}")`);
+    scene.dataset.treadmillImageReady = "true";
   } catch (error) {
+    scene.dataset.treadmillImageReady = "false";
     console.error("Não foi possível carregar a nova imagem da esteira.", error);
   }
 
@@ -81,5 +87,4 @@ const enhanceAfterOpen = () => {
 
 window.addEventListener("naturion:open-echo-overworld", enhanceAfterOpen);
 
-// Protege retomadas por hot reload ou cache em que a tela já esteja montada.
 if (document.getElementById(SCREEN_ID)?.querySelector(".idle-scene")) enhanceScene();
