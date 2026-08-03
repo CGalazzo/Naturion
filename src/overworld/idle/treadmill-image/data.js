@@ -1,15 +1,15 @@
-import chunk00 from "./chunk-00.js?v=1";
-import chunk01 from "./chunk-01.js?v=1";
-import chunk02 from "./chunk-02.js?v=1";
-import chunk03 from "./chunk-03.js?v=1";
+import fullImageBase64 from "./chunk-00.js?v=2";
 
-const chunks = [chunk00, chunk01, chunk02, chunk03];
-const expectedLengths = [18434, 18434, 18434, 18434];
+// O primeiro arquivo contém a imagem WebP completa. A implementação anterior
+// tratava esse conteúdo como apenas 1/4 da imagem e abortava o módulo antes de
+// montar a esteira. Validamos somente a assinatura/volume e usamos o arquivo
+// completo diretamente.
+if (
+  typeof fullImageBase64 !== "string"
+  || fullImageBase64.length < 50000
+  || !fullImageBase64.startsWith("UklG")
+) {
+  throw new Error("A imagem completa da esteira está inválida.");
+}
 
-chunks.forEach((chunk, index) => {
-  if (chunk.length !== expectedLengths[index]) {
-    throw new Error(`Trecho ${index} da imagem da esteira está incompleto.`);
-  }
-});
-
-export const TREADMILL_FOREST_BASE64 = chunks.join("");
+export const TREADMILL_FOREST_BASE64 = fullImageBase64;
