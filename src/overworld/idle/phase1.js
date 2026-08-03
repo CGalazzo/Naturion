@@ -1,0 +1,659 @@
+import { TOTEM_IMAGE } from "./totem-data.js?v=1";
+
+const MAP_ID = "clareira-dos-ecos-overworld";
+const MAP_SCENE = "assets/overworld/clareira-dos-ecos/ground-v2.webp";
+const screen = document.getElementById("echoOverworldScreen");
+const worldMap = document.getElementById("openForestMap");
+const destination = document.getElementById("worldFirstDestination");
+const bridge = () => window.NaturionOverworldBridge;
+const player = () => bridge()?.getPlayer?.() || {};
+const forms = () => window.__naturionEcho?.forms || {};
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const ENCOUNTERS = Object.freeze([
+  { id: "idle-escaruli-01", at: 14, formId: "escaruli", level: 3 },
+  { id: "idle-lumpirim-02", at: 31, formId: "lumpirim", level: 4 },
+  { id: "idle-failino-03", at: 49, formId: "failino", level: 5 },
+  { id: "idle-hambrio-04", at: 67, formId: "hambrio", level: 5 },
+  { id: "idle-canumi-05", at: 84, formId: "canumi", level: 4 },
+  { id: "idle-zumbel-06", at: 96, formId: "zumbel", level: 5 }
+]);
+const SEGMENTS = Object.freeze([
+  ["Entrada Luminal", "Níveis 1–5"],
+  ["Trilha dos Sussurros", "Níveis 3–7"],
+  ["Clareira Profunda", "Níveis 5–10"],
+  ["Ruínas dos Ecos", "Níveis 7–13"],
+  ["Santuário Oeste", "Prova ancestral"]
+]);
+
+let active = false;
+let busy = false;
+let state = null;
+let ui = null;
+let puzzle = null;
+let frame = 0;
+let lastFrame = 0;
+let lastSave = 0;
+let logs = [];
+
+const html = (value) => String(value ?? "")
+  .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+
+const toast = (message) => {
+  const element = document.getElementById("toast");
+  if (!element) return;
+  element.textContent = message;
+  element.classList.add("show");
+  setTimeout(() => element.classList.remove("show"), 2300);
+};
+
+const puzzleFlags = () => player().echoOverworldProgress?.puzzles || {};
+
+const loadState = () => {
+  const saved = player().echoOverworldProgress?.idleExpedition || {};
+  const solved = Boolean(puzzleFlags().echoesSolved);
+  return {
+    progress: solved ? 100 : clamp(Number(saved.progress) || 0, 0, 100),
+    running: solved ? false : Boolean(saved.running),
+    speed: [1, 2, 3].includes(Number(saved.speed)) ? Number(saved.speed) : 1,
+    completedIds: [...new Set(Array.isArray(saved.completedEncounterIds) ? saved.completedEncounterIds : [])],
+    wins: Math.max(0, Number(saved.battlesWon) || 0),
+    captures: Math.max(0, Number(saved.captures) || 0),
+    defeats: Math.max(0, Number(saved.defeats) || 0),
+    puzzleUnlocked: solved || Boolean(saved.puzzleUnlocked) || Number(saved.progress) >= 100,
+    completed: solved || Boolean(saved.completed)
+  };
+};
+
+const savePayload = () => ({
+  progress: Number(state.progress.toFixed(2)),
+  running: Boolean(state.running && !busy && !state.completed),
+  speed: state.speed,
+  completedEncounterIds: [...state.completedIds],
+  battlesWon: state.wins,
+  captures: state.captures,
+  defeats: state.defeats,
+  puzzleUnlocked: state.puzzleUnlocked,
+  completed: state.completed,
+  updatedAt: new Date().toISOString()
+});
+
+const save = (force = false) => {
+  if (!state || !bridge()?.saveEchoMapState) return;
+  const now = performance.now();
+  if (!force && now - lastSave < 1200) return;
+  lastSave = now;
+  bridge().saveEchoMapState({
+    mapId: MAP_ID,
+    idleExpedition: savePayload(),
+    puzzles: { ...puzzleFlags(), echoesSolved: Boolean(state.completed || puzzleFlags().echoesSolved) }
+  });
+};
+
+const formFor = (id) => forms()[id] || { id, name: id || "Naturion", type: "Natureza", image: "" };
+
+const roster = () => {
+  const snapshot = player();
+  const seen = new Set();
+  return [snapshot.starter, ...(snapshot.team || [])].filter(Boolean).filter((member) => {
+    const key = member.uid || `${member.formId || member.id}-${member.name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 3);
+};
+
+const segmentIndex = () => Math.min(4, Math.floor(Math.min(state?.progress || 0, 99.99) / 20));
+
+const addLog = (message, kind = "info") => {
+  logs.unshift({ message, kind, time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) });
+  logs = logs.slice(0, 6);
+  renderLogs();
+};
+
+const renderLogs = () => {
+  if (!ui) return;
+  ui.log.innerHTML = logs.length ? logs.map((entry) => `
+    <div class="idle-log-entry" data-kind="${html(entry.kind)}">
+      <time>${html(entry.time)}</time><span>${html(entry.message)}</span>
+    </div>`).join("") : `<div class="idle-log-entry"><time>—</time><span>Nenhum evento registrado.</span></div>`;
+};
+
+const ensureCss = () => {
+  if (document.getElementById("idlePhaseOneCss")) return;
+  const link = document.createElement("link");
+  link.id = "idlePhaseOneCss";
+  link.rel = "stylesheet";
+  link.href = "src/overworld/idle/phase1.css?v=2";
+  document.head.append(link);
+};
+
+const build = () => {
+  ensureCss();
+  screen.classList.add("idle-host");
+  screen.innerHTML = `
+    <main class="idle-app" style="--speed:1">
+      <header class="idle-top">
+        <div class="idle-title"><small>Expedição idle · Fase 1</small><h1>Clareira dos Ecos</h1></div>
+        <div class="idle-actions">
+          <button class="idle-btn alt" type="button" data-action="team">Equipe</button>
+          <button class="idle-btn warn" type="button" data-action="map">Voltar ao mapa</button>
+        </div>
+      </header>
+      <section class="idle-main">
+        <div class="idle-scene">
+          <div class="idle-path"></div>
+          <div class="idle-badge"><strong data-scene-title>Preparando expedição</strong><br><span data-scene-message>Inicie a jornada automática.</span></div>
+          <div class="idle-party">
+            <div class="idle-hero-box"><img class="idle-hero" alt=""></div>
+            <div class="idle-followers"></div>
+          </div>
+          <div class="idle-wild"><img alt=""><strong></strong></div>
+          <div class="idle-totem">
+            <img alt="Totem do Círculo dos Ecos voltado para a direita">
+            <div class="idle-totem-copy">
+              <small>Puzzle 1 liberado</small><h2>Círculo dos Ecos</h2>
+              <p>A expedição alcançou o santuário. O desafio será aberto em uma tela própria.</p>
+              <button class="idle-btn" type="button" data-action="puzzle">Examinar o Totem</button>
+            </div>
+          </div>
+        </div>
+        <aside class="idle-side">
+          <section class="idle-card">
+            <div class="idle-progress-head">
+              <div><h2>Progresso</h2><div class="idle-percent" data-progress>0%</div></div>
+              <span data-run-state>Pausada</span>
+            </div>
+            <div class="idle-track"><div class="idle-fill"></div><div class="idle-marks"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <p class="idle-segment" data-segment></p>
+          </section>
+          <section class="idle-card">
+            <h2>Resultados</h2>
+            <div class="idle-stats">
+              <div class="idle-stat"><strong data-wins>0</strong><small>Vitórias</small></div>
+              <div class="idle-stat"><strong data-captures>0</strong><small>Absorções</small></div>
+              <div class="idle-stat"><strong data-defeats>0</strong><small>Recuos</small></div>
+            </div>
+          </section>
+          <section class="idle-card">
+            <h2>Velocidade</h2>
+            <div class="idle-speeds">
+              <button class="idle-speed" type="button" data-speed="1">1×</button>
+              <button class="idle-speed" type="button" data-speed="2">2×</button>
+              <button class="idle-speed" type="button" data-speed="3">3×</button>
+            </div>
+          </section>
+          <section class="idle-card log-card"><h2>Registro</h2><div class="idle-log" aria-live="polite"></div></section>
+        </aside>
+      </section>
+      <footer class="idle-bottom">
+        <div class="idle-objective"><strong>Objetivo:</strong><span data-objective> alcance o Santuário Oeste.</span></div>
+        <button class="idle-btn idle-primary" type="button" data-action="toggle">Iniciar expedição</button>
+      </footer>
+    </main>
+    <div class="idle-team" hidden>
+      <section class="idle-team-dialog" role="dialog" aria-modal="true">
+        <header><h2>Equipe da expedição</h2><button class="idle-btn alt" type="button" data-action="close-team">Fechar</button></header>
+        <p>As batalhas usam automaticamente a ordem atual da equipe.</p>
+        <div class="idle-team-grid"></div>
+      </section>
+    </div>`;
+
+  ui = {
+    root: screen.querySelector(".idle-app"),
+    hero: screen.querySelector(".idle-hero"),
+    followers: screen.querySelector(".idle-followers"),
+    wild: screen.querySelector(".idle-wild"),
+    wildImage: screen.querySelector(".idle-wild img"),
+    wildLabel: screen.querySelector(".idle-wild strong"),
+    sceneTitle: screen.querySelector("[data-scene-title]"),
+    sceneMessage: screen.querySelector("[data-scene-message]"),
+    totem: screen.querySelector(".idle-totem"),
+    totemImage: screen.querySelector(".idle-totem img"),
+    progress: screen.querySelector("[data-progress]"),
+    fill: screen.querySelector(".idle-fill"),
+    runState: screen.querySelector("[data-run-state]"),
+    segment: screen.querySelector("[data-segment]"),
+    wins: screen.querySelector("[data-wins]"),
+    captures: screen.querySelector("[data-captures]"),
+    defeats: screen.querySelector("[data-defeats]"),
+    objective: screen.querySelector("[data-objective]"),
+    toggle: screen.querySelector("[data-action=toggle]"),
+    map: screen.querySelector("[data-action=map]"),
+    team: screen.querySelector("[data-action=team]"),
+    puzzleButton: screen.querySelector("[data-action=puzzle]"),
+    speedButtons: [...screen.querySelectorAll("[data-speed]")],
+    log: screen.querySelector(".idle-log"),
+    teamModal: screen.querySelector(".idle-team"),
+    teamGrid: screen.querySelector(".idle-team-grid"),
+    closeTeam: screen.querySelector("[data-action=close-team]")
+  };
+  ui.totemImage.src = TOTEM_IMAGE;
+  ui.toggle.addEventListener("click", toggle);
+  ui.map.addEventListener("click", returnMap);
+  ui.team.addEventListener("click", openTeam);
+  ui.closeTeam.addEventListener("click", closeTeam);
+  ui.teamModal.addEventListener("click", (event) => { if (event.target === ui.teamModal) closeTeam(); });
+  ui.puzzleButton.addEventListener("click", () => puzzle?.open());
+  ui.speedButtons.forEach((button) => button.addEventListener("click", () => setSpeed(Number(button.dataset.speed))));
+};
+
+const renderParty = () => {
+  const snapshot = player();
+  ui.hero.src = snapshot.character === "female" ? "assets/selection/hero-female.webp" : "assets/selection/hero-male.webp";
+  ui.hero.alt = snapshot.name || "Protagonista";
+  ui.followers.replaceChildren();
+  roster().forEach((member, index) => {
+    const form = formFor(member.formId || member.id);
+    const box = document.createElement("div");
+    const image = document.createElement("img");
+    box.className = "idle-follower";
+    box.style.setProperty("--delay", `${index * -.15}s`);
+    image.src = member.image || form.image || "";
+    image.alt = member.name || form.name;
+    box.append(image);
+    ui.followers.append(box);
+  });
+};
+
+const renderTeam = () => {
+  ui.teamGrid.replaceChildren();
+  const members = roster();
+  if (!members.length) {
+    ui.teamGrid.textContent = "Nenhum Naturion disponível.";
+    return;
+  }
+  members.forEach((member, index) => {
+    const form = formFor(member.formId || member.id);
+    const card = document.createElement("article");
+    card.className = "idle-team-card";
+    card.innerHTML = `<img src="${html(member.image || form.image || "")}" alt="${html(member.name || form.name)}">
+      <strong>${index + 1}. ${html(member.name || form.name)}</strong>
+      <small>${html(member.type || form.type)} · Nv. ${Number(member.level) || 1}</small>`;
+    ui.teamGrid.append(card);
+  });
+};
+
+const render = () => {
+  if (!ui || !state) return;
+  const progress = clamp(state.progress, 0, 100);
+  const [segment, levels] = SEGMENTS[segmentIndex()];
+  ui.root.style.setProperty("--speed", state.speed);
+  ui.root.classList.toggle("running", state.running && !busy);
+  ui.progress.textContent = `${Math.floor(progress)}%`;
+  ui.fill.style.width = `${progress}%`;
+  ui.runState.textContent = busy ? "Evento" : state.running ? `Ativa · ${state.speed}×` : state.completed ? "Concluída" : "Pausada";
+  ui.segment.textContent = `${segment} · ${levels}`;
+  ui.wins.textContent = state.wins;
+  ui.captures.textContent = state.captures;
+  ui.defeats.textContent = state.defeats;
+  ui.totem.classList.toggle("visible", state.puzzleUnlocked);
+  ui.toggle.disabled = busy || state.puzzleUnlocked || state.completed;
+  ui.toggle.textContent = state.running ? "Pausar expedição" : progress ? "Continuar expedição" : "Iniciar expedição";
+  ui.team.disabled = busy;
+  ui.map.disabled = busy;
+  ui.speedButtons.forEach((button) => {
+    button.classList.toggle("active", Number(button.dataset.speed) === state.speed);
+    button.disabled = busy || state.completed;
+  });
+  if (state.completed) {
+    ui.sceneTitle.textContent = "Santuário desperto";
+    ui.sceneMessage.textContent = "O Círculo dos Ecos permanece ativo.";
+    ui.objective.textContent = " Puzzle 1 concluído e progresso salvo.";
+  } else if (state.puzzleUnlocked) {
+    ui.sceneTitle.textContent = "Santuário Oeste alcançado";
+    ui.sceneMessage.textContent = "Interaja com o Totem para iniciar o Puzzle 1.";
+    ui.objective.textContent = " resolva o Círculo dos Ecos.";
+  } else if (busy) {
+    ui.objective.textContent = " acompanhe a batalha automática e escolha se deseja absorver.";
+  } else if (state.running) {
+    ui.sceneTitle.textContent = segment;
+    ui.sceneMessage.textContent = `A equipe avança automaticamente em ${state.speed}×.`;
+    ui.objective.textContent = ` avance pela ${segment}.`;
+  } else {
+    ui.sceneTitle.textContent = progress ? "Expedição pausada" : "Equipe pronta";
+    ui.sceneMessage.textContent = progress ? "Continue do ponto salvo." : "Inicie a expedição automática.";
+    ui.objective.textContent = " alcance o Santuário Oeste.";
+  }
+};
+
+const wildPreview = (encounter = null) => {
+  if (!encounter) {
+    ui.wild.classList.remove("visible");
+    return;
+  }
+  const form = formFor(encounter.formId);
+  ui.wildImage.src = form.image || "";
+  ui.wildImage.alt = form.name;
+  ui.wildLabel.textContent = `${form.name} · Nv. ${encounter.level}`;
+  ui.wild.classList.add("visible");
+};
+
+const openTeam = () => {
+  if (!active || busy) return;
+  state.running = false;
+  renderTeam();
+  render();
+  save(true);
+  ui.teamModal.hidden = false;
+  ui.closeTeam.focus();
+};
+const closeTeam = () => { ui.teamModal.hidden = true; ui.team.focus(); };
+
+const setSpeed = (speed) => {
+  if (busy || state.completed || ![1, 2, 3].includes(speed)) return;
+  state.speed = speed;
+  addLog(`Velocidade ajustada para ${speed}×.`);
+  render();
+  save(true);
+};
+
+const toggle = () => {
+  if (!active || busy || state.puzzleUnlocked || state.completed) return;
+  state.running = !state.running;
+  addLog(state.running ? "A expedição começou." : "A expedição foi pausada.");
+  render();
+  save(true);
+};
+
+const pendingEncounter = () => ENCOUNTERS.find((encounter) => state.progress >= encounter.at && !state.completedIds.includes(encounter.id));
+
+const autoAttack = () => {
+  const choice = document.getElementById("echoBattleChoice");
+  if (choice && !choice.hidden) return;
+  const buttons = [...document.querySelectorAll("[data-echo-battle]")];
+  const attack = buttons.find((button) => button.dataset.echoBattle === "elemental" && !button.disabled)
+    || buttons.find((button) => button.dataset.echoBattle === "basic" && !button.disabled);
+  if (attack?.offsetParent !== null) attack.click();
+};
+
+const encounter = async (data) => {
+  if (busy || !active) return;
+  busy = true;
+  const resume = state.running;
+  state.running = false;
+  const form = formFor(data.formId);
+  wildPreview(data);
+  addLog(`${form.name} apareceu. Batalha automática iniciada.`, "battle");
+  render();
+  save(true);
+  await sleep(reducedMotion() ? 50 : 550);
+
+  const promise = bridge()?.startBattle?.({
+    stageId: MAP_ID,
+    encounterId: data.id,
+    formId: data.formId,
+    level: data.level,
+    scene: MAP_SCENE
+  });
+  if (!promise?.then) {
+    busy = false;
+    wildPreview();
+    addLog("O sistema de batalha não respondeu.", "danger");
+    render();
+    save(true);
+    return;
+  }
+  const timer = setInterval(autoAttack, 260);
+  let result;
+  try { result = await promise; } finally { clearInterval(timer); }
+  busy = false;
+  wildPreview();
+
+  if (result?.outcome === "victory") {
+    if (!state.completedIds.includes(data.id)) state.completedIds.push(data.id);
+    state.wins += 1;
+    state.progress = Math.max(state.progress, data.at + 1.25);
+    if (result.captured) {
+      state.captures += 1;
+      addLog(`${form.name} foi absorvido e registrado.`, "capture");
+    } else {
+      addLog(`${form.name} foi derrotado. A expedição continua.`, "battle");
+    }
+    renderParty();
+    state.running = resume;
+  } else if (result?.outcome === "defeat") {
+    state.defeats += 1;
+    state.progress = Math.max(0, data.at - 4);
+    state.running = false;
+    addLog("A equipe recuou para se recuperar.", "danger");
+  } else {
+    state.progress = Math.max(0, data.at - 1.5);
+    state.running = resume;
+    addLog("O encontro terminou sem vitória.");
+  }
+  render();
+  save(true);
+};
+
+const unlockPuzzle = () => {
+  state.progress = 100;
+  state.running = false;
+  state.puzzleUnlocked = true;
+  addLog("O Totem do Círculo dos Ecos despertou.", "capture");
+  render();
+  save(true);
+};
+
+const tick = (time) => {
+  frame = requestAnimationFrame(tick);
+  if (!active || !state || !ui) return;
+  const delta = lastFrame ? Math.min(.1, (time - lastFrame) / 1000) : 0;
+  lastFrame = time;
+  if (!state.running || busy || state.puzzleUnlocked || state.completed || !ui.teamModal.hidden) return;
+  state.progress = clamp(state.progress + delta * .6 * state.speed, 0, 100);
+  const next = pendingEncounter();
+  if (next) { void encounter(next); return; }
+  if (state.progress >= 100) { unlockPuzzle(); return; }
+  render();
+  save();
+};
+
+class PuzzleOne {
+  constructor() {
+    this.opened = false;
+    this.accepting = false;
+    this.sequence = [];
+    this.index = 0;
+    this.token = 0;
+    this.audio = null;
+    this.create();
+  }
+  create() {
+    this.element = document.createElement("section");
+    this.element.className = "idle-puzzle";
+    this.element.hidden = true;
+    this.element.innerHTML = `
+      <div class="idle-puzzle-shell">
+        <header class="idle-puzzle-header"><small>Puzzle 1 de 3</small><h2>Círculo dos Ecos</h2>
+          <p>Observe a ordem em que as três runas despertam e repita a sequência.</p></header>
+        <div class="idle-puzzle-board">
+          <div class="idle-crystal"></div>
+          <button class="idle-rune" type="button" data-rune="0">◇</button>
+          <button class="idle-rune" type="button" data-rune="1">◆</button>
+          <button class="idle-rune" type="button" data-rune="2">✦</button>
+        </div>
+        <footer class="idle-puzzle-footer">
+          <p class="idle-puzzle-status" aria-live="polite">Ouça os Ecos para revelar a sequência.</p>
+          <div class="idle-puzzle-actions">
+            <button class="idle-btn" type="button" data-puzzle="start">Ouvir os Ecos</button>
+            <button class="idle-btn alt" type="button" data-puzzle="close">Voltar à expedição</button>
+          </div>
+        </footer>
+      </div>`;
+    document.body.append(this.element);
+    this.status = this.element.querySelector(".idle-puzzle-status");
+    this.start = this.element.querySelector("[data-puzzle=start]");
+    this.closeButton = this.element.querySelector("[data-puzzle=close]");
+    this.runes = [...this.element.querySelectorAll("[data-rune]")];
+    this.start.addEventListener("click", () => void this.begin());
+    this.closeButton.addEventListener("click", () => this.close());
+    this.runes.forEach((rune) => rune.addEventListener("click", () => void this.choose(Number(rune.dataset.rune))));
+  }
+  tone(index, duration = .2) {
+    const Context = window.AudioContext || window.webkitAudioContext;
+    if (!Context) return;
+    this.audio ||= new Context();
+    void this.audio.resume?.();
+    const oscillator = this.audio.createOscillator();
+    const gain = this.audio.createGain();
+    const now = this.audio.currentTime;
+    oscillator.type = "triangle";
+    oscillator.frequency.value = [392, 523.25, 659.25][index] || 440;
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(.075, now + .015);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    oscillator.connect(gain).connect(this.audio.destination);
+    oscillator.start(now);
+    oscillator.stop(now + duration + .04);
+  }
+  open() {
+    if (!state?.puzzleUnlocked || this.opened) return;
+    if (state.completed || puzzleFlags().echoesSolved) { toast("O Círculo dos Ecos já está desperto."); return; }
+    state.running = false;
+    save(true);
+    this.opened = true;
+    this.accepting = false;
+    this.index = 0;
+    this.sequence = [];
+    this.runes.forEach((rune) => { rune.disabled = true; rune.classList.remove("active"); });
+    this.status.textContent = "Ouça os Ecos para revelar a sequência.";
+    this.start.hidden = false;
+    this.start.disabled = false;
+    this.element.hidden = false;
+    this.start.focus();
+  }
+  close() {
+    if (!this.opened) return;
+    this.token += 1;
+    this.opened = false;
+    this.accepting = false;
+    this.element.hidden = true;
+    render();
+    ui.puzzleButton.focus();
+  }
+  shuffle() {
+    const values = [0, 1, 2];
+    for (let i = values.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [values[i], values[j]] = [values[j], values[i]];
+    }
+    return values;
+  }
+  async begin() {
+    if (!this.opened || this.start.disabled) return;
+    this.sequence = this.shuffle();
+    this.index = 0;
+    this.start.disabled = true;
+    await this.play();
+  }
+  async play() {
+    const token = ++this.token;
+    this.accepting = false;
+    this.runes.forEach((rune) => { rune.disabled = true; rune.classList.remove("active"); });
+    this.status.textContent = "Observe a ordem das runas...";
+    await sleep(reducedMotion() ? 100 : 450);
+    for (const value of this.sequence) {
+      if (!this.opened || token !== this.token) return;
+      const rune = this.runes[value];
+      rune.classList.add("active");
+      this.tone(value, .28);
+      await sleep(reducedMotion() ? 130 : 430);
+      rune.classList.remove("active");
+      await sleep(reducedMotion() ? 70 : 180);
+    }
+    if (!this.opened || token !== this.token) return;
+    this.accepting = true;
+    this.runes.forEach((rune) => { rune.disabled = false; });
+    this.status.textContent = "Repita a sequência.";
+    this.runes[0].focus();
+  }
+  async choose(value) {
+    if (!this.opened || !this.accepting) return;
+    const rune = this.runes[value];
+    rune.classList.add("active");
+    this.tone(value);
+    setTimeout(() => rune.classList.remove("active"), 180);
+    if (value !== this.sequence[this.index]) {
+      this.accepting = false;
+      this.status.textContent = "A sequência se desfez. Observe novamente.";
+      this.runes.forEach((item) => { item.disabled = true; });
+      await sleep(reducedMotion() ? 220 : 700);
+      await this.play();
+      return;
+    }
+    this.index += 1;
+    if (this.index >= this.sequence.length) await this.solve();
+  }
+  async solve() {
+    this.accepting = false;
+    this.runes.forEach((rune) => { rune.disabled = true; rune.classList.add("active"); });
+    this.start.hidden = true;
+    this.status.textContent = "Círculo desperto! O primeiro santuário reconheceu sua equipe.";
+    state.completed = true;
+    state.puzzleUnlocked = true;
+    state.progress = 100;
+    state.running = false;
+    bridge()?.saveEchoMapState?.({
+      mapId: MAP_ID,
+      idleExpedition: savePayload(),
+      puzzles: { ...puzzleFlags(), echoesSolved: true },
+      puzzleOneSolvedAt: new Date().toISOString()
+    });
+    addLog("Puzzle 1 concluído. O progresso foi salvo.", "capture");
+    [0, 1, 2, 1].forEach((value, order) => setTimeout(() => this.tone(value, .25), order * 130));
+    await sleep(reducedMotion() ? 500 : 1700);
+    this.close();
+    render();
+    toast("Puzzle 1 concluído · Progresso salvo.");
+  }
+}
+
+const returnMap = () => {
+  if (!active || busy) return;
+  state.running = false;
+  save(true);
+  active = false;
+  lastFrame = 0;
+  ui.teamModal.hidden = true;
+  puzzle?.close();
+  screen.hidden = true;
+  worldMap.hidden = false;
+  bridge()?.returnEchoMapToWorld?.();
+  destination?.focus();
+};
+
+const enter = () => {
+  if (!screen || active) return;
+  bridge()?.prepareEchoMapEntry?.();
+  if (!ui) {
+    build();
+    puzzle = new PuzzleOne();
+  }
+  state = loadState();
+  logs = [];
+  addLog(state.completed ? "O Círculo dos Ecos já está desperto."
+    : state.progress ? `Expedição retomada em ${Math.floor(state.progress)}%.`
+    : "Clareira preparada para a primeira expedição.");
+  renderParty();
+  renderTeam();
+  render();
+  worldMap.hidden = true;
+  screen.hidden = false;
+  active = true;
+  lastFrame = 0;
+  if (!frame) frame = requestAnimationFrame(tick);
+  ui.toggle.focus();
+  toast("Clareira dos Ecos · Expedição idle pronta");
+};
+
+window.addEventListener("naturion:open-echo-overworld", enter);
+window.addEventListener("beforeunload", () => save(true));
+window.addEventListener("keydown", (event) => {
+  if (!active || event.code !== "Escape") return;
+  if (puzzle?.opened) { event.preventDefault(); puzzle.close(); return; }
+  if (!ui?.teamModal.hidden) { event.preventDefault(); closeTeam(); }
+});
