@@ -1,9 +1,6 @@
-import { getTreadmillImageUrl } from "./treadmill-image.js?v=2";
-
 const STYLE_ID = "idleTreadmillCss";
 const PATCH_STYLE_ID = "idleTreadmillPatchCss";
 const SCREEN_ID = "echoOverworldScreen";
-
 const bridge = () => window.NaturionOverworldBridge;
 
 const appendStylesheet = (id, href) => {
@@ -20,16 +17,33 @@ const appendStylesheet = (id, href) => {
 };
 
 const ensureStyles = () => {
-  appendStylesheet(STYLE_ID, "src/overworld/idle/treadmill.css?v=2");
-  appendStylesheet(PATCH_STYLE_ID, "src/overworld/idle/treadmill-patch.css?v=2");
+  appendStylesheet(STYLE_ID, "src/overworld/idle/treadmill.css?v=3");
+  appendStylesheet(PATCH_STYLE_ID, "src/overworld/idle/treadmill-patch.css?v=3");
 };
 
 const layerMarkup = (depth) => `
   <div class="idle-treadmill-layer idle-treadmill-${depth}">
-    <div class="idle-treadmill-strip">
-      <span></span><span></span><span></span><span></span>
-    </div>
+    <div class="idle-treadmill-strip"><span></span><span></span><span></span><span></span></div>
   </div>`;
+
+const loadRequestedBackground = async (scene) => {
+  try {
+    const { getTreadmillImageUrl } = await import("./treadmill-image.js?v=3");
+    const url = getTreadmillImageUrl();
+    const image = new Image();
+    image.src = url;
+    if (typeof image.decode === "function") await image.decode();
+    else await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+    });
+    scene.style.setProperty("--treadmill-image", `url("${url}")`);
+    scene.dataset.treadmillImageReady = "true";
+  } catch (error) {
+    scene.dataset.treadmillImageReady = "false";
+    console.error("A imagem solicitada da esteira não pôde ser carregada; o fundo de segurança foi mantido.", error);
+  }
+};
 
 const enhanceScene = () => {
   const screen = document.getElementById(SCREEN_ID);
@@ -40,14 +54,6 @@ const enhanceScene = () => {
 
   ensureStyles();
 
-  try {
-    scene.style.setProperty("--treadmill-image", `url("${getTreadmillImageUrl()}")`);
-    scene.dataset.treadmillImageReady = "true";
-  } catch (error) {
-    scene.dataset.treadmillImageReady = "false";
-    console.error("Não foi possível carregar a nova imagem da esteira.", error);
-  }
-
   if (!scene.querySelector(".idle-treadmill")) {
     const treadmill = document.createElement("div");
     treadmill.className = "idle-treadmill";
@@ -57,7 +63,6 @@ const enhanceScene = () => {
   }
 
   staticHero.classList.add("idle-hero-static");
-
   let walkSprite = heroBox.querySelector(".idle-hero-walk");
   if (!walkSprite) {
     walkSprite = document.createElement("span");
@@ -67,24 +72,17 @@ const enhanceScene = () => {
   }
 
   const snapshot = bridge()?.getPlayer?.() || {};
-  const variant = snapshot.character === "female" ? "female" : "male";
-  heroBox.dataset.variant = variant;
+  heroBox.dataset.variant = snapshot.character === "female" ? "female" : "male";
   heroBox.setAttribute("aria-label", `${snapshot.name || "Protagonista"} caminhando para a direita`);
-
-  const followers = scene.querySelector(".idle-followers");
-  if (followers) followers.setAttribute("aria-label", "Naturion ativo acompanhando atrás do protagonista");
-
+  scene.querySelector(".idle-followers")?.setAttribute("aria-label", "Naturion ativo acompanhando atrás do protagonista");
   scene.dataset.treadmillReady = "true";
+  void loadRequestedBackground(scene);
   return true;
 };
 
-const enhanceAfterOpen = () => {
-  requestAnimationFrame(() => {
-    if (enhanceScene()) return;
-    window.setTimeout(enhanceScene, 80);
-  });
-};
+const enhanceAfterOpen = () => requestAnimationFrame(() => {
+  if (!enhanceScene()) window.setTimeout(enhanceScene, 80);
+});
 
 window.addEventListener("naturion:open-echo-overworld", enhanceAfterOpen);
-
 if (document.getElementById(SCREEN_ID)?.querySelector(".idle-scene")) enhanceScene();
