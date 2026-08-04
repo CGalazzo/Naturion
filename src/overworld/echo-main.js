@@ -14,7 +14,7 @@ const showLoadError = () => {
 
 const loadCore = async () => {
   await import("./idle/phase1-compat.js?v=2");
-  await import("./idle/run-reset-safe.js?v=1");
+  await import("./idle/run-reset-safe.js?v=2");
   await import("./idle/background-fix.js?v=2");
   await import("./idle/phase1.js?v=2");
   coreReady = true;
