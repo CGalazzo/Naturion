@@ -2,7 +2,7 @@ const MAP_ID = "clareira-dos-ecos-overworld";
 const OPEN_EVENT = "naturion:open-echo-overworld";
 const SCREEN_ID = "echoOverworldScreen";
 
-let solvedBeforeEntry = false;
+let puzzleSolvedForRun = false;
 
 const bridge = () => window.NaturionOverworldBridge;
 
@@ -20,72 +20,115 @@ const freshRun = (saved = {}) => ({
   resetAt: new Date().toISOString()
 });
 
-const ensureSolvedTotemState = () => {
+const showToast = (message) => {
+  const element = document.getElementById("toast");
+  if (!element) return;
+  element.textContent = message;
+  element.classList.add("show");
+  window.setTimeout(() => element.classList.remove("show"), 2300);
+};
+
+const syncSolvedTotem = () => {
   const totem = document.querySelector(`#${SCREEN_ID} .idle-totem`);
   if (!totem) return false;
 
-  const sync = () => {
-    if (!solvedBeforeEntry || !totem.classList.contains("visible")) return;
-
-    const small = totem.querySelector("small");
-    const paragraph = totem.querySelector("p");
-    const button = totem.querySelector("[data-action='puzzle']");
-
-    if (small) small.textContent = "Puzzle 1 já concluído";
-    if (paragraph) paragraph.textContent = "O Círculo dos Ecos já foi resolvido nesta jornada. Não é necessário repetir o desafio.";
-    if (button) {
-      button.textContent = "Puzzle já concluído";
-      button.disabled = true;
-    }
-  };
-
-  if (totem.dataset.safeResetObserver !== "true") {
-    totem.dataset.safeResetObserver = "true";
-    new MutationObserver(sync).observe(totem, {
+  if (totem.dataset.entryResetObserver !== "true") {
+    totem.dataset.entryResetObserver = "true";
+    new MutationObserver(syncSolvedTotem).observe(totem, {
       attributes: true,
       attributeFilter: ["class"]
     });
   }
 
-  sync();
+  if (!puzzleSolvedForRun || !totem.classList.contains("visible")) return true;
+
+  const label = totem.querySelector("small");
+  const paragraph = totem.querySelector("p");
+  const button = totem.querySelector("[data-action='puzzle']");
+  const objective = document.querySelector(`#${SCREEN_ID} [data-objective]`);
+
+  if (label) label.textContent = "Puzzle 1 já concluído";
+  if (paragraph) {
+    paragraph.textContent = "O Círculo dos Ecos já foi resolvido. Conclua esta expedição sem repetir o desafio.";
+  }
+  if (button) {
+    button.textContent = "Concluir expedição";
+    button.disabled = false;
+    button.removeAttribute("aria-disabled");
+  }
+  if (objective) objective.textContent = " conclua a expedição e retorne ao mapa.";
   return true;
 };
 
-const resetBeforeEntry = () => {
+const scheduleTotemSync = () => {
+  window.requestAnimationFrame(() => {
+    if (!syncSolvedTotem()) window.setTimeout(syncSolvedTotem, 100);
+  });
+};
+
+const prepareFreshEntry = () => {
   const currentBridge = bridge();
-  if (!currentBridge?.getPlayer) return;
+  const originalGetPlayer = currentBridge?.getPlayer;
+  if (typeof originalGetPlayer !== "function") return;
 
-  const snapshot = currentBridge.getPlayer() || {};
-  snapshot.echoOverworldProgress ||= {};
-  const progress = snapshot.echoOverworldProgress;
-  progress.puzzles ||= {};
+  const actualSnapshot = originalGetPlayer.call(currentBridge) || {};
+  const actualProgress = actualSnapshot.echoOverworldProgress || {};
+  const actualPuzzles = actualProgress.puzzles || {};
+  puzzleSolvedForRun = Boolean(actualPuzzles.echoesSolved);
 
-  solvedBeforeEntry = Boolean(progress.puzzles.echoesSolved);
-  const reset = freshRun(progress.idleExpedition);
+  const reset = freshRun(actualProgress.idleExpedition);
+  const entrySnapshot = {
+    ...actualSnapshot,
+    echoOverworldProgress: {
+      ...actualProgress,
+      idleExpedition: reset,
+      puzzles: {
+        ...actualPuzzles,
+        // Somente a leitura inicial recebe false. A conclusão real é restaurada
+        // logo após o controlador criar o estado local em 0%.
+        echoesSolved: false
+      }
+    }
+  };
 
-  // O controlador original considera um puzzle resolvido como progresso 100%.
-  // A flag é ocultada apenas durante esta abertura para que ele leia 0%.
-  progress.idleExpedition = reset;
-  progress.puzzles.echoesSolved = false;
+  const entryGetPlayer = () => entrySnapshot;
+  currentBridge.getPlayer = entryGetPlayer;
 
-  queueMicrotask(() => {
-    progress.puzzles.echoesSolved = solvedBeforeEntry;
+  window.setTimeout(() => {
+    if (currentBridge.getPlayer === entryGetPlayer) {
+      currentBridge.getPlayer = originalGetPlayer;
+    }
+
     currentBridge.saveEchoMapState?.({
       mapId: MAP_ID,
       idleExpedition: reset,
       puzzles: {
-        ...progress.puzzles,
-        echoesSolved: solvedBeforeEntry
+        ...actualPuzzles,
+        echoesSolved: puzzleSolvedForRun
       },
       runResetAt: new Date().toISOString()
     });
 
-    window.requestAnimationFrame(() => {
-      if (!ensureSolvedTotemState()) {
-        window.setTimeout(ensureSolvedTotemState, 100);
-      }
-    });
-  });
+    scheduleTotemSync();
+  }, 0);
 };
 
-window.addEventListener(OPEN_EVENT, resetBeforeEntry, { capture: true });
+// Este listener roda antes do listener do controlador da expedição. Assim,
+// phase1.js cria o estado interno em 0%, mesmo quando o puzzle já foi concluído.
+window.addEventListener(OPEN_EVENT, prepareFreshEntry, { capture: true });
+
+// Quando o puzzle já está concluído, o mesmo botão do Totem encerra a nova
+// expedição e retorna ao mapa sem abrir novamente a tela do desafio.
+document.addEventListener("click", (event) => {
+  const button = event.target?.closest?.(`#${SCREEN_ID} [data-action='puzzle']`);
+  if (!button || !puzzleSolvedForRun) return;
+
+  const totem = button.closest(".idle-totem");
+  if (!totem?.classList.contains("visible")) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  button.disabled = true;
+  showToast("Expedição concluída · Puzzle 1 já estava resolvido.");
+  document.querySelector(`#${SCREEN_ID} [data-action='map']`)?.click();
+}, true);
