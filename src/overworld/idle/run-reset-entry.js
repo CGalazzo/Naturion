@@ -1,8 +1,20 @@
 const MAP_ID = "clareira-dos-ecos-overworld";
 const OPEN_EVENT = "naturion:open-echo-overworld";
 const SOLVED_MARKER = "naturion:echo-puzzle-1-solved";
+const BROKEN_SAVE_RECOVERY = "naturion:echo-broken-save-recovery-v1";
 
 const bridge = () => window.NaturionOverworldBridge;
+
+const consumeBrokenSaveRecovery = () => {
+  try {
+    if (window.localStorage.getItem(BROKEN_SAVE_RECOVERY) === "done") return false;
+    window.localStorage.setItem(BROKEN_SAVE_RECOVERY, "done");
+    window.localStorage.removeItem(SOLVED_MARKER);
+    return true;
+  } catch {
+    return true;
+  }
+};
 
 const hasRealPuzzleCompletion = (progress = {}) => {
   if (progress.puzzleOneSolvedAt) return true;
@@ -51,10 +63,11 @@ const resetRunBeforeEntry = () => {
   snapshot.echoOverworldProgress ||= {};
   const progress = snapshot.echoOverworldProgress;
   progress.puzzles ||= {};
+  const forceRecovery = consumeBrokenSaveRecovery();
 
-  // Só preserva 100% quando o Puzzle foi realmente resolvido. Um simples
-  // alcance do Totem não pode deixar a expedição marcada como concluída.
-  if (hasRealPuzzleCompletion(progress)) return;
+  // Após a limpeza única do estado quebrado, uma conclusão real volta a ser
+  // preservada normalmente nas próximas entradas.
+  if (!forceRecovery && hasRealPuzzleCompletion(progress)) return;
 
   const saved = progress.idleExpedition || {};
   const reset = {
@@ -68,7 +81,7 @@ const resetRunBeforeEntry = () => {
     defeats: 0,
     puzzleUnlocked: false,
     completed: false,
-    lastResetReason: "entry",
+    lastResetReason: forceRecovery ? "broken-save-recovery" : "entry",
     updatedAt: new Date().toISOString()
   };
 
