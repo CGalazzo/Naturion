@@ -18,9 +18,11 @@ const loadCore = () => {
   if (coreReady) return Promise.resolve();
   if (!corePromise) {
     corePromise = (async () => {
-      // Somente estes dois módulos são necessários para abrir a tela.
-      await import("./idle/phase1-compat.js?v=3");
-      await import("./idle/phase1.js?v=3");
+      // O ciclo de entrada/saída é carregado antes do controlador para que o
+      // reset em 0% aconteça antes de phase1.js ler o save.
+      await import("./idle/run-lifecycle-core.js?v=1");
+      await import("./idle/phase1-compat.js?v=4");
+      await import("./idle/phase1.js?v=4");
       coreReady = true;
     })().catch((error) => {
       corePromise = null;
@@ -35,12 +37,11 @@ const loadCore = () => {
 const loadEnhancements = () => {
   if (enhancementsPromise) return enhancementsPromise;
 
-  // Melhorias visuais e complementares nunca podem impedir a entrada no mapa.
+  // Melhorias visuais nunca podem impedir a abertura da Clareira.
   const modules = [
-    ["./idle/background-fix.js?v=3", "fundo"],
-    ["./idle/treadmill.js?v=6", "esteira"],
-    ["./idle/battle-encounter-polish.js?v=3", "encontros e EXP"],
-    ["./idle/totem-run-reset.js?v=4", "Totem e reinício"]
+    ["./idle/background-fix.js?v=4", "fundo"],
+    ["./idle/treadmill.js?v=7", "esteira"],
+    ["./idle/battle-encounter-polish.js?v=4", "encontros e EXP"]
   ];
 
   enhancementsPromise = Promise.allSettled(modules.map(([path, label]) => (
@@ -63,16 +64,12 @@ const openAfterCoreLoad = () => {
     redispatching = false;
   }
 
-  // A Clareira já está aberta neste ponto. Os complementos entram depois e
-  // cada um possui sua própria inicialização sobre a cena existente.
   window.requestAnimationFrame(() => { void loadEnhancements(); });
 };
 
 window.addEventListener(OPEN_EVENT, (event) => {
   if (coreReady || redispatching) return;
 
-  // Segura somente a primeira tentativa de entrada enquanto o controlador
-  // essencial é baixado. Cliques adicionais reutilizam a mesma promessa.
   event.stopImmediatePropagation();
   pendingDetail = event.detail;
 
