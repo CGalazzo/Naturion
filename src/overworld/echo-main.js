@@ -18,11 +18,11 @@ const loadCore = () => {
   if (coreReady) return Promise.resolve();
   if (!corePromise) {
     corePromise = (async () => {
-      // O ciclo de entrada/saída é carregado antes do controlador para que o
-      // reset em 0% aconteça antes de phase1.js ler o save.
-      await import("./idle/run-lifecycle-core.js?v=1");
-      await import("./idle/phase1-compat.js?v=4");
-      await import("./idle/phase1.js?v=4");
+      // Apenas a regra de reset e o controlador original da expedição.
+      // Nenhum CSS, imagem ou observador visual é executado antes da tela.
+      await import("./idle/run-reset-entry.js?v=1");
+      await import("./idle/phase1-compat.js?v=3");
+      await import("./idle/phase1.js?v=3");
       coreReady = true;
     })().catch((error) => {
       corePromise = null;
@@ -37,11 +37,13 @@ const loadCore = () => {
 const loadEnhancements = () => {
   if (enhancementsPromise) return enhancementsPromise;
 
-  // Melhorias visuais nunca podem impedir a abertura da Clareira.
+  // Restaura exatamente os complementos visuais usados antes da regressão.
+  // Qualquer falha individual não impede a abertura da Clareira.
   const modules = [
-    ["./idle/background-fix.js?v=4", "fundo"],
-    ["./idle/treadmill.js?v=7", "esteira"],
-    ["./idle/battle-encounter-polish.js?v=4", "encontros e EXP"]
+    ["./idle/background-fix.js?v=3", "fundo"],
+    ["./idle/treadmill.js?v=6", "esteira"],
+    ["./idle/battle-encounter-polish.js?v=3", "encontros e EXP"],
+    ["./idle/totem-run-reset.js?v=4", "Totem e reinício"]
   ];
 
   enhancementsPromise = Promise.allSettled(modules.map(([path, label]) => (
