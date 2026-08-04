@@ -1,21 +1,51 @@
-import "./idle/phase1-compat.js?v=1";
-import "./idle/background-fix.js?v=1";
-import "./idle/phase1.js?v=1";
-import "./idle/treadmill.js?v=4";
-import "./idle/battle-encounter-polish.js?v=1";
+const OPEN_EVENT = "naturion:open-echo-overworld";
 
-// O módulo do Totem só é necessário dentro da expedição. Carregá-lo na tela
-// inicial instalava observadores globais antes de o jogo terminar de iniciar.
-let totemRunResetModule = null;
+let idleModulesReady = false;
+let idleModulesPromise = null;
+let redispatching = false;
 
-const loadTotemRunReset = () => {
-  if (!totemRunResetModule) {
-    totemRunResetModule = import("./idle/totem-run-reset.js?v=2").catch((error) => {
-      console.error("[Naturion] Falha ao carregar o encontro final da Clareira.", error);
-      totemRunResetModule = null;
-    });
-  }
-  return totemRunResetModule;
+const showLoadError = () => {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = "Não foi possível carregar a Clareira dos Ecos. Tente novamente.";
+  toast.classList.add("show");
+  window.setTimeout(() => toast.classList.remove("show"), 3000);
 };
 
-window.addEventListener("naturion:open-echo-overworld", loadTotemRunReset);
+const loadIdleModules = async () => {
+  if (idleModulesReady) return;
+  if (!idleModulesPromise) {
+    idleModulesPromise = (async () => {
+      await import("./idle/phase1-compat.js?v=2");
+      await import("./idle/background-fix.js?v=2");
+      await import("./idle/phase1.js?v=2");
+      await import("./idle/treadmill.js?v=5");
+      await import("./idle/battle-encounter-polish.js?v=2");
+      await import("./idle/totem-run-reset.js?v=3");
+      idleModulesReady = true;
+    })().catch((error) => {
+      idleModulesPromise = null;
+      console.error("[Naturion] Falha ao carregar os módulos da expedição idle.", error);
+      showLoadError();
+      throw error;
+    });
+  }
+  await idleModulesPromise;
+};
+
+window.addEventListener(OPEN_EVENT, async (event) => {
+  if (idleModulesReady || redispatching) return;
+
+  // Impede que uma abertura parcial continue enquanto os módulos ainda não
+  // existem. A abertura é reenviada assim que todos estiverem prontos.
+  event.stopImmediatePropagation();
+  const detail = event.detail;
+
+  try {
+    await loadIdleModules();
+    redispatching = true;
+    window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail }));
+  } finally {
+    redispatching = false;
+  }
+}, { capture: true });
