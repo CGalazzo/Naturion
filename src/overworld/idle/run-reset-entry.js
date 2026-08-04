@@ -1,17 +1,60 @@
 const MAP_ID = "clareira-dos-ecos-overworld";
 const OPEN_EVENT = "naturion:open-echo-overworld";
+const SOLVED_MARKER = "naturion:echo-puzzle-1-solved";
+
+const bridge = () => window.NaturionOverworldBridge;
+
+const hasRealPuzzleCompletion = (progress = {}) => {
+  if (progress.puzzleOneSolvedAt) return true;
+  try {
+    return Boolean(window.localStorage.getItem(SOLVED_MARKER));
+  } catch {
+    return false;
+  }
+};
+
+const installCompletionMarker = () => {
+  const currentBridge = bridge();
+  const currentSave = currentBridge?.saveEchoMapState;
+  if (!currentSave || currentSave.__naturionPuzzleCompletionMarker) return;
+
+  const originalSave = currentSave.bind(currentBridge);
+  const wrappedSave = (payload = {}) => {
+    const realCompletion = Boolean(
+      payload.puzzleOneSolvedAt
+      && payload.puzzles?.echoesSolved
+      && payload.idleExpedition?.completed
+    );
+
+    if (realCompletion) {
+      try {
+        window.localStorage.setItem(SOLVED_MARKER, String(payload.puzzleOneSolvedAt));
+      } catch {
+        // O save principal continua funcionando mesmo sem localStorage.
+      }
+    }
+
+    return originalSave(payload);
+  };
+
+  wrappedSave.__naturionPuzzleCompletionMarker = true;
+  currentBridge.saveEchoMapState = wrappedSave;
+};
 
 const resetRunBeforeEntry = () => {
-  const bridge = window.NaturionOverworldBridge;
-  if (!bridge?.getPlayer) return;
+  installCompletionMarker();
 
-  const snapshot = bridge.getPlayer() || {};
+  const currentBridge = bridge();
+  if (!currentBridge?.getPlayer) return;
+
+  const snapshot = currentBridge.getPlayer() || {};
   snapshot.echoOverworldProgress ||= {};
   const progress = snapshot.echoOverworldProgress;
   progress.puzzles ||= {};
 
-  // Depois que o Puzzle 1 foi concluído, o resultado permanece salvo.
-  if (progress.puzzles.echoesSolved) return;
+  // Só preserva 100% quando o Puzzle foi realmente resolvido. Um simples
+  // alcance do Totem não pode deixar a expedição marcada como concluída.
+  if (hasRealPuzzleCompletion(progress)) return;
 
   const saved = progress.idleExpedition || {};
   const reset = {
@@ -29,12 +72,13 @@ const resetRunBeforeEntry = () => {
     updatedAt: new Date().toISOString()
   };
 
-  // Atualiza o objeto em memória antes de phase1.js ler o estado. A gravação
-  // abaixo mantém o mesmo valor no save sem tocar em equipe, níveis ou capturas.
+  // Corrige primeiro o objeto em memória, para que phase1.js nunca leia o
+  // estado falso de 100% mostrado na captura.
   progress.idleExpedition = reset;
   progress.puzzles = { ...progress.puzzles, echoesSolved: false };
+  delete progress.puzzleOneSolvedAt;
 
-  bridge.saveEchoMapState?.({
+  currentBridge.saveEchoMapState?.({
     mapId: MAP_ID,
     idleExpedition: reset,
     puzzles: progress.puzzles,
@@ -42,4 +86,5 @@ const resetRunBeforeEntry = () => {
   });
 };
 
+installCompletionMarker();
 window.addEventListener(OPEN_EVENT, resetRunBeforeEntry, { capture: true });
