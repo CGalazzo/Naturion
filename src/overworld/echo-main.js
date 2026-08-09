@@ -1,4 +1,4 @@
 import "./idle/phase1-compat.js?v=1";
 import "./idle/background-fix.js?v=1";
-import "./idle/phase1.js?v=2";
+import "./idle/phase1.js?v=3";
 import "./idle/treadmill.js?v=5";

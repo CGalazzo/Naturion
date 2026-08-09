@@ -39,6 +39,7 @@ let lastSave = 0;
 let logs = [];
 let defeatCountdownTimer = 0;
 let defeatSeconds = 5;
+let encounterPhase = "idle";
 
 const html = (value) => String(value ?? "")
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -61,6 +62,7 @@ const loadState = () => {
     progress: 0,
     running: false,
     speed: [1, 2, 3].includes(Number(saved.speed)) ? Number(saved.speed) : 1,
+    battleMode: saved.battleMode === "manual" ? "manual" : "automatic",
     completedIds: [],
     wins: Math.max(0, Number(saved.battlesWon) || 0),
     captures: Math.max(0, Number(saved.captures) || 0),
@@ -75,6 +77,7 @@ const savePayload = () => ({
   progress: Number(state.progress.toFixed(2)),
   running: Boolean(state.running && !busy && !state.completed),
   speed: state.speed,
+  battleMode: state.battleMode,
   completedEncounterIds: [...state.completedIds],
   battlesWon: state.wins,
   captures: state.captures,
@@ -143,7 +146,7 @@ const ensureCss = () => {
   const link = document.createElement("link");
   link.id = "idlePhaseOneCss";
   link.rel = "stylesheet";
-  link.href = "src/overworld/idle/phase1.css?v=3";
+  link.href = "src/overworld/idle/phase1.css?v=4";
   document.head.append(link);
 };
 
@@ -201,6 +204,11 @@ const build = () => {
               <button class="idle-speed" type="button" data-speed="2">2×</button>
               <button class="idle-speed" type="button" data-speed="3">3×</button>
             </div>
+            <h2 class="idle-mode-heading">Modo de batalha</h2>
+            <button class="idle-battle-mode" type="button" data-action="battle-mode" data-mode="automatic" aria-pressed="true">
+              <strong data-battle-mode-title>Automática</strong>
+              <small data-battle-mode-help>A equipe escolhe seus próprios golpes.</small>
+            </button>
           </section>
           <section class="idle-card log-card"><h2>Registro</h2><div class="idle-log" aria-live="polite"></div></section>
         </aside>
@@ -213,7 +221,7 @@ const build = () => {
     <div class="idle-team" hidden>
       <section class="idle-team-dialog" role="dialog" aria-modal="true">
         <header><h2>Equipe da expedição</h2><button class="idle-btn alt" type="button" data-action="close-team">Fechar</button></header>
-        <p>As batalhas usam automaticamente a ordem atual da equipe.</p>
+        <p>As batalhas respeitam a ordem atual da equipe.</p>
         <div class="idle-team-grid"></div>
       </section>
     </div>
@@ -252,6 +260,9 @@ const build = () => {
     toggle: screen.querySelector("[data-action=toggle]"),
     map: screen.querySelector("[data-action=map]"),
     team: screen.querySelector("[data-action=team]"),
+    battleMode: screen.querySelector("[data-action=battle-mode]"),
+    battleModeTitle: screen.querySelector("[data-battle-mode-title]"),
+    battleModeHelp: screen.querySelector("[data-battle-mode-help]"),
     puzzleButton: screen.querySelector("[data-action=puzzle]"),
     speedButtons: [...screen.querySelectorAll("[data-speed]")],
     log: screen.querySelector(".idle-log"),
@@ -267,6 +278,7 @@ const build = () => {
   ui.toggle.addEventListener("click", toggle);
   ui.map.addEventListener("click", returnMap);
   ui.team.addEventListener("click", openTeam);
+  ui.battleMode.addEventListener("click", toggleBattleMode);
   ui.closeTeam.addEventListener("click", closeTeam);
   ui.teamModal.addEventListener("click", (event) => { if (event.target === ui.teamModal) closeTeam(); });
   ui.puzzleButton.addEventListener("click", () => puzzle?.open());
@@ -395,6 +407,14 @@ const render = () => {
         : "Iniciar expedição";
   ui.team.disabled = busy;
   ui.map.disabled = busy;
+  const automaticBattle = state.battleMode !== "manual";
+  ui.battleMode.disabled = busy;
+  ui.battleMode.dataset.mode = automaticBattle ? "automatic" : "manual";
+  ui.battleMode.setAttribute("aria-pressed", String(automaticBattle));
+  ui.battleModeTitle.textContent = automaticBattle ? "Automática" : "Manual";
+  ui.battleModeHelp.textContent = automaticBattle
+    ? "A equipe escolhe seus próprios golpes."
+    : "Você escolhe ataque, defesa ou fuga.";
   ui.speedButtons.forEach((button) => {
     button.classList.toggle("active", Number(button.dataset.speed) === state.speed);
     button.disabled = busy || state.completed;
@@ -414,10 +434,16 @@ const render = () => {
     ui.sceneMessage.textContent = "Interaja com o Totem para iniciar o Puzzle 1.";
     ui.objective.textContent = " resolva o Círculo dos Ecos.";
   } else if (busy) {
-    ui.objective.textContent = " acompanhe a batalha automática e escolha se deseja absorver.";
+    if (encounterPhase === "approaching") {
+      ui.objective.textContent = " aguarde o Naturion alcançar sua equipe.";
+    } else {
+      ui.objective.textContent = automaticBattle
+        ? " acompanhe a batalha automática e escolha se deseja absorver."
+        : " escolha os golpes do seu Naturion e decida se deseja absorver.";
+    }
   } else if (state.running) {
     ui.sceneTitle.textContent = segment;
-    ui.sceneMessage.textContent = `A equipe avança automaticamente em ${state.speed}×.`;
+    ui.sceneMessage.textContent = `A equipe avança em ${state.speed}× · batalha ${automaticBattle ? "automática" : "manual"}.`;
     ui.objective.textContent = ` avance pela ${segment}.`;
   } else {
     ui.sceneTitle.textContent = progress ? "Expedição pausada" : "Equipe pronta";
@@ -428,15 +454,44 @@ const render = () => {
 
 const wildPreview = (encounter = null) => {
   if (!encounter) {
-    ui.wild.classList.remove("visible");
+    ui.wild.classList.remove("visible", "approaching", "at-contact");
+    ui.wild.removeAttribute("data-locomotion");
+    ui.wild.style.removeProperty("--wild-ground-offset");
     return;
   }
   const form = formFor(encounter.formId);
   ui.wildImage.src = form.image || "";
   ui.wildImage.alt = form.name;
   ui.wildLabel.textContent = `${form.name} · Nv. ${encounter.level}`;
+  ui.wild.dataset.locomotion = form.flying ? "flying" : "ground";
+  ui.wild.style.setProperty("--wild-ground-offset", form.flying ? "0%" : `${Number(form.groundOffset) || 0}%`);
+  ui.wild.classList.remove("approaching", "at-contact");
   ui.wild.classList.add("visible");
 };
+
+const approachWild = (encounter) => new Promise((resolve) => {
+  wildPreview(encounter);
+  const duration = reducedMotion() ? 260 : 1250;
+  ui.wild.style.setProperty("--wild-approach-duration", `${duration}ms`);
+  void ui.wild.offsetWidth;
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    window.clearTimeout(fallback);
+    ui.wild.removeEventListener("transitionend", onTransitionEnd);
+    ui.wild.classList.remove("approaching");
+    ui.wild.classList.add("at-contact");
+    resolve();
+  };
+  const onTransitionEnd = (event) => {
+    if (event.target === ui.wild && event.propertyName === "right") finish();
+  };
+  const fallback = window.setTimeout(finish, duration + 180);
+  ui.wild.addEventListener("transitionend", onTransitionEnd);
+  requestAnimationFrame(() => ui.wild.classList.add("approaching"));
+});
 
 const openTeam = () => {
   if (!active || busy) return;
@@ -453,6 +508,14 @@ const setSpeed = (speed) => {
   if (busy || state.completed || ![1, 2, 3].includes(speed)) return;
   state.speed = speed;
   addLog(`Velocidade ajustada para ${speed}×.`);
+  render();
+  save(true);
+};
+
+const toggleBattleMode = () => {
+  if (!active || busy || !state) return;
+  state.battleMode = state.battleMode === "manual" ? "automatic" : "manual";
+  addLog(`Batalhas alteradas para o modo ${state.battleMode === "manual" ? "manual" : "automático"}.`);
   render();
   save(true);
 };
@@ -482,11 +545,30 @@ const encounter = async (data) => {
   const resume = state.running;
   state.running = false;
   const form = formFor(data.formId);
-  wildPreview(data);
-  addLog(`${form.name} apareceu. Batalha automática iniciada.`, "battle");
+  encounterPhase = "approaching";
+  ui.sceneTitle.textContent = `${form.name} avistou sua equipe`;
+  ui.sceneMessage.textContent = form.flying
+    ? "Ele voa em sua direção. A batalha começa somente no contato."
+    : "Ele corre em sua direção. A batalha começa somente no contato.";
+  addLog(`${form.name} apareceu e está se aproximando.`, "battle");
   render();
   save(true);
-  await sleep(reducedMotion() ? 50 : 550);
+  await approachWild(data);
+
+  if (!active) {
+    busy = false;
+    encounterPhase = "idle";
+    wildPreview();
+    return;
+  }
+  encounterPhase = "battle";
+  const automaticBattle = state.battleMode !== "manual";
+  ui.sceneTitle.textContent = `Encontro com ${form.name}`;
+  ui.sceneMessage.textContent = automaticBattle
+    ? "Sua equipe assumiu os comandos da batalha."
+    : "Escolha cada ação usando os comandos de batalha.";
+  addLog(`Contato! Batalha ${automaticBattle ? "automática" : "manual"} iniciada.`, "battle");
+  render();
 
   const promise = bridge()?.startBattle?.({
     stageId: MAP_ID,
@@ -497,16 +579,18 @@ const encounter = async (data) => {
   });
   if (!promise?.then) {
     busy = false;
+    encounterPhase = "idle";
     wildPreview();
     addLog("O sistema de batalha não respondeu.", "danger");
     render();
     save(true);
     return;
   }
-  const timer = setInterval(autoAttack, 260);
+  const timer = automaticBattle ? setInterval(autoAttack, 260) : 0;
   let result;
-  try { result = await promise; } finally { clearInterval(timer); }
+  try { result = await promise; } finally { if (timer) clearInterval(timer); }
   busy = false;
+  encounterPhase = "idle";
   wildPreview();
 
   if (result?.outcome === "victory") {
@@ -755,6 +839,7 @@ const enter = () => {
     puzzle = new PuzzleOne();
   }
   state = loadState();
+  encounterPhase = "idle";
   hideDefeatModal();
   logs = [];
   addLog(state.replay
