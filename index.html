@@ -7036,6 +7036,56 @@
       transition: width .35s steps(8, end);
     }
 
+    .echo-battle-exp {
+      display: grid;
+      grid-template-columns: auto minmax(70px, 1fr) auto;
+      align-items: center;
+      gap: 6px;
+      margin-top: 7px;
+      color: #8de8ff;
+      font-size: .48rem;
+      font-weight: 1000;
+    }
+
+    .echo-exp-track {
+      height: 8px;
+      overflow: hidden;
+      border: 1px solid #426a73;
+      border-radius: 2px;
+      background: #0a2023;
+    }
+
+    .echo-exp-track i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #3ba9e8, #91f3ff);
+      box-shadow: 0 0 6px rgba(105, 224, 255, .72);
+      transition: width .45s steps(10, end);
+    }
+
+    .echo-battle-exp small {
+      color: #d5eee6;
+      font-size: .44rem;
+      white-space: nowrap;
+    }
+
+    .echo-entry-card .echo-choice-countdown {
+      padding: 8px 11px;
+      border: 2px solid #557568;
+      color: #dff8ed;
+      background: rgba(3, 22, 15, .76);
+      font-size: clamp(.62rem, 1.6vw, .74rem);
+    }
+
+    .echo-choice-countdown strong {
+      display: inline-grid;
+      min-width: 1.55em;
+      place-items: center;
+      color: #fff0a0;
+      font-size: 1.18em;
+    }
+
     .echo-battle-message {
       position: absolute;
       z-index: 5;
@@ -8981,6 +9031,11 @@
                 <em id="echoBattlePlayerLevel">Nv. 5</em>
               </header>
               <div class="echo-hp-track"><i id="echoBattlePlayerHp"></i></div>
+              <div class="echo-battle-exp" aria-label="Experiência para o próximo nível">
+                <span>EXP</span>
+                <div class="echo-exp-track"><i id="echoBattlePlayerExp"></i></div>
+                <small id="echoBattlePlayerExpText">Faltam 0 EXP</small>
+              </div>
             </div>
           </article>
           <article class="echo-fighter wild" id="echoWildFighter">
@@ -9007,6 +9062,9 @@
             <small>Batalha concluída</small>
             <h2 id="echoBattleChoiceTitle">A essência está livre</h2>
             <p id="echoBattleChoiceText">Deseja tentar absorver a essência deste Naturion com seu Relógio Cristalíneo?</p>
+            <p class="echo-choice-countdown" id="echoBattleChoiceTimer" aria-live="polite">
+              O Naturion partirá em <strong>5</strong> segundos se nenhuma opção for escolhida.
+            </p>
             <div class="echo-entry-actions">
               <button class="echo-button" id="echoTryAbsorb" type="button">Tentar absorver</button>
               <button class="echo-button secondary" id="echoReleaseWild" type="button">Deixar partir</button>
@@ -9363,6 +9421,8 @@
       const echoBattleWildImage = document.getElementById("echoBattleWildImage");
       const echoBattlePlayerName = document.getElementById("echoBattlePlayerName");
       const echoBattlePlayerLevel = document.getElementById("echoBattlePlayerLevel");
+      const echoBattlePlayerExp = document.getElementById("echoBattlePlayerExp");
+      const echoBattlePlayerExpText = document.getElementById("echoBattlePlayerExpText");
       const echoBattleWildName = document.getElementById("echoBattleWildName");
       const echoBattleWildLevel = document.getElementById("echoBattleWildLevel");
       const echoBattlePlayerHp = document.getElementById("echoBattlePlayerHp");
@@ -9372,6 +9432,7 @@
       const echoElementalHint = document.getElementById("echoElementalHint");
       const echoBattleChoice = document.getElementById("echoBattleChoice");
       const echoBattleChoiceText = document.getElementById("echoBattleChoiceText");
+      const echoBattleChoiceTimer = document.getElementById("echoBattleChoiceTimer");
       const echoTryAbsorb = document.getElementById("echoTryAbsorb");
       const echoReleaseWild = document.getElementById("echoReleaseWild");
       const echoAbsorption = document.getElementById("echoAbsorption");
@@ -9485,6 +9546,8 @@
       let echoPendingPassage = null;
       let echoEvolutionQueue = [];
       let echoEvolutionTimer = 0;
+      let echoBattleChoiceInterval = 0;
+      let echoBattleChoiceSeconds = 5;
       const echoInput = { left: false, right: false };
 
       const STARTERS = {
@@ -12586,11 +12649,13 @@ if (wild) echoWilds.push(wild);
         echoBattleWildHp.style.width = `${Math.max(0, echoWildHpValue / echoWildMaxHp * 100)}%`;
         const member = getEchoBattleMember();
         member.currentHp = Math.max(0, echoPlayerHpValue);
+        updateEchoBattleExperience(member);
         echoHudHpTrack.style.setProperty("--echo-hp", `${Math.max(0, echoPlayerHpValue / echoPlayerMaxHp * 100)}%`);
       };
 
       const startEchoBattle = (wild) => {
         if (!echoActive || !echoBattle.hidden || wild.spent) return;
+        clearEchoBattleChoiceTimer();
         echoActive = false;
         cancelAnimationFrame(echoFrame);
         resetEchoMovement();
@@ -12643,6 +12708,34 @@ if (wild) echoWilds.push(wild);
 
       const xpToNextEchoLevel = (level) => 55 + level * 20;
 
+      const updateEchoBattleExperience = (member) => {
+        const required = xpToNextEchoLevel(Math.max(1, Number(member.level) || 1));
+        const current = Math.max(0, Math.min(required, Number(member.experience) || 0));
+        const remaining = Math.max(0, required - current);
+        echoBattlePlayerExp.style.width = `${required ? current / required * 100 : 0}%`;
+        echoBattlePlayerExpText.textContent = `Faltam ${remaining} EXP para Nv. ${Number(member.level) + 1}`;
+      };
+
+      const clearEchoBattleChoiceTimer = () => {
+        window.clearInterval(echoBattleChoiceInterval);
+        echoBattleChoiceInterval = 0;
+      };
+
+      const startEchoBattleChoiceTimer = () => {
+        clearEchoBattleChoiceTimer();
+        echoBattleChoiceSeconds = 5;
+        const output = echoBattleChoiceTimer.querySelector("strong");
+        output.textContent = String(echoBattleChoiceSeconds);
+        echoBattleChoiceInterval = window.setInterval(() => {
+          echoBattleChoiceSeconds -= 1;
+          output.textContent = String(Math.max(0, echoBattleChoiceSeconds));
+          if (echoBattleChoiceSeconds <= 0) {
+            clearEchoBattleChoiceTimer();
+            releaseEchoWild(true);
+          }
+        }, 1000);
+      };
+
       const queueMemberEvolution = (member) => {
         const currentForm = getMemberForm(member);
         const chain = getEvolutionChain(currentForm.id);
@@ -12682,11 +12775,13 @@ if (wild) echoWilds.push(wild);
         getEchoRoster()
           .filter((member) => member !== activeMember)
           .forEach((member) => grantEchoExperience(member, Math.max(8, Math.floor(gainedXp * .55))));
+        updateEchoBattleExperience(activeMember);
         removeEchoEncounter();
         saveCurrentPlayer();
         await forestPause(720);
         echoBattleChoiceText.textContent = `${getMemberForm(activeMember).name} recebeu +${gainedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
         echoBattleChoice.hidden = false;
+        startEchoBattleChoiceTimer();
         echoTryAbsorb.focus();
       };
 
@@ -12695,6 +12790,7 @@ if (wild) echoWilds.push(wild);
       const finishOverworldLegacyBattle = (result = {}) => {
         const context = overworldBattleContext;
         if (!context) return false;
+        clearEchoBattleChoiceTimer();
         overworldBattleContext = null;
         echoActive = false;
         cancelAnimationFrame(echoFrame);
@@ -12761,6 +12857,7 @@ if (wild) echoWilds.push(wild);
       };
 
       const resolveEchoPartyDefeat = async () => {
+        clearEchoBattleChoiceTimer();
         echoBattleLocked = true;
         setEchoBattleControls(false);
         echoBattleMessage.textContent = "Toda a equipe ficou sem energia. O Relógio Cristalíneo conduziu o grupo para um ponto seguro.";
@@ -12949,6 +13046,7 @@ if (wild) echoWilds.push(wild);
       };
 
       const finishEchoEncounter = () => {
+        clearEchoBattleChoiceTimer();
         resetEchoMovement();
         echoBattle.hidden = true;
         echoBattleChoice.hidden = true;
@@ -12960,11 +13058,14 @@ if (wild) echoWilds.push(wild);
         showNextEchoEvolution();
       };
 
-      const releaseEchoWild = () => {
+      const releaseEchoWild = (automatic = false) => {
         if (!echoEncounter) return;
+        clearEchoBattleChoiceTimer();
         if (overworldBattleContext) overworldBattleContext.result = { outcome: "victory", captured: false };
         echoBattleChoice.hidden = true;
-        echoBattleMessage.textContent = `A essência de ${echoEncounter.form.name} retornou ao cristal, agora estabilizado.`;
+        echoBattleMessage.textContent = automatic
+          ? `O tempo se esgotou. ${echoEncounter.form.name} partiu em segurança e a jornada continuará.`
+          : `A essência de ${echoEncounter.form.name} retornou ao cristal, agora estabilizado.`;
         playSequence([659, 523, 392], .06);
         window.setTimeout(finishEchoEncounter, prefersLessMotion() ? 80 : 680);
       };
@@ -13024,6 +13125,7 @@ if (wild) echoWilds.push(wild);
 
       const tryEchoAbsorption = async () => {
         if (!echoEncounter || echoAbsorption.dataset.busy === "true") return;
+        clearEchoBattleChoiceTimer();
         const wild = echoEncounter;
         const style = getEchoTypeStyle(wild.form.type);
         const chance = wild.form.stage === 1 ? .82 : wild.form.stage === 2 ? .6 : .38;
@@ -13626,7 +13728,7 @@ if (wild) echoWilds.push(wild);
         void tryEchoAbsorption();
       });
 
-      echoReleaseWild.addEventListener("click", releaseEchoWild);
+      echoReleaseWild.addEventListener("click", () => releaseEchoWild(false));
 
       echoEvolutionContinue.addEventListener("click", () => {
         window.clearTimeout(echoEvolutionTimer);
@@ -13872,6 +13974,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js"></script>
-  <script type="module" src="src/overworld/echo-main.js?v=5"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=6"></script>
 </body>
 </html>
