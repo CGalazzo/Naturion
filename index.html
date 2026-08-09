@@ -5191,6 +5191,11 @@
       background: linear-gradient(180deg, #4188a0 0 18%, #1d5f7b 19% 76%, #12384e 77%);
     }
 
+    .world-map-tool.team {
+      color: #fff0a5;
+      background: linear-gradient(180deg, #907449 0 18%, #62451f 19% 76%, #382711 77%);
+    }
+
     .world-map-tool.saved {
       animation: world-save-confirm .58s steps(5, end);
     }
@@ -6348,6 +6353,11 @@
       z-index: 74;
     }
 
+    .echo-team {
+      position: fixed;
+      z-index: 180;
+    }
+
     .echo-team[hidden],
     .echo-passage-confirm[hidden] {
       display: none !important;
@@ -6377,6 +6387,16 @@
       color: #fff0a2;
       font-size: clamp(1.05rem, 2.2vw, 1.38rem);
       text-transform: uppercase;
+    }
+
+    .echo-team-hint {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border: 2px solid #4f745b;
+      color: #d9f3df;
+      background: rgba(5, 31, 21, .82);
+      font-size: .66rem;
+      line-height: 1.5;
     }
 
     .echo-roster-label {
@@ -6422,11 +6442,45 @@
       text-align: center;
     }
 
+    .echo-member-card {
+      cursor: pointer;
+    }
+
+    .echo-member-card:focus-visible,
+    .echo-empty-slot:focus-visible {
+      outline: 3px solid #79ecff;
+      outline-offset: 2px;
+    }
+
     .echo-member-card.leader {
       border-color: #f0d35f;
       box-shadow:
         inset 0 0 18px rgba(240, 211, 95, .15),
         0 4px 0 #553d0b;
+    }
+
+    .echo-member-card.selected {
+      border-color: #79ecff;
+      outline: 2px solid #79ecff;
+      outline-offset: -6px;
+      box-shadow:
+        inset 0 0 20px rgba(92, 225, 255, .2),
+        0 4px 0 #173b43;
+    }
+
+    .echo-member-position {
+      position: absolute;
+      top: 7px;
+      left: 7px;
+      display: grid;
+      min-width: 30px;
+      height: 25px;
+      place-items: center;
+      border: 2px solid #dac257;
+      color: #fff4a5;
+      background: #173b2a;
+      font-size: .56rem;
+      font-weight: 1000;
     }
 
     .echo-member-card img {
@@ -6439,13 +6493,41 @@
 
     .echo-member-card strong {
       color: #fff4ae;
-      font-size: .73rem;
+      font-size: .8rem;
     }
 
     .echo-member-card small {
       color: #a9e4c4;
-      font-size: .6rem;
+      font-size: .64rem;
       line-height: 1.35;
+    }
+
+    .echo-member-exp {
+      display: grid;
+      width: 100%;
+      gap: 3px;
+      color: #93e9ff;
+      font-size: .55rem;
+    }
+
+    .echo-member-exp span {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .echo-member-exp i {
+      display: block;
+      height: 7px;
+      overflow: hidden;
+      border: 1px solid #53727a;
+      background: #071b20;
+    }
+
+    .echo-member-exp b {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #3ba8df, #8deeff);
     }
 
     .echo-member-actions {
@@ -6479,6 +6561,12 @@
       border-style: dashed;
       color: #88b29b;
       font-size: .64rem;
+      cursor: pointer;
+    }
+
+    .echo-empty-slot:disabled {
+      cursor: default;
+      opacity: .72;
     }
 
     .echo-storage-empty {
@@ -8650,6 +8738,19 @@
 
         <nav class="world-map-tools" aria-label="Ferramentas do mapa">
           <button
+            class="world-map-tool team"
+            id="worldTeamButton"
+            type="button"
+            aria-label="Gerenciar equipe e depósito"
+            title="Equipe e depósito"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="8" cy="8" r="3"></circle>
+              <circle cx="17" cy="9" r="2.6"></circle>
+              <path d="M2 21c0-4 2.4-6.5 6-6.5s6 2.5 6 6.5H2zm11.2 0c.1-2.6-.7-4.6-2.1-6 1.3-1.2 3-1.8 4.9-1.8 3.5 0 5.8 2.8 6 7.8h-8.8z"></path>
+            </svg>
+          </button>
+          <button
             class="world-map-tool"
             id="worldOptionsButton"
             type="button"
@@ -9136,6 +9237,7 @@
             </span>
             <button class="echo-button secondary" id="echoTeamClose" type="button">Fechar</button>
           </header>
+          <p class="echo-team-hint" id="echoTeamHint">Selecione um Naturion e depois escolha outro membro ou espaço para trocar a posição.</p>
           <div class="echo-roster-label">
             <strong>Equipe ativa</strong>
             <span>Máximo de 3 Naturions</span>
@@ -9359,6 +9461,7 @@
       const journeyUnlocked = document.getElementById("journeyUnlocked");
       const worldOptionsButton = document.getElementById("worldOptionsButton");
       const worldSaveButton = document.getElementById("worldSaveButton");
+      const worldTeamButton = document.getElementById("worldTeamButton");
       const echoEntryConfirm = document.getElementById("echoEntryConfirm");
       const confirmEchoEntry = document.getElementById("confirmEchoEntry");
       const cancelEchoEntry = document.getElementById("cancelEchoEntry");
@@ -9454,6 +9557,7 @@
       const echoPassageNo = document.getElementById("echoPassageNo");
       const echoTeam = document.getElementById("echoTeam");
       const echoTeamClose = document.getElementById("echoTeamClose");
+      const echoTeamHint = document.getElementById("echoTeamHint");
       const echoRoster = document.getElementById("echoRoster");
       const echoStorageGrid = document.getElementById("echoStorageGrid");
       const echoStorageCount = document.getElementById("echoStorageCount");
@@ -9470,6 +9574,7 @@
       const effectsValue = document.getElementById("effectsValue");
       const fullscreen = document.getElementById("fullscreen");
       const motion = document.getElementById("motion");
+      document.body.append(echoTeam);
       let selectedCharacter = "";
       let optionsReturnFocus = optionsButton;
       let currentPlayer = null;
@@ -9548,6 +9653,9 @@
       let echoEvolutionTimer = 0;
       let echoBattleChoiceInterval = 0;
       let echoBattleChoiceSeconds = 5;
+      let echoTeamSelectedUid = "";
+      let echoTeamReturnFocus = echoTeamButton;
+      let echoTeamResumeMapExploring = false;
       const echoInput = { left: false, right: false };
 
       const STARTERS = {
@@ -9927,11 +10035,7 @@
         modal.hidden = true;
         openFirstMissionMap(true);
 
-        const savedForm = NATURION_FORMS[currentPlayer.starter.formId];
-        if (savedForm) {
-          openMapStarter.src = savedForm.image;
-          openMapStarter.alt = savedForm.name;
-        }
+        refreshEchoStarterUI();
 
         const duration = prefersLessMotion() ? 0 : 430;
         if (duration) {
@@ -11282,7 +11386,10 @@
       };
 
       const openFirstMissionMap = (preserveSavedProgress = false) => {
+        ensureEchoPlayerData();
         const starter = STARTERS[selectedStarter];
+        const worldLead = getEchoRoster()[0] || currentPlayer.starter;
+        const worldLeadForm = getMemberForm(worldLead);
         const savedMission = currentPlayer.activeMission;
         const savedCheckpoint = currentPlayer.lastCheckpoint;
         const savedMapPosition = currentPlayer.manualSave?.mapPosition;
@@ -11296,8 +11403,8 @@
           ? "assets/selection/hero-female.webp"
           : "assets/selection/hero-male.webp";
         openMapHero.alt = currentPlayer.name;
-        openMapStarter.src = currentPlayer.starter?.image || starter.image;
-        openMapStarter.alt = currentPlayer.starter?.name || starter.name;
+        openMapStarter.src = worldLeadForm?.image || starter.image;
+        openMapStarter.alt = worldLeadForm?.name || starter.name;
         firstWorldDestinationReached = Boolean(
           currentPlayer.storyFlags?.firstWorldDestinationReached
         );
@@ -11501,10 +11608,6 @@
             ...(currentPlayer.echoProgress || {})
           }
         };
-        if (currentPlayer.team.length > 2) {
-          currentPlayer.storage.push(...currentPlayer.team.slice(2));
-          currentPlayer.team = currentPlayer.team.slice(0, 2);
-        }
         const starterMaxHp = 34 + currentPlayer.starter.level * 4 + form.stage * 6;
         currentPlayer.starter.maxHp = Math.max(currentPlayer.starter.maxHp, starterMaxHp);
         if (!Number.isFinite(currentPlayer.starter.currentHp)) {
@@ -11515,7 +11618,8 @@
             Math.min(currentPlayer.starter.maxHp, currentPlayer.starter.currentHp)
           );
         }
-        [...currentPlayer.team, ...currentPlayer.storage].forEach((member) => {
+        const legacyMembers = [...currentPlayer.team, ...currentPlayer.storage];
+        legacyMembers.forEach((member) => {
           const memberForm = getMemberForm(member);
           member.uid ||= `${memberForm.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
           member.maxHp = Math.max(
@@ -11528,9 +11632,38 @@
             member.currentHp = Math.max(0, Math.min(member.maxHp, Number(member.currentHp)));
           }
         });
-        const rosterUids = [currentPlayer.starter, ...currentPlayer.team].map((member) => member.uid);
-        if (!rosterUids.includes(currentPlayer.activeLeadUid)) {
-          currentPlayer.activeLeadUid = currentPlayer.starter.uid;
+
+        const catalog = [];
+        const seenUids = new Set();
+        [currentPlayer.starter, ...legacyMembers].forEach((member) => {
+          if (!member?.uid || seenUids.has(member.uid)) return;
+          seenUids.add(member.uid);
+          catalog.push(member);
+        });
+        const catalogByUid = new Map(catalog.map((member) => [member.uid, member]));
+        const savedOrder = Array.isArray(currentPlayer.partyOrderUids)
+          ? currentPlayer.partyOrderUids
+          : [currentPlayer.starter.uid, ...currentPlayer.team.map((member) => member.uid)];
+        const normalizedOrder = [];
+        savedOrder.forEach((uid) => {
+          if (
+            normalizedOrder.length < 3
+            && catalogByUid.has(uid)
+            && !normalizedOrder.includes(uid)
+          ) normalizedOrder.push(uid);
+        });
+        if (!normalizedOrder.length) normalizedOrder.push(currentPlayer.starter.uid);
+
+        currentPlayer.partyOrderUids = normalizedOrder;
+        currentPlayer.team = normalizedOrder
+          .filter((uid) => uid !== currentPlayer.starter.uid)
+          .map((uid) => catalogByUid.get(uid));
+        currentPlayer.storage = catalog.filter((member) => (
+          member.uid !== currentPlayer.starter.uid
+          && !normalizedOrder.includes(member.uid)
+        ));
+        if (!normalizedOrder.includes(currentPlayer.activeLeadUid)) {
+          currentPlayer.activeLeadUid = normalizedOrder[0];
         }
         saveCurrentPlayer();
         return currentPlayer.starter;
@@ -11628,22 +11761,87 @@
         }
       };
 
-      const getEchoRoster = () => [
-        currentPlayer.starter,
-        ...(Array.isArray(currentPlayer.team) ? currentPlayer.team : [])
-      ].filter(Boolean);
+      const getEchoCatalog = () => {
+        const catalog = [];
+        const seen = new Set();
+        [
+          currentPlayer.starter,
+          ...(Array.isArray(currentPlayer.team) ? currentPlayer.team : []),
+          ...(Array.isArray(currentPlayer.storage) ? currentPlayer.storage : [])
+        ].forEach((member) => {
+          if (!member?.uid || seen.has(member.uid)) return;
+          seen.add(member.uid);
+          catalog.push(member);
+        });
+        return catalog;
+      };
+
+      const getEchoRoster = () => {
+        const catalog = new Map(getEchoCatalog().map((member) => [member.uid, member]));
+        const order = Array.isArray(currentPlayer.partyOrderUids)
+          ? currentPlayer.partyOrderUids
+          : [currentPlayer.starter?.uid, ...(currentPlayer.team || []).map((member) => member.uid)];
+        return order.map((uid) => catalog.get(uid)).filter(Boolean).slice(0, 3);
+      };
+
+      const getEchoStoredMembers = () => {
+        const activeUids = new Set(getEchoRoster().map((member) => member.uid));
+        return getEchoCatalog().filter((member) => !activeUids.has(member.uid));
+      };
+
+      const syncEchoPartyOrder = (orderUids) => {
+        const catalog = getEchoCatalog();
+        const byUid = new Map(catalog.map((member) => [member.uid, member]));
+        const normalized = [];
+        orderUids.forEach((uid) => {
+          if (
+            normalized.length < 3
+            && byUid.has(uid)
+            && !normalized.includes(uid)
+          ) normalized.push(uid);
+        });
+        if (!normalized.length && currentPlayer.starter?.uid) {
+          normalized.push(currentPlayer.starter.uid);
+        }
+        currentPlayer.partyOrderUids = normalized;
+        currentPlayer.team = normalized
+          .filter((uid) => uid !== currentPlayer.starter.uid)
+          .map((uid) => byUid.get(uid));
+        currentPlayer.storage = catalog.filter((member) => (
+          member.uid !== currentPlayer.starter.uid
+          && !normalized.includes(member.uid)
+        ));
+        currentPlayer.activeLeadUid = normalized[0];
+        return normalized;
+      };
 
       const getActiveEchoMember = () => (
         getEchoRoster().find((member) => member.uid === currentPlayer.activeLeadUid)
+        || getEchoRoster()[0]
         || currentPlayer.starter
       );
 
-      const createEchoMemberCard = (member, location) => {
+      const createEchoMemberCard = (member, location, slotIndex = -1) => {
         const form = getMemberForm(member);
         const card = document.createElement("article");
-        const isLeader = location === "team" && member.uid === currentPlayer.activeLeadUid;
-        card.className = `echo-member-card${isLeader ? " leader" : ""}`;
+        const isLeader = location === "team" && slotIndex === 0;
+        const isSelected = member.uid === echoTeamSelectedUid;
+        card.className = `echo-member-card${isLeader ? " leader" : ""}${isSelected ? " selected" : ""}`;
         card.dataset.memberUid = member.uid;
+        card.dataset.memberLocation = location;
+        if (slotIndex >= 0) card.dataset.slotIndex = String(slotIndex);
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-pressed", String(isSelected));
+        card.setAttribute("aria-label", `${form.name}, nível ${member.level}. ${location === "team" ? `Posição ${slotIndex + 1} da equipe` : "No depósito"}.`);
+
+        if (location === "team") {
+          const position = document.createElement("span");
+          position.className = "echo-member-position";
+          position.textContent = String(slotIndex + 1);
+          position.title = slotIndex === 0 ? "Primeiro a entrar na batalha" : `Ordem ${slotIndex + 1}`;
+          card.append(position);
+        }
 
         const image = document.createElement("img");
         image.src = form.image;
@@ -11653,50 +11851,51 @@
         name.textContent = `${form.name} · Nv. ${member.level}`;
 
         const details = document.createElement("small");
-        details.textContent = `${form.type} · PV ${member.currentHp}/${member.maxHp}${isLeader ? " · Líder" : ""}`;
+        details.textContent = `${form.type} · PV ${member.currentHp}/${member.maxHp}${isLeader ? " · Primeiro na batalha" : ""}`;
+
+        const requiredExperience = xpToNextEchoLevel(member.level);
+        const currentExperience = Math.max(0, Math.min(requiredExperience, Number(member.experience) || 0));
+        const experience = document.createElement("div");
+        experience.className = "echo-member-exp";
+        experience.innerHTML = `<span><em>EXP ${currentExperience}/${requiredExperience}</em><em>Faltam ${Math.max(0, requiredExperience - currentExperience)}</em></span><i><b style="width:${requiredExperience ? currentExperience / requiredExperience * 100 : 0}%"></b></i>`;
 
         const actions = document.createElement("div");
         actions.className = "echo-member-actions";
 
         if (location === "team") {
-          const lead = document.createElement("button");
-          lead.type = "button";
-          lead.dataset.echoMemberAction = "lead";
-          lead.textContent = isLeader ? "Líder atual" : "Tornar líder";
-          lead.disabled = isLeader;
-          actions.append(lead);
-
-          if (member !== currentPlayer.starter) {
-            const deposit = document.createElement("button");
-            deposit.type = "button";
-            deposit.dataset.echoMemberAction = "deposit";
-            deposit.textContent = "Enviar ao depósito";
-            actions.append(deposit);
-          }
+          const deposit = document.createElement("button");
+          deposit.type = "button";
+          deposit.dataset.echoMemberAction = "deposit";
+          deposit.textContent = "Enviar ao depósito";
+          deposit.disabled = getEchoRoster().length <= 1;
+          actions.append(deposit);
         } else {
           const add = document.createElement("button");
           add.type = "button";
-          add.dataset.echoMemberAction = "team";
-          add.textContent = getEchoRoster().length >= 3 ? "Equipe cheia" : "Adicionar à equipe";
-          add.disabled = getEchoRoster().length >= 3;
+          const teamIsFull = getEchoRoster().length >= 3;
+          add.dataset.echoMemberAction = teamIsFull ? "select" : "team";
+          add.textContent = teamIsFull ? "Selecionar para troca" : "Adicionar à equipe";
           actions.append(add);
         }
 
-        card.append(image, name, details, actions);
+        card.append(image, name, details, experience, actions);
         return card;
       };
 
       const renderEchoTeam = () => {
         const roster = getEchoRoster();
-        echoRoster.replaceChildren(...roster.map((member) => createEchoMemberCard(member, "team")));
+        echoRoster.replaceChildren(...roster.map((member, index) => createEchoMemberCard(member, "team", index)));
         for (let index = roster.length; index < 3; index += 1) {
-          const empty = document.createElement("span");
+          const empty = document.createElement("button");
+          empty.type = "button";
           empty.className = "echo-empty-slot";
-          empty.textContent = "Espaço livre";
+          empty.dataset.slotIndex = String(index);
+          empty.textContent = echoTeamSelectedUid ? "Mover para este espaço" : "Espaço livre";
+          empty.disabled = !echoTeamSelectedUid;
           echoRoster.append(empty);
         }
 
-        const storage = Array.isArray(currentPlayer.storage) ? currentPlayer.storage : [];
+        const storage = getEchoStoredMembers();
         echoStorageGrid.replaceChildren();
         if (storage.length) {
           echoStorageGrid.append(...storage.map((member) => createEchoMemberCard(member, "storage")));
@@ -11708,30 +11907,41 @@
         }
         echoTeamCount.textContent = `${roster.length}/3`;
         echoStorageCount.textContent = `${storage.length} armazenado${storage.length === 1 ? "" : "s"}`;
+        const selected = getEchoCatalog().find((member) => member.uid === echoTeamSelectedUid);
+        echoTeamHint.textContent = selected
+          ? `${getMemberForm(selected).name} selecionado. Agora escolha outro Naturion ou uma vaga livre para trocar.`
+          : "Selecione um Naturion e depois escolha outro membro ou espaço para trocar a posição.";
+      };
+
+      const commitEchoTeamChange = (message) => {
+        echoTeamSelectedUid = "";
+        saveCurrentPlayer();
+        refreshEchoStarterUI();
+        renderEchoTeam();
+        window.dispatchEvent(new CustomEvent("naturion:team-updated", {
+          detail: { player: JSON.parse(JSON.stringify(currentPlayer)) }
+        }));
+        if (message) showToast(message);
       };
 
       const setActiveEchoMember = (uid) => {
-        const member = getEchoRoster().find((item) => item.uid === uid);
+        const roster = getEchoRoster();
+        const member = roster.find((item) => item.uid === uid);
         if (!member) return;
-        currentPlayer.activeLeadUid = member.uid;
-        saveCurrentPlayer();
-        refreshEchoStarterUI();
-        renderEchoTeam();
-        showToast(`${getMemberForm(member).name} agora lidera a equipe.`);
+        syncEchoPartyOrder([uid, ...roster.filter((item) => item.uid !== uid).map((item) => item.uid)]);
+        commitEchoTeamChange(`${getMemberForm(member).name} agora é o primeiro da equipe.`);
       };
 
       const moveEchoMemberToStorage = (uid) => {
-        const index = currentPlayer.team.findIndex((member) => member.uid === uid);
-        if (index < 0) return;
-        const [member] = currentPlayer.team.splice(index, 1);
-        currentPlayer.storage.push(member);
-        if (currentPlayer.activeLeadUid === uid) {
-          currentPlayer.activeLeadUid = currentPlayer.starter.uid;
+        const roster = getEchoRoster();
+        const member = roster.find((item) => item.uid === uid);
+        if (!member) return;
+        if (roster.length <= 1) {
+          showToast("A equipe precisa manter pelo menos um Naturion.");
+          return;
         }
-        saveCurrentPlayer();
-        refreshEchoStarterUI();
-        renderEchoTeam();
-        showToast(`${getMemberForm(member).name} foi enviado ao depósito.`);
+        syncEchoPartyOrder(roster.filter((item) => item.uid !== uid).map((item) => item.uid));
+        commitEchoTeamChange(`${getMemberForm(member).name} foi enviado ao depósito.`);
       };
 
       const moveEchoMemberToTeam = (uid) => {
@@ -11739,27 +11949,83 @@
           showToast("Sua equipe já possui três Naturions.");
           return;
         }
-        const index = currentPlayer.storage.findIndex((member) => member.uid === uid);
-        if (index < 0) return;
-        const [member] = currentPlayer.storage.splice(index, 1);
-        currentPlayer.team.push(member);
-        saveCurrentPlayer();
-        refreshEchoStarterUI();
-        renderEchoTeam();
-        showToast(`${getMemberForm(member).name} entrou para a equipe.`);
+        const member = getEchoStoredMembers().find((item) => item.uid === uid);
+        if (!member) return;
+        syncEchoPartyOrder([...getEchoRoster().map((item) => item.uid), uid]);
+        commitEchoTeamChange(`${getMemberForm(member).name} entrou para a equipe.`);
       };
 
-      const openEchoTeam = () => {
-        if (!echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden) return;
+      const selectEchoTeamTarget = (uid, targetSlot = null) => {
+        const catalog = getEchoCatalog();
+        const roster = getEchoRoster();
+        const selected = catalog.find((member) => member.uid === echoTeamSelectedUid);
+        const target = catalog.find((member) => member.uid === uid);
+        if (!selected) {
+          echoTeamSelectedUid = uid;
+          renderEchoTeam();
+          return;
+        }
+        if (selected.uid === uid && targetSlot == null) {
+          echoTeamSelectedUid = "";
+          renderEchoTeam();
+          return;
+        }
+
+        const order = roster.map((member) => member.uid);
+        const sourceIndex = order.indexOf(selected.uid);
+        const targetIndex = targetSlot == null ? order.indexOf(uid) : Number(targetSlot);
+
+        if (sourceIndex >= 0 && targetIndex >= 0 && targetIndex < order.length) {
+          [order[sourceIndex], order[targetIndex]] = [order[targetIndex], order[sourceIndex]];
+        } else if (sourceIndex >= 0 && targetIndex >= order.length && targetIndex < 3) {
+          order.splice(sourceIndex, 1);
+          order.splice(Math.min(targetIndex, order.length), 0, selected.uid);
+        } else if (sourceIndex < 0 && targetIndex >= 0 && targetIndex < order.length) {
+          order[targetIndex] = selected.uid;
+        } else if (sourceIndex < 0 && targetIndex >= order.length && order.length < 3) {
+          order.push(selected.uid);
+        } else if (sourceIndex >= 0 && target && !order.includes(target.uid)) {
+          order[sourceIndex] = target.uid;
+        } else if (sourceIndex < 0 && target && order.includes(target.uid)) {
+          order[order.indexOf(target.uid)] = selected.uid;
+        } else {
+          echoTeamSelectedUid = uid;
+          renderEchoTeam();
+          return;
+        }
+
+        syncEchoPartyOrder(order);
+        commitEchoTeamChange("Equipe reorganizada e salva.");
+      };
+
+      const openEchoTeam = (returnFocus = null) => {
+        const blockedByLegacyScene = !echoClearing.hidden
+          && (!echoBattle.hidden || !echoDialogue.hidden || !echoPuzzle.hidden || !echoAbsorption.hidden || !echoEvolution.hidden);
+        if (blockedByLegacyScene || !echoTeam.hidden) return;
+        ensureEchoPlayerData();
         resetEchoMovement();
+        echoTeamSelectedUid = "";
+        echoTeamReturnFocus = returnFocus instanceof HTMLElement
+          ? returnFocus
+          : document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : echoTeamButton;
+        echoTeamResumeMapExploring = openMapExploring;
+        openMapExploring = false;
         renderEchoTeam();
         echoTeam.hidden = false;
         echoTeamClose.focus();
       };
 
       const closeEchoTeam = () => {
+        if (echoTeam.hidden) return;
         echoTeam.hidden = true;
-        echoClearing.focus();
+        echoTeamSelectedUid = "";
+        if (!openForestMap.hidden) openMapExploring = echoTeamResumeMapExploring;
+        window.dispatchEvent(new CustomEvent("naturion:team-manager-closed", {
+          detail: { player: JSON.parse(JSON.stringify(currentPlayer)) }
+        }));
+        echoTeamReturnFocus?.focus?.();
       };
 
       const refreshEchoStarterUI = () => {
@@ -11778,6 +12044,12 @@
         const hpPercent = Math.max(0, Math.min(100, member.currentHp / member.maxHp * 100));
         echoHudHpTrack.style.setProperty("--echo-hp", `${hpPercent}%`);
         echoTeamCount.textContent = `${getEchoRoster().length}/3`;
+        const worldLead = getEchoRoster()[0];
+        if (worldLead) {
+          const worldForm = getMemberForm(worldLead);
+          openMapStarter.src = worldForm.image;
+          openMapStarter.alt = worldForm.name;
+        }
       };
 
       const getEchoTypeStyle = (type) => {
@@ -12661,10 +12933,7 @@ if (wild) echoWilds.push(wild);
         resetEchoMovement();
         echoEncounter = wild;
         ensureEchoPlayerData();
-        let member = getActiveEchoMember();
-        if (Number(member.currentHp) <= 0) {
-          member = findNextHealthyEchoMember(member.uid);
-        }
+        let member = getEchoRoster().find((rosterMember) => Number(rosterMember.currentHp) > 0);
         if (!member) {
           getEchoRoster().forEach((rosterMember) => {
             rosterMember.currentHp = Math.max(1, Math.round(rosterMember.maxHp * .65));
@@ -13100,6 +13369,7 @@ if (wild) echoWilds.push(wild);
       };
 
       const addCapturedNaturion = (wild) => {
+        ensureEchoPlayerData();
         const form = wild.form;
         const chain = wild.chain;
         const member = {
@@ -13119,7 +13389,12 @@ if (wild) echoWilds.push(wild);
           currentHp: 28 + wild.level * 4 + form.stage * 6
         };
         const destination = getEchoRoster().length < 3 ? "team" : "storage";
-        currentPlayer[destination].push(member);
+        if (destination === "team") {
+          currentPlayer.team.push(member);
+          syncEchoPartyOrder([...currentPlayer.partyOrderUids, member.uid]);
+        } else {
+          currentPlayer.storage.push(member);
+        }
         return { member, destination };
       };
 
@@ -13686,7 +13961,7 @@ if (wild) echoWilds.push(wild);
       });
 
       echoBackMap.addEventListener("click", returnEchoToMap);
-      echoTeamButton.addEventListener("click", openEchoTeam);
+      echoTeamButton.addEventListener("click", () => openEchoTeam(echoTeamButton));
       echoTeamClose.addEventListener("click", closeEchoTeam);
       echoTeam.addEventListener("click", (event) => {
         if (event.target === echoTeam) {
@@ -13694,12 +13969,30 @@ if (wild) echoWilds.push(wild);
           return;
         }
         const action = event.target.closest("[data-echo-member-action]");
-        const card = action?.closest("[data-member-uid]");
-        if (!action || !card) return;
-        const uid = card.dataset.memberUid;
-        if (action.dataset.echoMemberAction === "lead") setActiveEchoMember(uid);
-        if (action.dataset.echoMemberAction === "deposit") moveEchoMemberToStorage(uid);
-        if (action.dataset.echoMemberAction === "team") moveEchoMemberToTeam(uid);
+        const card = event.target.closest("[data-member-uid]");
+        if (action && card) {
+          event.stopPropagation();
+          const uid = card.dataset.memberUid;
+          if (action.dataset.echoMemberAction === "deposit") moveEchoMemberToStorage(uid);
+          if (action.dataset.echoMemberAction === "team") moveEchoMemberToTeam(uid);
+          if (action.dataset.echoMemberAction === "select") selectEchoTeamTarget(uid);
+          return;
+        }
+        const emptySlot = event.target.closest(".echo-empty-slot[data-slot-index]");
+        if (emptySlot) {
+          selectEchoTeamTarget("", Number(emptySlot.dataset.slotIndex));
+          return;
+        }
+        if (card) selectEchoTeamTarget(card.dataset.memberUid);
+      });
+      echoTeam.addEventListener("keydown", (event) => {
+        if (!['Enter', ' '].includes(event.key)) return;
+        const card = event.target.closest("[data-member-uid]");
+        const emptySlot = event.target.closest(".echo-empty-slot[data-slot-index]");
+        if (!card && !emptySlot) return;
+        event.preventDefault();
+        if (emptySlot) selectEchoTeamTarget("", Number(emptySlot.dataset.slotIndex));
+        else selectEchoTeamTarget(card.dataset.memberUid);
       });
       echoPassageYes.addEventListener("click", () => void confirmEchoPassage());
       echoPassageNo.addEventListener("click", closeEchoPassageConfirmation);
@@ -13777,7 +14070,12 @@ if (wild) echoWilds.push(wild);
       optionsButton.addEventListener("click", openOptions);
       worldOptionsButton.addEventListener("click", openOptions);
       worldSaveButton.addEventListener("click", saveWorldGame);
+      worldTeamButton.addEventListener("click", () => openEchoTeam(worldTeamButton));
       closeButton.addEventListener("click", closeOptions);
+
+      window.addEventListener("naturion:open-team-manager", (event) => {
+        openEchoTeam(event.detail?.returnFocus || null);
+      });
 
       modal.addEventListener("click", (event) => {
         if (event.target === modal) closeOptions();
@@ -13913,7 +14211,9 @@ if (wild) echoWilds.push(wild);
 
       document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
-        if (!modal.hidden) {
+        if (!echoTeam.hidden) {
+          closeEchoTeam();
+        } else if (!modal.hidden) {
           closeOptions();
         } else if (!echoEntryConfirm.hidden) {
           closeEchoEntryConfirmation();
@@ -13974,6 +14274,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js"></script>
-  <script type="module" src="src/overworld/echo-main.js?v=7"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=8"></script>
 </body>
 </html>

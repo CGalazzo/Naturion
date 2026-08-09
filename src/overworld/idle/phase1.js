@@ -103,8 +103,18 @@ const formFor = (id) => forms()[id] || { id, name: id || "Naturion", type: "Natu
 
 const roster = () => {
   const snapshot = player();
+  const catalog = new Map();
+  [snapshot.starter, ...(snapshot.team || []), ...(snapshot.storage || [])]
+    .filter(Boolean)
+    .forEach((member) => {
+      const key = member.uid || `${member.formId || member.id}-${member.name}`;
+      if (!catalog.has(key)) catalog.set(key, member);
+    });
+  const order = Array.isArray(snapshot.partyOrderUids)
+    ? snapshot.partyOrderUids
+    : [snapshot.starter?.uid, ...(snapshot.team || []).map((member) => member.uid)];
   const seen = new Set();
-  return [snapshot.starter, ...(snapshot.team || [])].filter(Boolean).filter((member) => {
+  return order.map((uid) => catalog.get(uid)).filter(Boolean).filter((member) => {
     const key = member.uid || `${member.formId || member.id}-${member.name}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -496,11 +506,11 @@ const approachWild = (encounter) => new Promise((resolve) => {
 const openTeam = () => {
   if (!active || busy) return;
   state.running = false;
-  renderTeam();
   render();
   save(true);
-  ui.teamModal.hidden = false;
-  ui.closeTeam.focus();
+  window.dispatchEvent(new CustomEvent("naturion:open-team-manager", {
+    detail: { returnFocus: ui.team }
+  }));
 };
 const closeTeam = () => { ui.teamModal.hidden = true; ui.team.focus(); };
 
@@ -858,6 +868,20 @@ const enter = () => {
 };
 
 window.addEventListener("naturion:open-echo-overworld", enter);
+window.addEventListener("naturion:team-updated", () => {
+  if (!active || !ui) return;
+  renderParty();
+  renderTeam();
+  render();
+});
+window.addEventListener("naturion:team-manager-closed", () => {
+  if (!active || !ui) return;
+  renderParty();
+  renderTeam();
+  render();
+  save(true);
+  ui.team.focus();
+});
 window.addEventListener("beforeunload", () => save(true));
 window.addEventListener("keydown", (event) => {
   if (!active || event.code !== "Escape") return;
