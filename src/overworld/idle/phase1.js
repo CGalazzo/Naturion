@@ -54,17 +54,18 @@ const puzzleFlags = () => player().echoOverworldProgress?.puzzles || {};
 
 const loadState = () => {
   const saved = player().echoOverworldProgress?.idleExpedition || {};
-  const solved = Boolean(puzzleFlags().echoesSolved);
+  const replay = Boolean(puzzleFlags().echoesSolved);
   return {
-    progress: solved ? 100 : clamp(Number(saved.progress) || 0, 0, 100),
-    running: solved ? false : Boolean(saved.running),
+    progress: 0,
+    running: false,
     speed: [1, 2, 3].includes(Number(saved.speed)) ? Number(saved.speed) : 1,
-    completedIds: [...new Set(Array.isArray(saved.completedEncounterIds) ? saved.completedEncounterIds : [])],
+    completedIds: [],
     wins: Math.max(0, Number(saved.battlesWon) || 0),
     captures: Math.max(0, Number(saved.captures) || 0),
     defeats: Math.max(0, Number(saved.defeats) || 0),
-    puzzleUnlocked: solved || Boolean(saved.puzzleUnlocked) || Number(saved.progress) >= 100,
-    completed: solved || Boolean(saved.completed)
+    puzzleUnlocked: false,
+    completed: false,
+    replay
   };
 };
 
@@ -77,7 +78,7 @@ const savePayload = () => ({
   captures: state.captures,
   defeats: state.defeats,
   puzzleUnlocked: state.puzzleUnlocked,
-  completed: state.completed,
+  completed: Boolean(state.completed && !state.replay),
   updatedAt: new Date().toISOString()
 });
 
@@ -292,7 +293,13 @@ const render = () => {
   ui.defeats.textContent = state.defeats;
   ui.totem.classList.toggle("visible", state.puzzleUnlocked);
   ui.toggle.disabled = busy || state.puzzleUnlocked || state.completed;
-  ui.toggle.textContent = state.running ? "Pausar expedição" : progress ? "Continuar expedição" : "Iniciar expedição";
+  ui.toggle.textContent = state.completed
+    ? "Expedição concluída"
+    : state.running
+      ? "Pausar expedição"
+      : progress
+        ? "Continuar expedição"
+        : "Iniciar expedição";
   ui.team.disabled = busy;
   ui.map.disabled = busy;
   ui.speedButtons.forEach((button) => {
@@ -300,9 +307,15 @@ const render = () => {
     button.disabled = busy || state.completed;
   });
   if (state.completed) {
-    ui.sceneTitle.textContent = "Santuário desperto";
-    ui.sceneMessage.textContent = "O Círculo dos Ecos permanece ativo.";
-    ui.objective.textContent = " Puzzle 1 concluído e progresso salvo.";
+    if (state.replay) {
+      ui.sceneTitle.textContent = "Expedição concluída";
+      ui.sceneMessage.textContent = "A rota foi percorrida novamente. O Círculo dos Ecos já estava desperto.";
+      ui.objective.textContent = " retorne ao mapa quando desejar.";
+    } else {
+      ui.sceneTitle.textContent = "Santuário desperto";
+      ui.sceneMessage.textContent = "O Círculo dos Ecos permanece ativo.";
+      ui.objective.textContent = " Puzzle 1 concluído e progresso salvo.";
+    }
   } else if (state.puzzleUnlocked) {
     ui.sceneTitle.textContent = "Santuário Oeste alcançado";
     ui.sceneMessage.textContent = "Interaja com o Totem para iniciar o Puzzle 1.";
@@ -438,6 +451,16 @@ const unlockPuzzle = () => {
   save(true);
 };
 
+const completeReplay = () => {
+  state.progress = 100;
+  state.running = false;
+  state.puzzleUnlocked = false;
+  state.completed = true;
+  addLog("Expedição concluída. O puzzle já havia sido resolvido.", "capture");
+  render();
+  save(true);
+};
+
 const tick = (time) => {
   frame = requestAnimationFrame(tick);
   if (!active || !state || !ui) return;
@@ -447,7 +470,11 @@ const tick = (time) => {
   state.progress = clamp(state.progress + delta * .6 * state.speed, 0, 100);
   const next = pendingEncounter();
   if (next) { void encounter(next); return; }
-  if (state.progress >= 100) { unlockPuzzle(); return; }
+  if (state.progress >= 100) {
+    if (state.replay) completeReplay();
+    else unlockPuzzle();
+    return;
+  }
   render();
   save();
 };
@@ -635,8 +662,8 @@ const enter = () => {
   }
   state = loadState();
   logs = [];
-  addLog(state.completed ? "O Círculo dos Ecos já está desperto."
-    : state.progress ? `Expedição retomada em ${Math.floor(state.progress)}%.`
+  addLog(state.replay
+    ? "Nova expedição iniciada. O puzzle já está concluído e não será repetido."
     : "Clareira preparada para a primeira expedição.");
   renderParty();
   renderTeam();
