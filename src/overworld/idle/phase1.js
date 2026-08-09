@@ -302,7 +302,7 @@ const renderParty = () => {
   ui.hero.src = snapshot.character === "female" ? "assets/selection/hero-female.webp" : "assets/selection/hero-male.webp";
   ui.hero.alt = snapshot.name || "Protagonista";
   ui.followers.replaceChildren();
-  roster().forEach((member, index) => {
+  roster().slice(0, 1).forEach((member, index) => {
     const form = formFor(member.formId || member.id);
     const box = document.createElement("div");
     const image = document.createElement("img");

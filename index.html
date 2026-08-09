@@ -9656,6 +9656,7 @@
       let echoTeamSelectedUid = "";
       let echoTeamReturnFocus = echoTeamButton;
       let echoTeamResumeMapExploring = false;
+      const echoBattleParticipantUids = new Set();
       const echoInput = { left: false, right: false };
 
       const STARTERS = {
@@ -11662,9 +11663,7 @@
           member.uid !== currentPlayer.starter.uid
           && !normalizedOrder.includes(member.uid)
         ));
-        if (!normalizedOrder.includes(currentPlayer.activeLeadUid)) {
-          currentPlayer.activeLeadUid = normalizedOrder[0];
-        }
+        currentPlayer.activeLeadUid = normalizedOrder[0];
         saveCurrentPlayer();
         return currentPlayer.starter;
       };
@@ -12893,7 +12892,7 @@ if (wild) echoWilds.push(wild);
       const showEchoBattleMember = (member, animate = false) => {
         const form = getMemberForm(member);
         echoBattleMemberUid = member.uid;
-        currentPlayer.activeLeadUid = member.uid;
+        echoBattleParticipantUids.add(member.uid);
         echoPlayerMaxHp = member.maxHp;
         echoPlayerHpValue = Math.max(0, member.currentHp);
         echoBattlePlayerImage.src = form.image;
@@ -12933,12 +12932,17 @@ if (wild) echoWilds.push(wild);
         resetEchoMovement();
         echoEncounter = wild;
         ensureEchoPlayerData();
-        let member = getEchoRoster().find((rosterMember) => Number(rosterMember.currentHp) > 0);
+        echoBattleParticipantUids.clear();
+        const orderedRoster = getEchoRoster();
+        let member = orderedRoster[0];
+        if (Number(member?.currentHp) <= 0) {
+          member = orderedRoster.find((rosterMember) => Number(rosterMember.currentHp) > 0);
+        }
         if (!member) {
-          getEchoRoster().forEach((rosterMember) => {
+          orderedRoster.forEach((rosterMember) => {
             rosterMember.currentHp = Math.max(1, Math.round(rosterMember.maxHp * .65));
           });
-          member = getEchoRoster()[0];
+          member = orderedRoster[0];
         }
         showEchoBattleMember(member);
         refreshEchoStarterUI();
@@ -13040,15 +13044,18 @@ if (wild) echoWilds.push(wild);
         playSequence([392, 523, 659, 784, 988], .08);
         const gainedXp = 18 + echoEncounter.level * 5;
         const activeMember = getEchoBattleMember();
-        grantEchoExperience(activeMember, gainedXp);
-        getEchoRoster()
-          .filter((member) => member !== activeMember)
-          .forEach((member) => grantEchoExperience(member, Math.max(8, Math.floor(gainedXp * .55))));
+        const sharedXp = Math.floor(gainedXp * .5);
+        getEchoRoster().forEach((member) => {
+          grantEchoExperience(
+            member,
+            echoBattleParticipantUids.has(member.uid) ? gainedXp : sharedXp
+          );
+        });
         updateEchoBattleExperience(activeMember);
         removeEchoEncounter();
         saveCurrentPlayer();
         await forestPause(720);
-        echoBattleChoiceText.textContent = `${getMemberForm(activeMember).name} recebeu +${gainedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
+        echoBattleChoiceText.textContent = `Participantes receberam +${gainedXp} EXP e os demais membros ativos +${sharedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
         echoBattleChoice.hidden = false;
         startEchoBattleChoiceTimer();
         echoTryAbsorb.focus();
@@ -14274,6 +14281,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js"></script>
-  <script type="module" src="src/overworld/echo-main.js?v=8"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=9"></script>
 </body>
 </html>
