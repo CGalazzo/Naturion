@@ -110,8 +110,8 @@
 .idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-walk {
   opacity: 1;
   animation:
-    idleHeroWalkClean calc(.64s / var(--speed)) steps(1, end) infinite,
-    idleHeroWalkBob calc(.64s / var(--speed)) ease-in-out infinite;
+    idleHeroWalkClean calc(.78s / var(--speed)) steps(1, end) infinite,
+    idleHeroWalkFluid calc(.78s / var(--speed)) ease-in-out infinite;
 }
 
 .idle-app.running .idle-scene[data-treadmill-ready="true"] .idle-hero-box {
@@ -121,13 +121,15 @@
 /* A linha intermediária do atlas masculino contém pixels residuais acima da
    cabeça. A caminhada usa apenas as duas linhas limpas. */
 @keyframes idleHeroWalkClean {
-  0%, 49.99% { background-position: var(--hero-column) 0%; }
-  50%, 100% { background-position: var(--hero-column) 100%; }
+  0%, 24.99% { background-position: var(--hero-column) 0%; }
+  25%, 49.99% { background-position: var(--hero-column) 100%; }
+  50%, 74.99% { background-position: var(--hero-column) 0%; }
+  75%, 100% { background-position: var(--hero-column) 100%; }
 }
 
-@keyframes idleHeroWalkBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+@keyframes idleHeroWalkFluid {
+  0%, 50%, 100% { transform: translate3d(0, 0, 0) rotate(-.35deg); }
+  25%, 75% { transform: translate3d(1px, -2.5px, 0) rotate(.35deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

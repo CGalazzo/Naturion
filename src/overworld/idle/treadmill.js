@@ -18,7 +18,7 @@ const appendStylesheet = (id, href) => {
 
 const ensureStyles = () => {
   appendStylesheet(STYLE_ID, "src/overworld/idle/treadmill.css?v=3");
-  appendStylesheet(PATCH_STYLE_ID, "src/overworld/idle/treadmill-patch.css?v=3");
+  appendStylesheet(PATCH_STYLE_ID, "src/overworld/idle/treadmill-patch.css?v=4");
 };
 
 const layerMarkup = (depth) => `

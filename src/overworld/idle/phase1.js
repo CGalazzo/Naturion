@@ -37,6 +37,8 @@ let frame = 0;
 let lastFrame = 0;
 let lastSave = 0;
 let logs = [];
+let defeatCountdownTimer = 0;
+let defeatSeconds = 5;
 
 const html = (value) => String(value ?? "")
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -107,6 +109,19 @@ const roster = () => {
   }).slice(0, 3);
 };
 
+const experienceToNextLevel = (level) => 55 + Math.max(1, Number(level) || 1) * 20;
+
+const experienceSummary = (member) => {
+  const required = experienceToNextLevel(member.level);
+  const current = clamp(Number(member.experience) || 0, 0, required);
+  return {
+    current,
+    required,
+    remaining: Math.max(0, required - current),
+    percent: required ? current / required * 100 : 0
+  };
+};
+
 const segmentIndex = () => Math.min(4, Math.floor(Math.min(state?.progress || 0, 99.99) / 20));
 
 const addLog = (message, kind = "info") => {
@@ -128,7 +143,7 @@ const ensureCss = () => {
   const link = document.createElement("link");
   link.id = "idlePhaseOneCss";
   link.rel = "stylesheet";
-  link.href = "src/overworld/idle/phase1.css?v=2";
+  link.href = "src/overworld/idle/phase1.css?v=3";
   document.head.append(link);
 };
 
@@ -201,6 +216,18 @@ const build = () => {
         <p>As batalhas usam automaticamente a ordem atual da equipe.</p>
         <div class="idle-team-grid"></div>
       </section>
+    </div>
+    <div class="idle-defeat" hidden>
+      <section class="idle-defeat-dialog" role="alertdialog" aria-modal="true" aria-labelledby="idleDefeatTitle">
+        <small>Equipe sem energia</small>
+        <h2 id="idleDefeatTitle">Todos os seus Naturions foram derrotados!</h2>
+        <p>A expedição desta tela retornou para 0%. Sua equipe foi conduzida para um ponto seguro.</p>
+        <strong class="idle-defeat-countdown">Reinício automático em <span data-defeat-seconds>5</span> segundos</strong>
+        <div class="idle-defeat-actions">
+          <button class="idle-btn" type="button" data-action="restart-defeat">Reiniciar aventura</button>
+          <button class="idle-btn warn" type="button" data-action="map-defeat">Voltar ao mapa Naturion</button>
+        </div>
+      </section>
     </div>`;
 
   ui = {
@@ -230,7 +257,11 @@ const build = () => {
     log: screen.querySelector(".idle-log"),
     teamModal: screen.querySelector(".idle-team"),
     teamGrid: screen.querySelector(".idle-team-grid"),
-    closeTeam: screen.querySelector("[data-action=close-team]")
+    closeTeam: screen.querySelector("[data-action=close-team]"),
+    defeatModal: screen.querySelector(".idle-defeat"),
+    defeatSeconds: screen.querySelector("[data-defeat-seconds]"),
+    restartDefeat: screen.querySelector("[data-action=restart-defeat]"),
+    mapDefeat: screen.querySelector("[data-action=map-defeat]")
   };
   ui.totemImage.src = TOTEM_IMAGE;
   ui.toggle.addEventListener("click", toggle);
@@ -240,6 +271,8 @@ const build = () => {
   ui.teamModal.addEventListener("click", (event) => { if (event.target === ui.teamModal) closeTeam(); });
   ui.puzzleButton.addEventListener("click", () => puzzle?.open());
   ui.speedButtons.forEach((button) => button.addEventListener("click", () => setSpeed(Number(button.dataset.speed))));
+  ui.restartDefeat.addEventListener("click", restartAfterDefeat);
+  ui.mapDefeat.addEventListener("click", returnMapAfterDefeat);
 };
 
 const renderParty = () => {
@@ -269,13 +302,73 @@ const renderTeam = () => {
   }
   members.forEach((member, index) => {
     const form = formFor(member.formId || member.id);
+    const experience = experienceSummary(member);
     const card = document.createElement("article");
     card.className = "idle-team-card";
     card.innerHTML = `<img src="${html(member.image || form.image || "")}" alt="${html(member.name || form.name)}">
       <strong>${index + 1}. ${html(member.name || form.name)}</strong>
-      <small>${html(member.type || form.type)} · Nv. ${Number(member.level) || 1}</small>`;
+      <small>${html(member.type || form.type)} · Nv. ${Number(member.level) || 1}</small>
+      <div class="idle-team-exp" aria-label="${experience.current} de ${experience.required} pontos de experiência">
+        <span><b>EXP</b><em>Faltam ${experience.remaining}</em></span>
+        <i><u style="width:${experience.percent}%"></u></i>
+      </div>`;
     ui.teamGrid.append(card);
   });
+};
+
+const clearDefeatCountdown = () => {
+  window.clearInterval(defeatCountdownTimer);
+  defeatCountdownTimer = 0;
+};
+
+const hideDefeatModal = () => {
+  clearDefeatCountdown();
+  if (ui?.defeatModal) ui.defeatModal.hidden = true;
+};
+
+function restartAfterDefeat() {
+  if (!active || !state) return;
+  hideDefeatModal();
+  state.progress = 0;
+  state.completedIds = [];
+  state.puzzleUnlocked = false;
+  state.completed = false;
+  state.running = true;
+  wildPreview();
+  addLog("A equipe se recuperou. A aventura foi reiniciada em 0%.", "capture");
+  renderParty();
+  renderTeam();
+  render();
+  save(true);
+  ui.toggle.focus();
+}
+
+function returnMapAfterDefeat() {
+  if (!active) return;
+  hideDefeatModal();
+  returnMap();
+}
+
+const showPartyDefeat = () => {
+  clearDefeatCountdown();
+  state.progress = 0;
+  state.completedIds = [];
+  state.running = false;
+  state.puzzleUnlocked = false;
+  state.completed = false;
+  defeatSeconds = 5;
+  ui.defeatSeconds.textContent = String(defeatSeconds);
+  ui.defeatModal.hidden = false;
+  renderParty();
+  renderTeam();
+  render();
+  save(true);
+  ui.restartDefeat.focus();
+  defeatCountdownTimer = window.setInterval(() => {
+    defeatSeconds -= 1;
+    ui.defeatSeconds.textContent = String(Math.max(0, defeatSeconds));
+    if (defeatSeconds <= 0) restartAfterDefeat();
+  }, 1000);
 };
 
 const render = () => {
@@ -430,9 +523,9 @@ const encounter = async (data) => {
     state.running = resume;
   } else if (result?.outcome === "defeat") {
     state.defeats += 1;
-    state.progress = Math.max(0, data.at - 4);
-    state.running = false;
-    addLog("A equipe recuou para se recuperar.", "danger");
+    addLog("Todos os seus Naturions foram derrotados!", "danger");
+    showPartyDefeat();
+    return;
   } else {
     state.progress = Math.max(0, data.at - 1.5);
     state.running = resume;
@@ -641,6 +734,7 @@ class PuzzleOne {
 
 const returnMap = () => {
   if (!active || busy) return;
+  hideDefeatModal();
   state.running = false;
   save(true);
   active = false;
@@ -661,6 +755,7 @@ const enter = () => {
     puzzle = new PuzzleOne();
   }
   state = loadState();
+  hideDefeatModal();
   logs = [];
   addLog(state.replay
     ? "Nova expedição iniciada. O puzzle já está concluído e não será repetido."
