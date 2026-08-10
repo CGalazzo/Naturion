@@ -1,7 +1,9 @@
-import { TOTEM_IMAGE } from "./totem-data.js?v=1";
-
 const MAP_ID = "clareira-dos-ecos-overworld";
 const MAP_SCENE = "assets/overworld/clareira-dos-ecos/ground-v2.webp";
+const SANCTUARY_SCENE = "assets/puzzle/echoes-sanctuary-unlocked.webp";
+// Temporário: libera a repetição do Puzzle 1 nos testes, sem apagar a
+// conclusão original nem conceder novamente sua progressão.
+const PUZZLE_REPLAY_TEST_MODE = true;
 const screen = document.getElementById("echoOverworldScreen");
 const worldMap = document.getElementById("openForestMap");
 const destination = document.getElementById("worldFirstDestination");
@@ -156,7 +158,7 @@ const ensureCss = () => {
   const link = document.createElement("link");
   link.id = "idlePhaseOneCss";
   link.rel = "stylesheet";
-  link.href = "src/overworld/idle/phase1.css?v=5";
+  link.href = "src/overworld/idle/phase1.css?v=6";
   document.head.append(link);
 };
 
@@ -181,12 +183,14 @@ const build = () => {
             <div class="idle-followers"></div>
           </div>
           <div class="idle-wild"><img alt=""><strong></strong></div>
-          <div class="idle-totem">
-            <img alt="Totem do Círculo dos Ecos voltado para a direita">
-            <div class="idle-totem-copy">
-              <small>Puzzle 1 liberado</small><h2>Círculo dos Ecos</h2>
-              <p>A expedição alcançou o santuário. O desafio será aberto em uma tela própria.</p>
-              <button class="idle-btn" type="button" data-action="puzzle">Examinar o Totem</button>
+          <div class="idle-totem" aria-label="Santuário Oeste alcançado">
+            <div class="idle-sanctuary-stage">
+              <img class="idle-sanctuary-art" src="${SANCTUARY_SCENE}" alt="Santuário Oeste com o Totem do Círculo dos Ecos e o painel do Puzzle 1" width="1672" height="941">
+              <div class="idle-sanctuary-party" aria-label="Equipe diante do Totem">
+                <div class="idle-sanctuary-companion"><img alt=""></div>
+                <div class="idle-sanctuary-hero"><img alt=""></div>
+              </div>
+              <button class="idle-sanctuary-action" type="button" data-action="puzzle" aria-label="Examinar o Totem"></button>
             </div>
           </div>
         </div>
@@ -258,7 +262,9 @@ const build = () => {
     sceneTitle: screen.querySelector("[data-scene-title]"),
     sceneMessage: screen.querySelector("[data-scene-message]"),
     totem: screen.querySelector(".idle-totem"),
-    totemImage: screen.querySelector(".idle-totem img"),
+    sanctuaryHero: screen.querySelector(".idle-sanctuary-hero img"),
+    sanctuaryCompanion: screen.querySelector(".idle-sanctuary-companion img"),
+    sanctuaryCompanionBox: screen.querySelector(".idle-sanctuary-companion"),
     progress: screen.querySelector("[data-progress]"),
     fill: screen.querySelector(".idle-fill"),
     runState: screen.querySelector("[data-run-state]"),
@@ -284,7 +290,6 @@ const build = () => {
     restartDefeat: screen.querySelector("[data-action=restart-defeat]"),
     mapDefeat: screen.querySelector("[data-action=map-defeat]")
   };
-  ui.totemImage.src = TOTEM_IMAGE;
   ui.toggle.addEventListener("click", toggle);
   ui.map.addEventListener("click", returnMap);
   ui.team.addEventListener("click", openTeam);
@@ -301,8 +306,12 @@ const renderParty = () => {
   const snapshot = player();
   ui.hero.src = snapshot.character === "female" ? "assets/selection/hero-female.webp" : "assets/selection/hero-male.webp";
   ui.hero.alt = snapshot.name || "Protagonista";
+  ui.sanctuaryHero.src = ui.hero.src;
+  ui.sanctuaryHero.alt = ui.hero.alt;
   ui.followers.replaceChildren();
-  roster().slice(0, 1).forEach((member, index) => {
+  const activeRoster = roster().slice(0, 1);
+  ui.sanctuaryCompanionBox.hidden = !activeRoster.length;
+  activeRoster.forEach((member, index) => {
     const form = formFor(member.formId || member.id);
     const box = document.createElement("div");
     const image = document.createElement("img");
@@ -312,6 +321,8 @@ const renderParty = () => {
     image.alt = member.name || form.name;
     box.append(image);
     ui.followers.append(box);
+    ui.sanctuaryCompanion.src = image.src;
+    ui.sanctuaryCompanion.alt = image.alt;
   });
 };
 
@@ -429,7 +440,13 @@ const render = () => {
     button.classList.toggle("active", Number(button.dataset.speed) === state.speed);
     button.disabled = busy || state.completed;
   });
-  if (state.completed) {
+  if (state.puzzleUnlocked && PUZZLE_REPLAY_TEST_MODE) {
+    ui.sceneTitle.textContent = "Santuário Oeste alcançado";
+    ui.sceneMessage.textContent = "Interaja com o Totem para iniciar o Puzzle 1.";
+    ui.objective.textContent = state.completed || state.replay
+      ? " repita o Círculo dos Ecos em modo de teste."
+      : " resolva o Círculo dos Ecos.";
+  } else if (state.completed) {
     if (state.replay) {
       ui.sceneTitle.textContent = "Expedição concluída";
       ui.sceneMessage.textContent = "A rota foi percorrida novamente. O Círculo dos Ecos já estava desperto.";
@@ -638,16 +655,6 @@ const unlockPuzzle = () => {
   save(true);
 };
 
-const completeReplay = () => {
-  state.progress = 100;
-  state.running = false;
-  state.puzzleUnlocked = false;
-  state.completed = true;
-  addLog("Expedição concluída. O puzzle já havia sido resolvido.", "capture");
-  render();
-  save(true);
-};
-
 const tick = (time) => {
   frame = requestAnimationFrame(tick);
   if (!active || !state || !ui) return;
@@ -658,8 +665,7 @@ const tick = (time) => {
   const next = pendingEncounter();
   if (next) { void encounter(next); return; }
   if (state.progress >= 100) {
-    if (state.replay) completeReplay();
-    else unlockPuzzle();
+    unlockPuzzle();
     return;
   }
   render();
@@ -713,7 +719,10 @@ class PuzzleOne {
     this.start = this.element.querySelector("[data-puzzle=start]");
     this.closeButton = this.element.querySelector("[data-puzzle=close]");
     this.art = this.element.querySelector(".idle-puzzle-art");
+    this.board = this.element.querySelector(".idle-puzzle-board");
+    this.crystal = this.element.querySelector(".idle-crystal");
     this.runes = [...this.element.querySelectorAll("[data-rune]")];
+    this.paths = [...this.element.querySelectorAll("[data-path]")];
     const showArtError = () => {
       this.element.classList.add("art-error");
       this.status.textContent = "Não foi possível carregar a arena do puzzle. Volte à expedição e tente novamente.";
@@ -724,6 +733,30 @@ class PuzzleOne {
     this.start.addEventListener("click", () => void this.begin());
     this.closeButton.addEventListener("click", () => this.close());
     this.runes.forEach((rune) => rune.addEventListener("click", () => void this.choose(Number(rune.dataset.rune))));
+    if ("ResizeObserver" in window) {
+      this.resizeObserver = new window.ResizeObserver(() => this.alignEnergyPaths());
+      this.resizeObserver.observe(this.board);
+    }
+    window.addEventListener("resize", () => this.alignEnergyPaths());
+  }
+  alignEnergyPaths() {
+    const boardRect = this.board.getBoundingClientRect();
+    const crystalRect = this.crystal.getBoundingClientRect();
+    if (!boardRect.width || !boardRect.height || !crystalRect.width) return;
+    const targetX = crystalRect.left + crystalRect.width / 2;
+    const targetY = crystalRect.top + crystalRect.height / 2;
+    this.runes.forEach((rune, index) => {
+      const runeRect = rune.getBoundingClientRect();
+      const startX = runeRect.left + runeRect.width / 2;
+      const startY = runeRect.top + runeRect.height / 2;
+      const deltaX = targetX - startX;
+      const deltaY = targetY - startY;
+      const path = this.paths[index];
+      path.style.left = `${startX - boardRect.left}px`;
+      path.style.top = `${startY - boardRect.top}px`;
+      path.style.width = `${Math.hypot(deltaX, deltaY)}px`;
+      path.style.transform = `translateY(-50%) rotate(${Math.atan2(deltaY, deltaX)}rad)`;
+    });
   }
   tone(index, duration = .2) {
     const Context = window.AudioContext || window.webkitAudioContext;
@@ -744,9 +777,11 @@ class PuzzleOne {
   }
   open() {
     if (!state?.puzzleUnlocked || this.opened) return;
-    if (state.completed || puzzleFlags().echoesSolved) { toast("O Círculo dos Ecos já está desperto."); return; }
+    const alreadySolved = Boolean(state.completed || puzzleFlags().echoesSolved);
+    if (alreadySolved && !PUZZLE_REPLAY_TEST_MODE) { toast("O Círculo dos Ecos já está desperto."); return; }
+    this.replayAttempt = alreadySolved;
     state.running = false;
-    save(true);
+    if (!this.replayAttempt) save(true);
     this.opened = true;
     this.accepting = false;
     this.index = 0;
@@ -756,6 +791,7 @@ class PuzzleOne {
     this.start.hidden = false;
     this.start.disabled = false;
     this.element.hidden = false;
+    requestAnimationFrame(() => this.alignEnergyPaths());
     this.start.focus();
   }
   close() {
@@ -821,26 +857,35 @@ class PuzzleOne {
     if (this.index >= this.sequence.length) await this.solve();
   }
   async solve() {
+    const firstCompletion = !this.replayAttempt && !puzzleFlags().echoesSolved;
     this.accepting = false;
     this.runes.forEach((rune) => { rune.disabled = true; rune.classList.add("active"); });
     this.start.hidden = true;
-    this.status.textContent = "Círculo desperto! O primeiro santuário reconheceu sua equipe.";
+    this.status.textContent = firstCompletion
+      ? "Círculo desperto! O primeiro santuário reconheceu sua equipe."
+      : "Sequência concluída novamente em modo de teste.";
     state.completed = true;
     state.puzzleUnlocked = true;
     state.progress = 100;
     state.running = false;
-    bridge()?.saveEchoMapState?.({
-      mapId: MAP_ID,
-      idleExpedition: savePayload(),
-      puzzles: { ...puzzleFlags(), echoesSolved: true },
-      puzzleOneSolvedAt: new Date().toISOString()
-    });
-    addLog("Puzzle 1 concluído. O progresso foi salvo.", "capture");
+    if (firstCompletion) {
+      bridge()?.saveEchoMapState?.({
+        mapId: MAP_ID,
+        idleExpedition: savePayload(),
+        puzzles: { ...puzzleFlags(), echoesSolved: true },
+        puzzleOneSolvedAt: new Date().toISOString()
+      });
+      addLog("Puzzle 1 concluído. O progresso foi salvo.", "capture");
+    } else {
+      addLog("Puzzle 1 repetido em modo de teste, sem nova recompensa.", "capture");
+    }
     [0, 1, 2, 1].forEach((value, order) => setTimeout(() => this.tone(value, .25), order * 130));
     await sleep(reducedMotion() ? 500 : 1700);
     this.close();
     render();
-    toast("Puzzle 1 concluído · Progresso salvo.");
+    toast(firstCompletion
+      ? "Puzzle 1 concluído · Progresso salvo."
+      : "Puzzle 1 repetido · Nenhuma recompensa duplicada.");
   }
 }
 
@@ -871,7 +916,7 @@ const enter = () => {
   hideDefeatModal();
   logs = [];
   addLog(state.replay
-    ? "Nova expedição iniciada. O puzzle já está concluído e não será repetido."
+    ? "Nova expedição de teste iniciada. O puzzle será liberado novamente em 100%."
     : "Clareira preparada para a primeira expedição.");
   renderParty();
   renderTeam();
