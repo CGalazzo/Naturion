@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const moduleSource = readFileSync(new URL("../src/overworld/idle/central-sanctuary.js", import.meta.url), "utf8");
+const styles = readFileSync(new URL("../src/overworld/idle/central-sanctuary.css", import.meta.url), "utf8");
 
 test("Santuário Central possui três níveis com os fundos enviados", () => {
   for (const scene of ["entrada.webp", "galerias.webp", "nucleo.webp"]) {
@@ -55,4 +56,24 @@ test("derrota do Guardião reinicia o Santuário no nível 1", () => {
   assert.match(moduleSource, /showDefeat\("sanctuary"\)/);
   assert.match(moduleSource, /if \(defeatScope === "sanctuary"\) state\.levelIndex = 0/);
   assert.match(moduleSource, /Puzzle 2 liberado/);
+});
+
+test("Santuário usa uma única faixa de esteira e o sprite caminhando da Clareira", () => {
+  assert.match(moduleSource, /idle-treadmill-layer idle-treadmill-mid/);
+  assert.doesNotMatch(moduleSource, /\["far", "mid", "near"\]\.map/);
+  assert.match(moduleSource, /idle-hero idle-hero-static/);
+  assert.match(moduleSource, /idle-hero-walk/);
+  assert.match(moduleSource, /heroBox\.dataset\.variant/);
+  assert.match(styles, /\.idle-treadmill-far,#centralSanctuaryScreen \.idle-treadmill-near\{display:none\}/);
+  assert.match(styles, /background-image:var\(--treadmill-image\)!important/);
+});
+
+test("mapa anima viagens nos dois sentidos e oculta o rastro após a primeira entrada", () => {
+  assert.match(html, /const animateWorldMapPartyTo = async/);
+  assert.match(html, /showEchoMapPending: async \(\) => \{[\s\S]*?await travelToFirstWorldDestination\(\)/);
+  assert.match(html, /travelToCentralSanctuary: async \(\) => \{[\s\S]*?await animateWorldMapPartyTo\(\{ x: 48, y: 45\.6 \}/);
+  assert.match(html, /centralSanctuaryUnlocked && !flags\.centralSanctuaryEntered/);
+  assert.match(html, /centralSanctuaryEntered: true[\s\S]*?worldCentralEnergyRoute\.classList\.remove\("active", "unlocking"\)/);
+  assert.match(html, /updateWorldEnergyRouteGeometry/);
+  assert.match(html, /Math\.atan2\(deltaY, deltaX\)/);
 });
