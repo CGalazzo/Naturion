@@ -483,47 +483,13 @@
       place-items: end center;
       padding: 0 8px 8px;
       border: 0;
+      border-radius: 0 !important;
       background: transparent;
+      box-shadow: none !important;
       color: #fff;
       cursor: pointer;
       outline: 0;
       perspective: 900px;
-    }
-
-    .character-card::before {
-      position: absolute;
-      z-index: -1;
-      left: 50%;
-      bottom: 16px;
-      width: min(92%, 360px);
-      height: min(74%, 480px);
-      content: "";
-      border: 4px solid rgba(232, 189, 53, .25);
-      border-radius: 46% 46% 13% 13%;
-      background:
-        radial-gradient(circle at 50% 46%, rgba(111, 229, 125, .23), transparent 48%),
-        linear-gradient(180deg, rgba(14, 55, 28, .08), rgba(4, 23, 12, .6));
-      box-shadow:
-        inset 0 0 34px rgba(162, 255, 152, .08),
-        0 20px 40px rgba(0, 0, 0, .25);
-      opacity: .52;
-      transform: translateX(-50%) scale(.93);
-      transition: opacity .25s ease, transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-    }
-
-    .character-card::after {
-      position: absolute;
-      z-index: -1;
-      right: 12%;
-      bottom: 10%;
-      left: 12%;
-      height: 11%;
-      content: "";
-      border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(0, 0, 0, .58), transparent 69%);
-      filter: blur(5px);
-      transform: scale(.82);
-      transition: transform .25s ease;
     }
 
     .character-art {
@@ -553,25 +519,6 @@
         drop-shadow(0 15px 12px rgba(0, 0, 0, .46))
         drop-shadow(0 0 16px rgba(199, 255, 150, .34));
       transform: translateY(-7px) rotateY(var(--tilt, 0deg)) scale(1.035);
-    }
-
-    .character-card:hover::before,
-    .character-card:focus-visible::before {
-      border-color: rgba(255, 231, 112, .65);
-      opacity: .88;
-      transform: translateX(-50%) scale(1);
-    }
-
-    .character-card.selected::before {
-      border-color: #ffdf66;
-      opacity: 1;
-      transform: translateX(-50%) scale(1.025);
-      box-shadow:
-        inset 0 0 45px rgba(181, 255, 141, .24),
-        0 0 0 5px rgba(28, 91, 42, .7),
-        0 0 35px rgba(255, 225, 90, .38),
-        0 22px 42px rgba(0, 0, 0, .35);
-      animation: selected-glow 1.8s ease-in-out infinite alternate;
     }
 
     .character-card.selected .character-art {
@@ -989,11 +936,6 @@
       50% { transform: translateY(-6px) rotate(-.25deg); }
     }
 
-    @keyframes selected-glow {
-      from { filter: brightness(.96); }
-      to { filter: brightness(1.12); }
-    }
-
     @media (max-aspect-ratio: 4/5) {
       .content {
         width: 100%;
@@ -1055,12 +997,6 @@
       .character-art {
         max-width: 106%;
         height: min(49vh, 460px);
-      }
-
-      .character-card::before {
-        bottom: 13px;
-        width: 98%;
-        height: 72%;
       }
 
       .character-label {
@@ -5759,7 +5695,6 @@
       .story-hud,
       .dialogue-box,
       .starters-header,
-      .character-card,
       .starter-card,
       .confirmation-card,
       .result-card,
