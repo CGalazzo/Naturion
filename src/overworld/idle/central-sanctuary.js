@@ -473,6 +473,7 @@ const returnMap = () => {
   clearDefeatTimer();
   state.running = false;
   state.progress = 0;
+  state.completedIds = [];
   if (state.levelIndex === 2 && state.guardianDefeated) state.guardianDefeated = false;
   save(true);
   active = false;
