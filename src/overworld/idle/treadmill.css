@@ -138,7 +138,7 @@
 .idle-scene[data-treadmill-ready="true"] .idle-party {
   z-index: 7;
   right: 8%;
-  bottom: 7%;
+  bottom: 15%;
   left: 8%;
   justify-content: center;
   gap: clamp(0px, 1.1vw, 14px);
