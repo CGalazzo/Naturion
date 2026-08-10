@@ -132,7 +132,7 @@
 }
 
 .idle-scene[data-treadmill-ready="true"] .idle-totem {
-  z-index: 12;
+  z-index: 120;
 }
 
 .idle-scene[data-treadmill-ready="true"] .idle-party {
