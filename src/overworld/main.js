@@ -1,9 +1,12 @@
-import { OverworldEngine } from "./engine.js";
+import { OverworldEngine, THREE } from "./engine.js";
 import { OverworldCamera } from "./camera.js";
 import { OverworldInput } from "./input.js";
 import { OverworldPlayer } from "./player.js";
 import { OverworldEntities } from "./entities.js";
 import { OverworldBattleBridge } from "./battle-bridge.js";
+import { createGroundShadow } from "./sprites.js";
+import { createSpriteMaterial } from "./textures.js";
+import { depthOrderForZ } from "./depth.js";
 import {
   bosqueLuminalMap,
   buildBosqueLuminal
@@ -42,6 +45,19 @@ const TUTORIAL_NATURIONS = Object.freeze([
     scale: 2.25
   })
 ]);
+const TUTORIAL_TREADMILL = Object.freeze({
+  playerX: -4,
+  playerZ: 7.5,
+  companionX: -6.35,
+  companionZ: 7.65,
+  plumirelStartX: 16,
+  plumirelContactX: -.55,
+  plumirelZ: 7.35,
+  approachDelay: .72,
+  approachDuration: 3.35,
+  textureSpeed: .055
+});
+const TUTORIAL_WALK_VELOCITY = new THREE.Vector3(3.6, 0, 0);
 
 const screen = document.getElementById("overworldScreen");
 const viewport = document.getElementById("overworldViewport");
@@ -73,6 +89,14 @@ let lastSaveAt = 0;
 let encounterCooldownUntil = 0;
 let touchEncounterPending = false;
 let tutorialActive = false;
+let tutorialTextureStates = [];
+let tutorialCompanion = null;
+const tutorialTreadmill = {
+  active: false,
+  elapsed: 0,
+  encounterStarted: false,
+  plumirel: null
+};
 
 const bridge = () => window.NaturionOverworldBridge;
 
@@ -85,6 +109,170 @@ const showToast = (message) => {
 };
 
 const getPlayerSnapshot = () => bridge()?.getPlayer?.() || {};
+
+const prepareTutorialTreadmillTextures = () => {
+  const textures = [
+    mapBuild?.materials?.textures?.ground,
+    mapBuild?.materials?.textures?.foreground
+  ].filter(Boolean);
+  tutorialTextureStates = textures.map((texture) => ({
+    texture,
+    wrapS: texture.wrapS,
+    repeatX: texture.repeat.x,
+    repeatY: texture.repeat.y,
+    offsetX: texture.offset.x,
+    offsetY: texture.offset.y
+  }));
+  tutorialTextureStates.forEach(({ texture }) => {
+    texture.wrapS = THREE.MirroredRepeatWrapping;
+    texture.repeat.set(1, 1);
+    texture.offset.set(0, 0);
+    texture.needsUpdate = true;
+  });
+};
+
+const restoreTutorialTreadmillTextures = () => {
+  tutorialTextureStates.forEach((state) => {
+    state.texture.wrapS = state.wrapS;
+    state.texture.repeat.set(state.repeatX, state.repeatY);
+    state.texture.offset.set(state.offsetX, state.offsetY);
+    state.texture.needsUpdate = true;
+  });
+  tutorialTextureStates = [];
+};
+
+const createTutorialCompanion = () => {
+  const member = getPlayerSnapshot().starter;
+  const formId = member?.formId || member?.id || member?.baseId;
+  const form = window.__naturionEcho?.forms?.[formId] || member;
+  const image = member?.image || form?.image;
+  if (!image || !entities || !engine) return null;
+
+  const texture = entities.getNaturionTexture(image);
+  const material = createSpriteMaterial(texture, { depthWrite: false });
+  const sprite = new THREE.Sprite(material);
+  const scale = 2.55;
+  sprite.name = "TutorialTreadmillCompanion";
+  sprite.center.set(.5, .055);
+  sprite.scale.set(-scale, scale, 1);
+  sprite.renderOrder = depthOrderForZ(TUTORIAL_TREADMILL.companionZ, 18);
+  sprite.frustumCulled = false;
+
+  const shadow = createGroundShadow({ width: scale * .76, depth: scale * .32, opacity: .34 });
+  shadow.mesh.position.y = .025;
+  const root = new THREE.Group();
+  root.name = "TutorialTreadmillCompanionRoot";
+  root.position.set(TUTORIAL_TREADMILL.companionX, .04, TUTORIAL_TREADMILL.companionZ);
+  root.add(shadow.mesh, sprite);
+  engine.scene.add(root);
+  return { root, sprite, material, shadow, scale };
+};
+
+const disposeTutorialCompanion = () => {
+  if (!tutorialCompanion) return;
+  tutorialCompanion.material.dispose();
+  tutorialCompanion.shadow.mesh.geometry.dispose();
+  tutorialCompanion.shadow.material.dispose();
+  tutorialCompanion.root.removeFromParent();
+  tutorialCompanion = null;
+};
+
+const stopTutorialTreadmill = () => {
+  tutorialTreadmill.active = false;
+  tutorialTreadmill.elapsed = 0;
+  tutorialTreadmill.encounterStarted = false;
+  tutorialTreadmill.plumirel = null;
+  screen.classList.remove("tutorial-treadmill");
+  input?.reset?.();
+  if (input) input.enabled = true;
+  restoreTutorialTreadmillTextures();
+  disposeTutorialCompanion();
+  entities?.npcs?.forEach((npc) => { npc.root.visible = true; });
+};
+
+const startTutorialTreadmill = () => {
+  const plumirel = entities?.naturions?.find((entity) => entity.id === "plumirel-tutorial");
+  if (!active || !tutorialActive || !plumirel || !player || !mapBuild) return false;
+  stopTutorialTreadmill();
+  tutorialTreadmill.active = true;
+  tutorialTreadmill.plumirel = plumirel;
+  screen.classList.add("tutorial-treadmill");
+  input.reset();
+  input.enabled = false;
+  player.teleport({ x: TUTORIAL_TREADMILL.playerX, z: TUTORIAL_TREADMILL.playerZ });
+  player.velocity.copy(TUTORIAL_WALK_VELOCITY);
+  player.state = "walking";
+  entities.npcs.forEach((npc) => { npc.root.visible = false; });
+  plumirel.defeated = false;
+  plumirel.root.visible = true;
+  plumirel.shadow.visible = true;
+  plumirel.root.position.set(
+    TUTORIAL_TREADMILL.plumirelStartX,
+    plumirel.altitude || 2.5,
+    TUTORIAL_TREADMILL.plumirelZ
+  );
+  plumirel.direction.set(-1, 0, 0);
+  tutorialCompanion = createTutorialCompanion();
+  prepareTutorialTreadmillTextures();
+  objective.textContent = "Plumirel se aproxima pela trilha.";
+  stateLabel.textContent = "Caminhando";
+  showToast("Siga com seu Naturion e prepare-se para o encontro.");
+  return true;
+};
+
+const updateTutorialTreadmill = (delta, elapsed) => {
+  if (!tutorialTreadmill.active) return false;
+  tutorialTreadmill.elapsed += delta;
+  const sequenceTime = tutorialTreadmill.elapsed;
+  const plumirel = tutorialTreadmill.plumirel;
+
+  tutorialTextureStates.forEach(({ texture, offsetX }) => {
+    texture.offset.x = (offsetX + sequenceTime * TUTORIAL_TREADMILL.textureSpeed) % 2;
+  });
+
+  player.velocity.copy(TUTORIAL_WALK_VELOCITY);
+  player.state = "walking";
+  player.rig.update({
+    state: "walking",
+    velocity: TUTORIAL_WALK_VELOCITY,
+    delta,
+    worldZ: player.group.position.z
+  });
+  player.shadow.renderOrder = depthOrderForZ(player.group.position.z, 4);
+  camera.update(delta, TUTORIAL_WALK_VELOCITY);
+
+  if (tutorialCompanion) {
+    const gait = Math.sin(elapsed * 8.2);
+    const compression = Math.abs(gait);
+    tutorialCompanion.root.position.x = TUTORIAL_TREADMILL.companionX + gait * .035;
+    tutorialCompanion.sprite.scale.set(
+      -tutorialCompanion.scale * (1 + compression * .012),
+      tutorialCompanion.scale * (1 - compression * .01),
+      1
+    );
+    tutorialCompanion.material.rotation = gait * .024;
+    tutorialCompanion.shadow.mesh.scale.setScalar(.98 + compression * .025);
+  }
+
+  const approach = Math.max(0, Math.min(1,
+    (sequenceTime - TUTORIAL_TREADMILL.approachDelay) / TUTORIAL_TREADMILL.approachDuration
+  ));
+  const eased = approach * approach * (3 - 2 * approach);
+  plumirel.root.position.x = THREE.MathUtils.lerp(
+    TUTORIAL_TREADMILL.plumirelStartX,
+    TUTORIAL_TREADMILL.plumirelContactX,
+    eased
+  );
+  entities.update(delta, elapsed, player.group.position);
+  setPrompt(null);
+  stateLabel.textContent = "Caminhando";
+
+  if (approach >= 1 && !tutorialTreadmill.encounterStarted) {
+    tutorialTreadmill.encounterStarted = true;
+    void entities.startEncounter(plumirel);
+  }
+  return true;
+};
 
 const setPrompt = (interaction) => {
   activeInteraction = interaction;
@@ -114,6 +302,7 @@ const recoverFromOverworldError = (error) => {
   console.error("[Naturion Overworld] Falha ao carregar o tutorial do Bosque Luminal:", error);
   active = false;
   interactionLocked = false;
+  stopTutorialTreadmill();
   try { input?.reset?.(); } catch (resetError) { console.warn(resetError); }
   try { input?.dispose?.(); } catch (disposeError) { console.warn(disposeError); }
   try { entities?.dispose?.(); } catch (disposeError) { console.warn(disposeError); }
@@ -243,6 +432,7 @@ const returnToMap = () => {
 
 const runEncounter = async (entity) => {
   if (tutorialActive) {
+    stopTutorialTreadmill();
     active = false;
     input?.reset?.();
     setPrompt(null);
@@ -323,6 +513,7 @@ const createScene = () => {
   entities.spawn({ naturions: TUTORIAL_NATURIONS, npcs: TUTORIAL_NPCS });
 
   engine.addUpdater((delta, elapsed) => {
+    if (updateTutorialTreadmill(delta, elapsed)) return;
     const movement = player.update(delta);
     camera.update(delta, movement.velocity);
     const entityInteraction = entities.update(delta, elapsed, player.group.position);
@@ -365,17 +556,10 @@ const enterOverworld = async () => {
     if (!engine) createScene();
     else player.teleport(bosqueLuminalMap.startPosition);
     active = true;
-    input.enabled = true;
+    input.enabled = false;
     engine.start();
     viewport.focus();
-    showToast("WASD ou setas para mover · Shift para correr · E para falar");
-    window.setTimeout(() => {
-      if (!active || !tutorialActive || !dialogue.hidden) return;
-      showDialogue({
-        name: "Dra. Íris",
-        message: "Este é o Bosque Luminal. Use WASD ou as setas para caminhar, Shift para correr e siga pela trilha até a parte alta do bosque, onde Plumirel foi avistado. Eu estarei logo à frente caso precise falar comigo."
-      });
-    }, 420);
+    requestAnimationFrame(startTutorialTreadmill);
   } catch (error) {
     recoverFromOverworldError(error);
   }
