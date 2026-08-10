@@ -493,6 +493,7 @@ const enter = () => {
   bridge()?.prepareCentralSanctuaryEntry?.();
   if (!ui) build();
   state = loadState();
+  if (state.progress === 0) state.completedIds = [];
   encounters = makeEncounters(state.levelIndex);
   logs = [];
   busy = false;
