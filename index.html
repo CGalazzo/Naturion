@@ -5196,6 +5196,11 @@
       background: linear-gradient(180deg, #907449 0 18%, #62451f 19% 76%, #382711 77%);
     }
 
+    .world-map-tool.heal {
+      color: #edfff1;
+      background: linear-gradient(180deg, #55a96c 0 18%, #28784a 19% 76%, #17462d 77%);
+    }
+
     .world-map-tool.saved {
       animation: world-save-confirm .58s steps(5, end);
     }
@@ -8751,6 +8756,17 @@
             </svg>
           </button>
           <button
+            class="world-map-tool heal"
+            id="worldHealButton"
+            type="button"
+            aria-label="Curar todos os Naturions"
+            title="Curar todos os Naturions"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7V2z"></path>
+            </svg>
+          </button>
+          <button
             class="world-map-tool"
             id="worldOptionsButton"
             type="button"
@@ -9468,6 +9484,7 @@
       const worldOptionsButton = document.getElementById("worldOptionsButton");
       const worldSaveButton = document.getElementById("worldSaveButton");
       const worldTeamButton = document.getElementById("worldTeamButton");
+      const worldHealButton = document.getElementById("worldHealButton");
       const echoEntryConfirm = document.getElementById("echoEntryConfirm");
       const confirmEchoEntry = document.getElementById("confirmEchoEntry");
       const cancelEchoEntry = document.getElementById("cancelEchoEntry");
@@ -11800,6 +11817,21 @@
         return catalog;
       };
 
+      const healAllNaturions = () => {
+        if (!currentPlayer || openForestMap.hidden) return;
+        ensureEchoPlayerData();
+        getEchoCatalog().forEach((member) => {
+          member.currentHp = member.maxHp;
+        });
+        saveCurrentPlayer();
+        refreshEchoStarterUI();
+        playSequence([392, 523, 659, 784], .07);
+        showToast("Todos os Naturions foram curados!");
+        window.dispatchEvent(new CustomEvent("naturion:team-healed", {
+          detail: { player: JSON.parse(JSON.stringify(currentPlayer)) }
+        }));
+      };
+
       const getEchoRoster = () => {
         const catalog = new Map(getEchoCatalog().map((member) => [member.uid, member]));
         const order = Array.isArray(currentPlayer.partyOrderUids)
@@ -12965,7 +12997,7 @@ if (wild) echoWilds.push(wild);
         }
         if (!member) {
           orderedRoster.forEach((rosterMember) => {
-            rosterMember.currentHp = Math.max(1, Math.round(rosterMember.maxHp * .65));
+            rosterMember.currentHp = rosterMember.maxHp;
           });
           member = orderedRoster[0];
         }
@@ -13165,7 +13197,7 @@ if (wild) echoWilds.push(wild);
         playSequence([330, 247, 196], .09);
         await forestPause(1150);
         getEchoRoster().forEach((member) => {
-          member.currentHp = Math.max(1, Math.round(member.maxHp * .65));
+          member.currentHp = member.maxHp;
         });
         currentPlayer.activeLeadUid = getEchoRoster()[0].uid;
         echoBattleMemberUid = null;
@@ -14117,6 +14149,7 @@ if (wild) echoWilds.push(wild);
       worldOptionsButton.addEventListener("click", openOptions);
       worldSaveButton.addEventListener("click", saveWorldGame);
       worldTeamButton.addEventListener("click", () => openEchoTeam(worldTeamButton));
+      worldHealButton.addEventListener("click", healAllNaturions);
       closeButton.addEventListener("click", closeOptions);
 
       window.addEventListener("naturion:open-team-manager", (event) => {
@@ -14320,6 +14353,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js"></script>
-  <script type="module" src="src/overworld/echo-main.js?v=10"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=11"></script>
 </body>
 </html>
