@@ -1428,21 +1428,6 @@
     .starter-card[data-starter="brasguax"] { --type: #ff6a2a; left: 37.8%; }
     .starter-card[data-starter="musgurso"] { --type: #82d866; left: 61.9%; }
 
-    .starter-card::before {
-      position: absolute;
-      z-index: 0;
-      inset: 1% 2% 8%;
-      border: 3px solid transparent;
-      border-radius: 50% 50% 24% 24%;
-      content: "";
-      opacity: 0;
-      box-shadow:
-        inset 0 0 28px color-mix(in srgb, var(--type) 32%, transparent),
-        0 0 22px color-mix(in srgb, var(--type) 42%, transparent);
-      transition: opacity .2s ease, border-color .2s ease, box-shadow .2s ease;
-      pointer-events: none;
-    }
-
     .starter-card::after {
       position: absolute;
       z-index: 1;
@@ -1467,28 +1452,13 @@
       outline: 0;
     }
 
-    .starter-card:hover::before,
-    .starter-card:focus-visible::before,
-    .starter-card.selected::before {
-      border-color: color-mix(in srgb, var(--type) 86%, white 14%);
-      opacity: .9;
-    }
-
-    .starter-card.selected::before {
-      box-shadow:
-        inset 0 0 38px color-mix(in srgb, var(--type) 42%, transparent),
-        0 0 15px var(--type),
-        0 0 38px color-mix(in srgb, var(--type) 72%, transparent);
-      animation: starter-capsule-selected 1.15s ease-in-out infinite alternate;
-    }
-
     .starter-image {
       position: absolute;
       z-index: 2;
-      top: 1%;
+      top: 10%;
       left: 50%;
       width: 76%;
-      height: 70%;
+      height: 68%;
       object-fit: contain;
       filter:
         drop-shadow(0 10px 7px rgba(0, 0, 0, .48))
@@ -1974,11 +1944,6 @@
       100% { opacity: .12; transform: translateY(-11%); }
     }
 
-    @keyframes starter-capsule-selected {
-      from { opacity: .72; filter: brightness(.95); }
-      to { opacity: 1; filter: brightness(1.22); }
-    }
-
     @keyframes essence-release {
       0% { opacity: 1; filter: drop-shadow(0 0 24px var(--sync-color)); transform: scale(1); }
       55% { opacity: .78; filter: brightness(1.8) saturate(1.4) drop-shadow(0 0 44px var(--sync-color)); transform: scale(.88); }
@@ -2087,7 +2052,7 @@
 
       .starter-stage .starter-image {
         width: 80%;
-        height: 69%;
+        height: 68%;
       }
 
       .starter-description {
@@ -2214,7 +2179,7 @@
       }
 
       .starter-stage .starter-image {
-        height: 70%;
+        height: 68%;
       }
 
       .starter-stage .starter-grid {
