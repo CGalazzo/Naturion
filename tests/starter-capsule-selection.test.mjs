@@ -25,7 +25,18 @@ assert.match(index, /starter-card\[data-starter="brasguax"\][^}]*left: 37\.8%/, 
 assert.match(index, /starter-card\[data-starter="musgurso"\][^}]*left: 61\.9%/, "Musgurso precisa alinhar à cápsula direita");
 assert.match(index, /@keyframes starter-capsule-float/, "os iniciais precisam flutuar dentro das cápsulas");
 assert.match(index, /@keyframes starter-capsule-energy/, "as cápsulas precisam manter partículas em movimento");
-assert.match(index, /starter-card\.selected::before/, "a cápsula escolhida precisa receber destaque persistente");
+assert.doesNotMatch(index, /\.starter-card::before/, "a seleção não deve desenhar formas geométricas sobre as cápsulas");
+assert.doesNotMatch(index, /starter-capsule-selected/, "o contorno geométrico animado não deve permanecer");
+assert.match(
+  index,
+  /\.starter-image\s*\{[\s\S]*?top:\s*10%;[\s\S]*?height:\s*68%;/,
+  "os iniciais precisam ficar mais baixos, dentro dos tubos e separados das caixas de nome"
+);
+assert.match(
+  index,
+  /\.starter-card:hover,[\s\S]*?\.starter-card\.selected\s*\{[\s\S]*?--starter-scale:\s*1\.055;/,
+  "a escolha precisa continuar destacada pela animação do próprio Naturion"
+);
 
 assert.match(
   index,
