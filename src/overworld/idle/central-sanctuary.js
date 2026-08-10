@@ -104,7 +104,7 @@ const makeEncounters = (levelIndex) => {
   }
   return shuffled.map((formId, index) => ({
     id: `central-${level.id}-${index + 1}-${formId}`,
-    at: 10 + index * 10,
+    at: 5 + Math.floor(seededRandom(state.levelSeeds[levelIndex] + (index + 1) * 104729)() * 90),
     formId,
     level: level.min + Math.floor(random() * (level.max - level.min + 1))
   }));
