@@ -27,6 +27,13 @@
   outline: none;
 }
 
+.overworld-screen.tutorial-treadmill .overworld-controls-help,
+.overworld-screen.tutorial-treadmill .overworld-mobile-controls,
+.overworld-screen.tutorial-treadmill .overworld-status .overworld-tool,
+.overworld-screen.tutorial-treadmill .overworld-interaction {
+  display: none !important;
+}
+
 .overworld-canvas {
   display: block;
   width: 100%;
