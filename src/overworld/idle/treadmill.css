@@ -131,10 +131,6 @@
   z-index: 9;
 }
 
-.idle-scene[data-treadmill-ready="true"] .idle-totem {
-  z-index: 120;
-}
-
 .idle-scene[data-treadmill-ready="true"] .idle-party {
   z-index: 7;
   right: 8%;

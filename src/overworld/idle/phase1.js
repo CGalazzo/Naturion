@@ -158,7 +158,7 @@ const ensureCss = () => {
   const link = document.createElement("link");
   link.id = "idlePhaseOneCss";
   link.rel = "stylesheet";
-  link.href = "src/overworld/idle/phase1.css?v=6";
+  link.href = "src/overworld/idle/phase1.css?v=7";
   document.head.append(link);
 };
 
@@ -183,16 +183,6 @@ const build = () => {
             <div class="idle-followers"></div>
           </div>
           <div class="idle-wild"><img alt=""><strong></strong></div>
-          <div class="idle-totem" aria-label="Santuário Oeste alcançado">
-            <div class="idle-sanctuary-stage">
-              <img class="idle-sanctuary-art" src="${SANCTUARY_SCENE}" alt="Santuário Oeste com o Totem do Círculo dos Ecos e o painel do Puzzle 1" width="1672" height="941">
-              <div class="idle-sanctuary-party" aria-label="Equipe diante do Totem">
-                <div class="idle-sanctuary-companion"><img alt=""></div>
-                <div class="idle-sanctuary-hero"><img alt=""></div>
-              </div>
-              <button class="idle-sanctuary-action" type="button" data-action="puzzle" aria-label="Examinar o Totem"></button>
-            </div>
-          </div>
         </div>
         <aside class="idle-side">
           <section class="idle-card">
@@ -232,6 +222,16 @@ const build = () => {
         <button class="idle-btn idle-primary" type="button" data-action="toggle">Iniciar expedição</button>
       </footer>
     </main>
+    <div class="idle-totem" role="dialog" aria-modal="true" aria-label="Santuário Oeste alcançado">
+      <div class="idle-sanctuary-stage">
+        <img class="idle-sanctuary-art" src="${SANCTUARY_SCENE}" alt="Santuário Oeste com o Totem do Círculo dos Ecos e o painel do Puzzle 1" width="1672" height="941">
+        <div class="idle-sanctuary-party" aria-label="Equipe diante do Totem">
+          <div class="idle-sanctuary-companion"><img alt=""></div>
+          <div class="idle-sanctuary-hero"><img alt=""></div>
+        </div>
+        <button class="idle-sanctuary-action" type="button" data-action="puzzle" aria-label="Examinar o Totem"></button>
+      </div>
+    </div>
     <div class="idle-team" hidden>
       <section class="idle-team-dialog" role="dialog" aria-modal="true">
         <header><h2>Equipe da expedição</h2><button class="idle-btn alt" type="button" data-action="close-team">Fechar</button></header>
@@ -418,6 +418,9 @@ const render = () => {
   ui.captures.textContent = state.captures;
   ui.defeats.textContent = state.defeats;
   ui.totem.classList.toggle("visible", state.puzzleUnlocked);
+  ui.root.classList.toggle("sanctuary-reached", state.puzzleUnlocked);
+  ui.root.inert = state.puzzleUnlocked;
+  ui.root.setAttribute("aria-hidden", String(state.puzzleUnlocked));
   ui.toggle.disabled = busy || state.puzzleUnlocked || state.completed;
   ui.toggle.textContent = state.completed
     ? "Expedição concluída"
