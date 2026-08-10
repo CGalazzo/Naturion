@@ -878,6 +878,9 @@ class PuzzleOne {
         puzzles: { ...puzzleFlags(), echoesSolved: true },
         puzzleOneSolvedAt: new Date().toISOString()
       });
+      window.dispatchEvent(new CustomEvent("naturion:puzzle-one-solved", {
+        detail: { mapId: MAP_ID, solvedAt: new Date().toISOString() }
+      }));
       addLog("Puzzle 1 concluído. O progresso foi salvo.", "capture");
     } else {
       addLog("Puzzle 1 repetido em modo de teste, sem nova recompensa.", "capture");

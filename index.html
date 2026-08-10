@@ -5151,6 +5151,47 @@
       top: 45.6%;
     }
 
+    .world-energy-route {
+      position: absolute;
+      z-index: 5;
+      top: 45.6%;
+      left: 29.3%;
+      width: 23.9%;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #5de76b, #baff91 48%, #66f1c7);
+      box-shadow: 0 0 5px #75f581, 0 0 14px #50de8e99;
+      opacity: 0;
+      pointer-events: none;
+      transform: rotate(-32.5deg);
+      transform-origin: left center;
+      transition: opacity .55s ease;
+    }
+
+    .world-energy-route::after {
+      position: absolute;
+      inset: -3px 0;
+      content: "";
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent 0 20%, #efffd2 45%, transparent 68%);
+      opacity: .88;
+      animation: centralRouteFlow 1.25s linear infinite;
+    }
+
+    .world-energy-route.active { opacity: .92; }
+    .world-energy-route.unlocking { animation: centralRouteAwaken 1.6s ease both; }
+
+    @keyframes centralRouteFlow {
+      from { transform: translateX(-55%); }
+      to { transform: translateX(85%); }
+    }
+
+    @keyframes centralRouteAwaken {
+      0% { opacity: 0; filter: brightness(1); transform: rotate(-32.5deg) scaleX(0); }
+      58% { opacity: 1; filter: brightness(2.1); }
+      100% { opacity: .92; filter: brightness(1); transform: rotate(-32.5deg) scaleX(1); }
+    }
+
     .world-crystal-destination {
       left: 25.7%;
       top: 20%;
@@ -8892,6 +8933,8 @@
           <span class="world-destination-label">Passagem Antiga</span>
         </div>
 
+        <i class="world-energy-route" id="worldCentralEnergyRoute" aria-hidden="true"></i>
+
         <button
           class="world-destination world-first-destination unlocked"
           id="worldFirstDestination"
@@ -8903,7 +8946,14 @@
           <span class="world-destination-label">Clareira dos Ecos</span>
         </button>
 
-        <button class="world-destination world-central-destination locked" type="button" disabled>
+        <button
+          class="world-destination world-central-destination locked"
+          id="worldCentralDestination"
+          type="button"
+          data-world-destination="santuario-central"
+          aria-label="Destino bloqueado: Santuário Central"
+          disabled
+        >
           <span class="world-destination-marker" aria-hidden="true"></span>
           <span class="world-destination-label">Santuário Central</span>
         </button>
@@ -9065,6 +9115,14 @@
         <article><header><span><small>Relógio Cristalíneo</small><strong>Equipe atual</strong></span><button id="echoOverworldTeamClose" type="button" aria-label="Fechar equipe">×</button></header><div class="overworld-team-grid" id="echoOverworldTeamGrid"></div></article>
       </section>
     </section>
+
+    <section
+      class="overworld-screen central-sanctuary-screen"
+      id="centralSanctuaryScreen"
+      aria-label="Expedição do Santuário Central"
+      tabindex="-1"
+      hidden
+    ></section>
 
     <section
       class="echo-clearing"
@@ -9573,6 +9631,8 @@
       const openMapStarter = document.getElementById("openMapStarter");
       const openMapMovementButtons = [...document.querySelectorAll("[data-open-move]")];
       const worldFirstDestination = document.getElementById("worldFirstDestination");
+      const worldCentralDestination = document.getElementById("worldCentralDestination");
+      const worldCentralEnergyRoute = document.getElementById("worldCentralEnergyRoute");
       const worldMapObjective = document.getElementById("worldMapObjective");
       const worldMapGuideText = document.getElementById("worldMapGuideText");
       const journeyUnlocked = document.getElementById("journeyUnlocked");
@@ -9864,7 +9924,26 @@
         fidelark: { id: "fidelark", name: "Fidelark", type: "Normal", stage: 2, minLevel: 9, image: "assets/echo-creatures/fidelark.webp", groundOffset: 5 },
         zumbel: { id: "zumbel", name: "Zumbel", type: "Inseto", stage: 1, minLevel: 1, image: "assets/echo-creatures/zumbel.webp", flying: true },
         melsting: { id: "melsting", name: "Melsting", type: "Inseto", stage: 2, minLevel: 8, image: "assets/echo-creatures/melsting.webp", flying: true },
-        rainhaxa: { id: "rainhaxa", name: "Rainhaxa", type: "Inseto/Veneno", stage: 3, minLevel: 15, image: "assets/echo-creatures/rainhaxa.webp", flying: true }
+        rainhaxa: { id: "rainhaxa", name: "Rainhaxa", type: "Inseto/Veneno", stage: 3, minLevel: 15, image: "assets/echo-creatures/rainhaxa.webp", flying: true },
+        pedrilho: { id: "pedrilho", name: "Pedrilho", type: "Pedra", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/pedrilho.webp", groundOffset: 0 },
+        granfante: { id: "granfante", name: "Granfante", type: "Pedra", stage: 2, minLevel: 18, image: "assets/sanctuary/creatures/granfante.webp", groundOffset: 0 },
+        leonito: { id: "leonito", name: "Leonito", type: "Terra", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/leonito.webp", groundOffset: 0 },
+        terralion: { id: "terralion", name: "Terralion", type: "Terra", stage: 2, minLevel: 18, image: "assets/sanctuary/creatures/terralion.webp", groundOffset: 0 },
+        hidropotamo: { id: "hidropotamo", name: "Hidropótamo", type: "Água", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/hidropotamo.webp", groundOffset: 0 },
+        pantanamo: { id: "pantanamo", name: "Pantanamo", type: "Água/Terra", stage: 2, minLevel: 16, image: "assets/sanctuary/creatures/pantanamo.webp", groundOffset: 0 },
+        rinolito: { id: "rinolito", name: "Rinolito", type: "Pedra", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/rinolito.webp", groundOffset: 0 },
+        rocichifre: { id: "rocichifre", name: "Rocichifre", type: "Pedra", stage: 2, minLevel: 14, image: "assets/sanctuary/creatures/rocichifre.webp", groundOffset: 0 },
+        titanochifre: { id: "titanochifre", name: "Titanochifre", type: "Pedra", stage: 3, minLevel: 35, image: "assets/sanctuary/creatures/titanochifre.webp", groundOffset: 0 },
+        tartarim: { id: "tartarim", name: "Tartarim", type: "Água", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/tartarim.webp", groundOffset: 0 },
+        terratuga: { id: "terratuga", name: "Terratuga", type: "Água/Terra", stage: 2, minLevel: 16, image: "assets/sanctuary/creatures/terratuga.webp", groundOffset: 0 },
+        macabroto: { id: "macabroto", name: "Macabroto", type: "Normal/Planta", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/macabroto.webp", groundOffset: 0 },
+        faistrino: { id: "faistrino", name: "Faistrino", type: "Elétrico", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/faistrino.webp", groundOffset: 0 },
+        titrovao: { id: "titrovao", name: "Titrovão", type: "Elétrico", stage: 2, minLevel: 18, image: "assets/sanctuary/creatures/titrovao.webp", groundOffset: 0 },
+        croquim: { id: "croquim", name: "Croquim", type: "Água", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/croquim.webp", groundOffset: 0 },
+        aquadrilo: { id: "aquadrilo", name: "Aquadrilo", type: "Água", stage: 2, minLevel: 17, image: "assets/sanctuary/creatures/aquadrilo.webp", groundOffset: 0 },
+        toxidrilo: { id: "toxidrilo", name: "Toxidrilo", type: "Água/Veneno", stage: 3, minLevel: 34, image: "assets/sanctuary/creatures/toxidrilo.webp", groundOffset: 0 },
+        gororoc: { id: "gororoc", name: "Gororoc", type: "Normal/Pedra", stage: 1, minLevel: 1, image: "assets/sanctuary/creatures/gororoc.webp", groundOffset: 0 },
+        montgoril: { id: "montgoril", name: "Montgoril", type: "Normal/Pedra", stage: 2, minLevel: 25, image: "assets/sanctuary/creatures/montgoril.webp", groundOffset: 0 }
       };
 
       const EVOLUTION_CHAINS = [
@@ -9876,10 +9955,21 @@
         ["failino", "trovagato"],
         ["hambrio", "umbrester"],
         ["canumi", "fidelark"],
-        ["zumbel", "melsting", "rainhaxa"]
+        ["zumbel", "melsting", "rainhaxa"],
+        ["pedrilho", "granfante"],
+        ["leonito", "terralion"],
+        ["hidropotamo", "pantanamo"],
+        ["rinolito", "rocichifre", "titanochifre"],
+        ["tartarim", "terratuga"],
+        ["macabroto"],
+        ["faistrino", "titrovao"],
+        ["croquim", "aquadrilo", "toxidrilo"],
+        ["gororoc", "montgoril"]
       ];
 
-      const ECHO_WILD_CHAINS = EVOLUTION_CHAINS.slice(3);
+      // A Clareira mantém exclusivamente suas seis famílias originais.
+      // As espécies do Santuário são sorteadas apenas no novo mapa.
+      const ECHO_WILD_CHAINS = EVOLUTION_CHAINS.slice(3, 9);
       const ESSENCE_TYPE_STYLES = {
         Água: { color: "#59dcff", glow: "#1d8cff", palette: ["#59dcff", "#d8fbff", "#318cff"] },
         Fogo: { color: "#ff5c35", glow: "#ffaf2e", palette: ["#ff3d2e", "#ff9a2f", "#ffe07a"] },
@@ -9890,6 +9980,7 @@
         Normal: { color: "#e1c08c", glow: "#9c7443", palette: ["#f0d4a1", "#b88b55", "#fff4d6"] },
         Luz: { color: "#fff3a1", glow: "#66e9ff", palette: ["#fff7bd", "#7eeaff", "#ffffff"] },
         Terra: { color: "#b9844f", glow: "#6e4729", palette: ["#d6a267", "#8b5a35", "#e7c394"] },
+        Pedra: { color: "#c7ad78", glow: "#705331", palette: ["#e3c58a", "#9b7548", "#f5e0ad"] },
         Veneno: { color: "#c34fd8", glow: "#712b9a", palette: ["#e066e9", "#8735ba", "#8be66c"] }
       };
 
@@ -11546,6 +11637,9 @@
         firstWorldDestinationReached = Boolean(
           currentPlayer.storyFlags?.firstWorldDestinationReached
         );
+        const centralSanctuaryUnlocked = Boolean(
+          currentPlayer.storyFlags?.centralSanctuaryUnlocked
+        );
         openMapPosition = preserveSavedProgress
           && Number.isFinite(savedMapPosition?.x)
           && Number.isFinite(savedMapPosition?.y)
@@ -11559,11 +11653,22 @@
         openMapExploring = false;
         worldFirstDestination.disabled = false;
         worldFirstDestination.classList.toggle("visited", firstWorldDestinationReached);
-        worldMapObjective.textContent = firstWorldDestinationReached
-          ? "Destino alcançado: Clareira dos Ecos"
+        worldCentralDestination.disabled = !centralSanctuaryUnlocked;
+        worldCentralDestination.classList.toggle("locked", !centralSanctuaryUnlocked);
+        worldCentralDestination.classList.toggle("unlocked", centralSanctuaryUnlocked);
+        worldCentralDestination.setAttribute("aria-label", centralSanctuaryUnlocked
+          ? "Viajar para o Santuário Central"
+          : "Destino bloqueado: Santuário Central");
+        worldCentralEnergyRoute.classList.toggle("active", centralSanctuaryUnlocked);
+        worldMapObjective.textContent = centralSanctuaryUnlocked
+          ? "Novo destino: Santuário Central"
+          : firstWorldDestinationReached
+            ? "Destino alcançado: Clareira dos Ecos"
           : "Escolha seu primeiro destino";
-        worldMapGuideText.textContent = firstWorldDestinationReached
-          ? "A Clareira dos Ecos foi alcançada. Clique no ponto da clareira quando quiser entrar."
+        worldMapGuideText.textContent = centralSanctuaryUnlocked
+          ? "A Essência dos Ecos revelou a rota para o Santuário Central."
+          : firstWorldDestinationReached
+            ? "A Clareira dos Ecos foi alcançada. Clique no ponto da clareira quando quiser entrar."
           : "Os caminhos serão revelados durante sua jornada. Por enquanto, siga até a Clareira dos Ecos.";
         forestObjective.textContent = firstWorldDestinationReached
           ? "Clareira dos Ecos alcançada"
@@ -13207,6 +13312,13 @@ if (wild) echoWilds.push(wild);
         removeEchoEncounter();
         saveCurrentPlayer();
         await forestPause(720);
+        if (overworldBattleContext?.captureAllowed === false) {
+          overworldBattleContext.result = { outcome: "victory", captured: false };
+          echoBattleMessage.textContent = `${echoEncounter.form.name} foi superado. O desafio do Guardião continua.`;
+          await forestPause(prefersLessMotion() ? 80 : 620);
+          finishEchoEncounter();
+          return;
+        }
         echoBattleChoiceText.textContent = `Participantes receberam +${gainedXp} EXP e os demais membros ativos +${sharedXp} EXP. Deseja tentar absorver a essência de ${echoEncounter.form.name}?`;
         echoBattleChoice.hidden = false;
         startEchoBattleChoiceTimer();
@@ -13214,6 +13326,12 @@ if (wild) echoWilds.push(wild);
       };
 
       let overworldBattleContext = null;
+
+      const battleScreenForStage = (stageId) => {
+        if (stageId === "clareira-dos-ecos-overworld") return "echoOverworldScreen";
+        if (stageId === "santuario-central-overworld") return "centralSanctuaryScreen";
+        return "overworldScreen";
+      };
 
       const finishOverworldLegacyBattle = (result = {}) => {
         const context = overworldBattleContext;
@@ -13233,9 +13351,7 @@ if (wild) echoWilds.push(wild);
         echoEncounter = null;
         echoClearing.hidden = true;
         echoClearing.classList.remove("overworld-battle-only");
-        const returnScreenId = context.stageId === "clareira-dos-ecos-overworld"
-          ? "echoOverworldScreen"
-          : "overworldScreen";
+        const returnScreenId = battleScreenForStage(context.stageId);
         const returnScreen = document.getElementById(returnScreenId);
         if (returnScreen) returnScreen.hidden = false;
         const detail = { encounterId: context.encounterId, ...result };
@@ -13264,11 +13380,10 @@ if (wild) echoWilds.push(wild);
             resolve,
             encounterId: encounter.instanceId,
             stageId: payload.stageId || "bosque-luminal-overworld",
+            captureAllowed: payload.captureAllowed !== false,
             result: { outcome: "victory", captured: false }
           };
-          const sourceScreenId = overworldBattleContext.stageId === "clareira-dos-ecos-overworld"
-            ? "echoOverworldScreen"
-            : "overworldScreen";
+          const sourceScreenId = battleScreenForStage(overworldBattleContext.stageId);
           const sourceScreen = document.getElementById(sourceScreenId);
           if (sourceScreen) sourceScreen.hidden = true;
           openForestMap.hidden = true;
@@ -13749,6 +13864,112 @@ if (wild) echoWilds.push(wild);
           worldMapGuideText.textContent = "Clique na Clareira dos Ecos quando quiser continuar a exploração.";
           currentPlayer.lastCheckpoint = "mundo-naturion-clareira-dos-ecos";
           saveCurrentPlayer();
+        },
+        unlockCentralSanctuary: async () => {
+          ensureEchoPlayerData();
+          currentPlayer = {
+            ...currentPlayer,
+            lastCheckpoint: "mundo-naturion-santuario-central-liberado",
+            storyFlags: {
+              ...(currentPlayer.storyFlags || {}),
+              firstWorldDestinationReached: true,
+              centralSanctuaryUnlocked: true,
+              centralSanctuaryStorySeen: true
+            },
+            activeMission: {
+              ...(currentPlayer.activeMission || {}),
+              status: "active",
+              location: "Santuário Central",
+              objective: "Explore os três níveis do Santuário Central.",
+              progress: "santuario-central-liberado"
+            }
+          };
+          worldCentralDestination.disabled = false;
+          worldCentralDestination.classList.remove("locked");
+          worldCentralDestination.classList.add("unlocked");
+          worldCentralDestination.setAttribute("aria-label", "Viajar para o Santuário Central");
+          worldCentralEnergyRoute.classList.add("active", "unlocking");
+          worldMapObjective.textContent = "Novo destino liberado: Santuário Central";
+          worldMapGuideText.textContent = "A linha de Essência dos Ecos conecta a Clareira ao Santuário Central.";
+          saveCurrentPlayer();
+          window.setTimeout(() => worldCentralEnergyRoute.classList.remove("unlocking"), 1800);
+          window.dispatchEvent(new CustomEvent("naturion:central-sanctuary-unlocked", { detail: currentPlayer }));
+          showToast("Santuário Central desbloqueado!");
+          return true;
+        },
+        travelToCentralSanctuary: async () => {
+          if (worldMapTravelling) return false;
+          worldMapTravelling = true;
+          worldCentralDestination.disabled = true;
+          openMapParty.classList.add("is-moving");
+          worldMapObjective.textContent = "Viajando para o Santuário Central";
+          const route = prefersLessMotion()
+            ? [{ x: 48, y: 45.6 }]
+            : [
+                { x: 33, y: 57.4 },
+                { x: 37.2, y: 54.1 },
+                { x: 41.1, y: 51.1 },
+                { x: 44.7, y: 48.3 },
+                { x: 48, y: 45.6 }
+              ];
+          for (let index = 0; index < route.length; index += 1) {
+            openMapPosition = route[index];
+            positionOpenMapParty();
+            playTone(235 + index * 22, 0, .038, "triangle");
+            await forestPause(prefersLessMotion() ? 25 : 280);
+          }
+          openMapParty.classList.remove("is-moving");
+          worldMapTravelling = false;
+          worldCentralDestination.disabled = false;
+          worldMapObjective.textContent = "Destino alcançado: Santuário Central";
+          worldMapGuideText.textContent = "Entre no Santuário Central para explorar seus três níveis.";
+          return true;
+        },
+        prepareCentralSanctuaryEntry: () => {
+          ensureEchoPlayerData();
+          currentPlayer = {
+            ...currentPlayer,
+            lastCheckpoint: "santuario-central-overworld",
+            storyFlags: {
+              ...(currentPlayer.storyFlags || {}),
+              centralSanctuaryUnlocked: true,
+              centralSanctuaryEntered: true
+            },
+            activeMission: {
+              ...(currentPlayer.activeMission || {}),
+              status: "active",
+              location: "Santuário Central",
+              objective: "Atravesse a Entrada, as Galerias e o Núcleo.",
+              progress: "santuario-central-em-exploracao"
+            }
+          };
+          saveCurrentPlayer();
+          return true;
+        },
+        saveCentralSanctuaryState: (state) => {
+          currentPlayer = {
+            ...currentPlayer,
+            centralSanctuaryProgress: {
+              ...(currentPlayer.centralSanctuaryProgress || {}),
+              ...state,
+              savedAt: new Date().toISOString()
+            },
+            lastCheckpoint: "santuario-central-overworld"
+          };
+          saveCurrentPlayer();
+          return currentPlayer.centralSanctuaryProgress;
+        },
+        returnCentralSanctuaryToWorld: () => {
+          openForestMap.hidden = false;
+          openMapExploring = true;
+          openMapPosition = { x: 48, y: 45.6 };
+          positionOpenMapParty();
+          worldCentralDestination.disabled = false;
+          worldMapObjective.textContent = "Destino alcançado: Santuário Central";
+          worldMapGuideText.textContent = "Clique no Santuário Central quando quiser continuar a expedição.";
+          currentPlayer.lastCheckpoint = "mundo-naturion-santuario-central";
+          saveCurrentPlayer();
+          return true;
         },
         startBattle: startOverworldLegacyBattle
       };
@@ -14448,6 +14669,6 @@ if (wild) echoWilds.push(wild);
     })();
   </script>
   <script type="module" src="src/overworld/main.js?v=2"></script>
-  <script type="module" src="src/overworld/echo-main.js?v=11"></script>
+  <script type="module" src="src/overworld/echo-main.js?v=12"></script>
 </body>
 </html>
