@@ -67,7 +67,7 @@ const appendStylesheet = (id, href) => {
 const ensureCss = () => {
   appendStylesheet("idlePhaseOneCss", "src/overworld/idle/phase1.css?v=8");
   appendStylesheet("idleTreadmillCss", "src/overworld/idle/treadmill.css?v=4");
-  appendStylesheet("centralSanctuaryCss", "src/overworld/idle/central-sanctuary.css?v=1");
+  appendStylesheet("centralSanctuaryCss", "src/overworld/idle/central-sanctuary.css?v=2");
 };
 
 const formFor = (id) => forms()[id] || { id, name: id || "Naturion", type: "Natureza", image: "" };
@@ -164,8 +164,11 @@ const addLog = (message, kind = "info") => {
   ui.log.innerHTML = logs.map((entry) => `<div class="idle-log-entry" data-kind="${html(entry.kind)}"><time>${html(entry.time)}</time><span>${html(entry.message)}</span></div>`).join("");
 };
 
-const treadmillMarkup = () => `<div class="idle-treadmill" aria-hidden="true">${["far", "mid", "near"].map((depth) => `
-  <div class="idle-treadmill-layer idle-treadmill-${depth}"><div class="idle-treadmill-strip"><span></span><span></span><span></span><span></span></div></div>`).join("")}</div>`;
+// O Santuário usa a mesma esteira limpa da Clareira: uma única faixa inteira,
+// sem repetir a imagem em recortes de profundidade que criem sobreposições.
+const treadmillMarkup = () => `<div class="idle-treadmill" aria-hidden="true">
+  <div class="idle-treadmill-layer idle-treadmill-mid"><div class="idle-treadmill-strip"><span></span><span></span><span></span><span></span></div></div>
+</div>`;
 
 const build = () => {
   ensureCss();
@@ -174,7 +177,7 @@ const build = () => {
     <main class="idle-app" style="--speed:1;--sanctuary-scene:url('${LEVELS[0].scene}')">
       <header class="idle-top"><div class="idle-title"><small>Expedição idle · Santuário Central</small><h1 data-map-title>Entrada do Santuário</h1><div class="central-level-pips" aria-label="Níveis do Santuário"><i></i><i></i><i></i></div></div><div class="idle-actions"><button class="idle-btn alt" type="button" data-action="team">Equipe</button><button class="idle-btn warn" type="button" data-action="map">Voltar ao mapa</button></div></header>
       <section class="idle-main">
-        <div class="idle-scene" data-treadmill-ready="true">${treadmillMarkup()}<div class="idle-badge"><strong data-scene-title>Preparando expedição</strong><br><span data-scene-message>Inicie a jornada automática.</span></div><div class="idle-party"><div class="idle-hero-box"><img class="idle-hero" alt=""></div><div class="idle-followers"></div></div><div class="idle-wild"><img alt=""><strong></strong></div></div>
+        <div class="idle-scene" data-treadmill-ready="true">${treadmillMarkup()}<div class="idle-badge"><strong data-scene-title>Preparando expedição</strong><br><span data-scene-message>Inicie a jornada automática.</span></div><div class="idle-party"><div class="idle-hero-box"><img class="idle-hero idle-hero-static" alt=""><span class="idle-hero-walk" aria-hidden="true"></span></div><div class="idle-followers"></div></div><div class="idle-wild"><img alt=""><strong></strong></div></div>
         <aside class="idle-side">
           <section class="idle-card"><div class="idle-progress-head"><div><h2>Progresso</h2><div class="idle-percent" data-progress>0%</div></div><span data-run-state>Pausada</span></div><div class="idle-track"><div class="idle-fill"></div><div class="idle-marks"><i></i><i></i><i></i><i></i><i></i></div></div><p class="idle-segment" data-segment></p></section>
           <section class="idle-card"><h2>Resultados</h2><div class="idle-stats"><div class="idle-stat"><strong data-wins>0</strong><small>Vitórias</small></div><div class="idle-stat"><strong data-captures>0</strong><small>Absorções</small></div><div class="idle-stat"><strong data-defeats>0</strong><small>Recuos</small></div></div></section>
@@ -191,7 +194,7 @@ const build = () => {
 
   ui = {
     root: screen.querySelector(".idle-app"), title: screen.querySelector("[data-map-title]"), pips: [...screen.querySelectorAll(".central-level-pips i")],
-    hero: screen.querySelector(".idle-hero"), followers: screen.querySelector(".idle-followers"), wild: screen.querySelector(".idle-wild"), wildImage: screen.querySelector(".idle-wild img"), wildLabel: screen.querySelector(".idle-wild strong"),
+    scene: screen.querySelector(".idle-scene"), heroBox: screen.querySelector(".idle-hero-box"), hero: screen.querySelector(".idle-hero"), followers: screen.querySelector(".idle-followers"), wild: screen.querySelector(".idle-wild"), wildImage: screen.querySelector(".idle-wild img"), wildLabel: screen.querySelector(".idle-wild strong"),
     sceneTitle: screen.querySelector("[data-scene-title]"), sceneMessage: screen.querySelector("[data-scene-message]"), progress: screen.querySelector("[data-progress]"), fill: screen.querySelector(".idle-fill"), runState: screen.querySelector("[data-run-state]"), segment: screen.querySelector("[data-segment]"), wins: screen.querySelector("[data-wins]"), captures: screen.querySelector("[data-captures]"), defeats: screen.querySelector("[data-defeats]"), objective: screen.querySelector("[data-objective]"), log: screen.querySelector(".idle-log"),
     toggle: screen.querySelector("[data-action=toggle]"), map: screen.querySelector("[data-action=map]"), team: screen.querySelector("[data-action=team]"), battleMode: screen.querySelector("[data-action=battle-mode]"), battleModeTitle: screen.querySelector("[data-battle-mode-title]"), battleModeHelp: screen.querySelector("[data-battle-mode-help]"), speedButtons: [...screen.querySelectorAll("[data-speed]")],
     flash: screen.querySelector(".central-flash"), flashTitle: screen.querySelector("[data-flash-title]"), defeat: screen.querySelector(".idle-defeat"), defeatCopy: screen.querySelector("[data-defeat-copy]"), defeatSeconds: screen.querySelector("[data-defeat-seconds]"), guardian: screen.querySelector(".central-guardian"), guardianButton: screen.querySelector("[data-action=guardian]"), guardianPips: [...screen.querySelectorAll(".central-guardian-progress i")], puzzle: screen.querySelector(".central-puzzle-two")
@@ -213,6 +216,9 @@ const renderParty = () => {
   const snapshot = player();
   ui.hero.src = snapshot.character === "female" ? "assets/selection/hero-female.webp" : "assets/selection/hero-male.webp";
   ui.hero.alt = snapshot.name || "Protagonista";
+  ui.heroBox.dataset.variant = snapshot.character === "female" ? "female" : "male";
+  ui.heroBox.setAttribute("aria-label", `${snapshot.name || "Protagonista"} caminhando para a direita`);
+  ui.followers.setAttribute("aria-label", "Naturion ativo acompanhando atrás do protagonista");
   ui.followers.replaceChildren();
   roster().slice(0, 1).forEach((member) => {
     const form = formFor(member.formId || member.id);
@@ -232,6 +238,7 @@ const render = () => {
   const automatic = state.battleMode !== "manual";
   ui.root.style.setProperty("--speed", state.speed);
   ui.root.style.setProperty("--sanctuary-scene", `url('${level.scene}')`);
+  ui.scene.style.setProperty("--treadmill-image", `url('${level.scene}')`);
   ui.root.classList.toggle("running", state.running && !busy);
   ui.title.textContent = level.title;
   ui.progress.textContent = `${Math.floor(state.progress)}%`;
@@ -514,7 +521,6 @@ const createEntryModal = () => {
   modal.querySelector("[data-central-entry=confirm]").addEventListener("click", async () => {
     const button = modal.querySelector("[data-central-entry=confirm]");
     button.disabled = true;
-    await bridge()?.travelToCentralSanctuary?.();
     modal.hidden = true;
     button.disabled = false;
     enter();
@@ -574,9 +580,11 @@ ensureCss();
 const entryModal = createEntryModal();
 const storyModal = createStoryModal();
 
-destination?.addEventListener("click", () => {
+destination?.addEventListener("click", async () => {
   const unlocked = Boolean(player().storyFlags?.centralSanctuaryUnlocked || player().echoOverworldProgress?.puzzles?.echoesSolved);
   if (!unlocked || destination.disabled) return;
+  const arrived = await bridge()?.travelToCentralSanctuary?.();
+  if (arrived === false) return;
   entryModal.hidden = false;
   entryModal.querySelector("[data-central-entry=confirm]").focus();
 });

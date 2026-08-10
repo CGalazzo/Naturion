@@ -1,14 +1,16 @@
 #centralSanctuaryScreen.idle-host{position:fixed;z-index:46;inset:0;display:block;width:100vw;height:100svh;min-height:100svh;overflow:hidden;background:#07160e;color:#fff8c9;font-family:var(--pixel-font,ui-monospace,"Courier New",monospace)}
 #centralSanctuaryScreen.idle-host[hidden],.central-story[hidden],.central-entry[hidden],.central-guardian[hidden],.central-puzzle-two[hidden],.central-flash[hidden]{display:none!important}
 #centralSanctuaryScreen .idle-app:before{background-image:var(--sanctuary-scene);background-position:center;background-size:cover;filter:saturate(1.08) contrast(1.04) brightness(.63)}
-#centralSanctuaryScreen .idle-scene{background:#0b2417}
-#centralSanctuaryScreen .idle-treadmill-strip>span{background-image:var(--sanctuary-scene)!important;background-repeat:no-repeat;background-position:center 54%;background-size:cover}
-#centralSanctuaryScreen .idle-treadmill-far span{background-position:center 10%;background-size:112% auto}
-#centralSanctuaryScreen .idle-treadmill-mid span{background-position:center 55%;background-size:108% auto}
-#centralSanctuaryScreen .idle-treadmill-near{opacity:.5}
-#centralSanctuaryScreen .idle-treadmill-near span{background-position:center 86%;background-size:108% auto}
-#centralSanctuaryScreen .idle-party{bottom:13%}
-#centralSanctuaryScreen .idle-wild{bottom:16%}
+#centralSanctuaryScreen .idle-scene{background:#0b2417 var(--treadmill-image) center bottom/cover no-repeat}
+/* Mesma composição limpa da Clareira: uma faixa horizontal inteira. Não há
+   camadas far/near repetindo partes da arte e criando emendas sobrepostas. */
+#centralSanctuaryScreen .idle-treadmill-far,#centralSanctuaryScreen .idle-treadmill-near{display:none}
+#centralSanctuaryScreen .idle-treadmill-mid{z-index:1;inset:0;clip-path:none;opacity:1;filter:none}
+#centralSanctuaryScreen .idle-treadmill-mid .idle-treadmill-strip{width:400%;height:100%;animation-name:idleTreadmillMid;animation-duration:calc(32s/var(--speed));animation-timing-function:linear;animation-iteration-count:infinite;animation-play-state:paused}
+#centralSanctuaryScreen .idle-treadmill-mid span{flex:0 0 25%;height:100%;background-image:var(--treadmill-image)!important;background-position:center bottom;background-repeat:no-repeat;background-size:cover;image-rendering:pixelated}
+#centralSanctuaryScreen .idle-app.running .idle-treadmill-mid .idle-treadmill-strip{animation-play-state:running}
+#centralSanctuaryScreen .idle-party{bottom:15%}
+#centralSanctuaryScreen .idle-wild{bottom:15%}
 .central-level-pips{display:flex;gap:7px;margin-top:8px}.central-level-pips i{width:36px;height:7px;border:1px solid #a9914d;background:#10281b}.central-level-pips i.done{background:#61c963;box-shadow:0 0 7px #6df27b}.central-level-pips i.active{background:#e8ca5c;box-shadow:0 0 8px #fff19b}
 .central-flash{position:fixed;z-index:260;inset:0;display:grid;place-items:center;background:#edffe6;color:#173323;animation:centralFlash 1.8s ease both}.central-flash article{text-align:center;text-transform:uppercase}.central-flash small{display:block;font-weight:1000;letter-spacing:.17em}.central-flash h2{margin:10px 0 0;font-size:clamp(1.4rem,4vw,3rem);text-shadow:2px 2px #fff}
 .central-entry,.central-story,.central-guardian,.central-puzzle-two{position:fixed;z-index:230;inset:0;display:grid;place-items:center;padding:18px;background:#020c07df;backdrop-filter:blur(6px)}

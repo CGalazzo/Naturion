@@ -5154,16 +5154,16 @@
     .world-energy-route {
       position: absolute;
       z-index: 5;
-      top: 45.6%;
-      left: 29.3%;
-      width: 23.9%;
+      top: var(--route-top, 59%);
+      left: var(--route-left, 31.2%);
+      width: var(--route-length, 16.6%);
       height: 3px;
       border-radius: 999px;
       background: linear-gradient(90deg, #5de76b, #baff91 48%, #66f1c7);
       box-shadow: 0 0 5px #75f581, 0 0 14px #50de8e99;
       opacity: 0;
       pointer-events: none;
-      transform: rotate(-32.5deg);
+      transform: rotate(var(--route-angle, -24deg));
       transform-origin: left center;
       transition: opacity .55s ease;
     }
@@ -5187,9 +5187,9 @@
     }
 
     @keyframes centralRouteAwaken {
-      0% { opacity: 0; filter: brightness(1); transform: rotate(-32.5deg) scaleX(0); }
+      0% { opacity: 0; filter: brightness(1); transform: rotate(var(--route-angle, -24deg)) scaleX(0); }
       58% { opacity: 1; filter: brightness(2.1); }
-      100% { opacity: .92; filter: brightness(1); transform: rotate(-32.5deg) scaleX(1); }
+      100% { opacity: .92; filter: brightness(1); transform: rotate(var(--route-angle, -24deg)) scaleX(1); }
     }
 
     .world-crystal-destination {
@@ -11334,6 +11334,48 @@
         openMapParty.style.top = `${openMapPosition.y}%`;
       };
 
+      const updateWorldEnergyRouteGeometry = () => {
+        const canvas = worldCentralEnergyRoute.closest(".world-map-canvas");
+        const startMarker = worldFirstDestination.querySelector(".world-destination-marker");
+        const endMarker = worldCentralDestination.querySelector(".world-destination-marker");
+        if (!canvas || !startMarker || !endMarker || openForestMap.hidden) return;
+
+        const canvasRect = canvas.getBoundingClientRect();
+        const startRect = startMarker.getBoundingClientRect();
+        const endRect = endMarker.getBoundingClientRect();
+        const from = {
+          x: startRect.left + startRect.width / 2 - canvasRect.left,
+          y: startRect.top + startRect.height / 2 - canvasRect.top
+        };
+        const to = {
+          x: endRect.left + endRect.width / 2 - canvasRect.left,
+          y: endRect.top + endRect.height / 2 - canvasRect.top
+        };
+        const deltaX = to.x - from.x;
+        const deltaY = to.y - from.y;
+        const distance = Math.hypot(deltaX, deltaY);
+        if (distance < 1) return;
+
+        const unitX = deltaX / distance;
+        const unitY = deltaY / distance;
+        const startGap = Math.max(startRect.width, startRect.height) / 2 + 4;
+        const endGap = Math.max(endRect.width, endRect.height) / 2 + 4;
+        worldCentralEnergyRoute.style.setProperty("--route-left", `${from.x + unitX * startGap}px`);
+        worldCentralEnergyRoute.style.setProperty("--route-top", `${from.y + unitY * startGap}px`);
+        worldCentralEnergyRoute.style.setProperty("--route-length", `${Math.max(0, distance - startGap - endGap)}px`);
+        worldCentralEnergyRoute.style.setProperty("--route-angle", `${Math.atan2(deltaY, deltaX) * 180 / Math.PI}deg`);
+      };
+
+      const syncCentralEnergyRoute = ({ unlocking = false } = {}) => {
+        const flags = currentPlayer?.storyFlags || {};
+        const visible = Boolean(flags.centralSanctuaryUnlocked && !flags.centralSanctuaryEntered);
+        worldCentralEnergyRoute.classList.toggle("active", visible);
+        worldCentralEnergyRoute.classList.toggle("unlocking", visible && unlocking);
+        requestAnimationFrame(updateWorldEnergyRouteGeometry);
+      };
+
+      window.addEventListener("resize", updateWorldEnergyRouteGeometry, { passive: true });
+
       const createFieldSkillEffect = (sealId) => {
         const starter = STARTERS[selectedStarter];
         const fieldSkill = FIELD_SKILLS[selectedStarter];
@@ -11659,7 +11701,7 @@
         worldCentralDestination.setAttribute("aria-label", centralSanctuaryUnlocked
           ? "Viajar para o Santuário Central"
           : "Destino bloqueado: Santuário Central");
-        worldCentralEnergyRoute.classList.toggle("active", centralSanctuaryUnlocked);
+        syncCentralEnergyRoute();
         worldMapObjective.textContent = centralSanctuaryUnlocked
           ? "Novo destino: Santuário Central"
           : firstWorldDestinationReached
@@ -11729,38 +11771,54 @@
         if (!firstWorldDestinationReached) worldFirstDestination.focus();
       };
 
-      const travelToFirstWorldDestination = async () => {
-        if (worldMapTravelling || firstWorldDestinationReached) return;
-        worldMapTravelling = true;
-        worldFirstDestination.disabled = true;
-        worldMapObjective.textContent = "Viajando para a Clareira dos Ecos";
-        worldMapGuideText.textContent = "Siga a trilha luminosa. Seu companheiro irá acompanhar cada passo.";
-        openMapParty.classList.add("is-moving");
-
-        const route = prefersLessMotion()
-          ? [{ x: 29.3, y: 60.4 }]
-          : [
-              { x: 20.2, y: 77.5 },
-              { x: 21.6, y: 73.2 },
-              { x: 24.1, y: 68.7 },
-              { x: 26.8, y: 64.6 },
-              { x: 29.3, y: 60.4 }
-            ];
-
-        for (let index = 0; index < route.length; index += 1) {
-          openMapPosition = route[index];
+      const animateWorldMapPartyTo = async (target, toneBase = 190) => {
+        const start = { ...openMapPosition };
+        const deltaX = target.x - start.x;
+        const deltaY = target.y - start.y;
+        const distance = Math.hypot(deltaX, deltaY);
+        if (distance < .35) {
+          openMapPosition = { ...target };
           positionOpenMapParty();
-          playTone(180 + index % 2 * 28, 0, .038, "triangle");
-          await forestPause(prefersLessMotion() ? 25 : 390);
+          return false;
         }
 
+        const steps = prefersLessMotion() ? 1 : Math.max(5, Math.ceil(distance / 3.5));
+        openMapParty.classList.add("is-moving");
+        for (let index = 1; index <= steps; index += 1) {
+          const progress = index / steps;
+          openMapPosition = {
+            x: start.x + deltaX * progress,
+            y: start.y + deltaY * progress
+          };
+          positionOpenMapParty();
+          playTone(toneBase + index % 2 * 24, 0, .032, "triangle");
+          await forestPause(prefersLessMotion() ? 25 : 340);
+        }
         openMapParty.classList.remove("is-moving");
+        return true;
+      };
+
+      const travelToFirstWorldDestination = async () => {
+        if (worldMapTravelling) return false;
+        const firstArrival = !firstWorldDestinationReached;
+        worldMapTravelling = true;
+        worldFirstDestination.disabled = true;
+        worldCentralDestination.disabled = true;
+        worldMapObjective.textContent = "Viajando para a Clareira dos Ecos";
+        worldMapGuideText.textContent = "Siga a trilha luminosa. Seu companheiro irá acompanhar cada passo.";
+        await animateWorldMapPartyTo({ x: 29.3, y: 60.4 }, 180);
         worldFirstDestination.classList.add("visited");
         firstWorldDestinationReached = true;
         worldMapTravelling = false;
+        worldFirstDestination.disabled = false;
+        worldCentralDestination.disabled = !currentPlayer.storyFlags?.centralSanctuaryUnlocked;
         worldMapObjective.textContent = "Destino alcançado: Clareira dos Ecos";
-        worldMapGuideText.textContent = "Muito bem! A Clareira dos Ecos foi alcançada. A missão continuará a partir deste ponto.";
+        worldMapGuideText.textContent = firstArrival
+          ? "Muito bem! A Clareira dos Ecos foi alcançada. A missão continuará a partir deste ponto."
+          : "A Clareira dos Ecos foi alcançada. Escolha entrar para continuar a exploração.";
         forestObjective.textContent = "Clareira dos Ecos alcançada";
+        if (!firstArrival) return true;
+
         journeyUnlocked.hidden = false;
         void journeyUnlocked.offsetWidth;
         playSequence([523, 659, 784, 988], .085);
@@ -11792,9 +11850,9 @@
           journeyUnlocked.hidden = true;
         }, prefersLessMotion() ? 120 : 2300);
         showToast("Destino alcançado: Clareira dos Ecos!");
-        worldFirstDestination.disabled = false;
         await forestPause(prefersLessMotion() ? 90 : 520);
         showToast("O novo mapa ampliado da Clareira dos Ecos será adicionado na próxima etapa.");
+        return true;
       };
 
       const echoRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -13770,14 +13828,12 @@ if (wild) echoWilds.push(wild);
           renderForestDialogue();
         },
         showEchoMapPending: async () => {
-          if (!firstWorldDestinationReached) {
-            await travelToFirstWorldDestination();
-          }
+          await travelToFirstWorldDestination();
           openEchoEntryConfirmation();
           return true;
         },
         requestMapEntry: async () => {
-          if (!firstWorldDestinationReached) await travelToFirstWorldDestination();
+          await travelToFirstWorldDestination();
           echoEntryConfirm.hidden = true;
           openMapExploring = false;
           return true;
@@ -13888,7 +13944,7 @@ if (wild) echoWilds.push(wild);
           worldCentralDestination.classList.remove("locked");
           worldCentralDestination.classList.add("unlocked");
           worldCentralDestination.setAttribute("aria-label", "Viajar para o Santuário Central");
-          worldCentralEnergyRoute.classList.add("active", "unlocking");
+          syncCentralEnergyRoute({ unlocking: true });
           worldMapObjective.textContent = "Novo destino liberado: Santuário Central";
           worldMapGuideText.textContent = "A linha de Essência dos Ecos conecta a Clareira ao Santuário Central.";
           saveCurrentPlayer();
@@ -13900,26 +13956,13 @@ if (wild) echoWilds.push(wild);
         travelToCentralSanctuary: async () => {
           if (worldMapTravelling) return false;
           worldMapTravelling = true;
+          worldFirstDestination.disabled = true;
           worldCentralDestination.disabled = true;
-          openMapParty.classList.add("is-moving");
           worldMapObjective.textContent = "Viajando para o Santuário Central";
-          const route = prefersLessMotion()
-            ? [{ x: 48, y: 45.6 }]
-            : [
-                { x: 33, y: 57.4 },
-                { x: 37.2, y: 54.1 },
-                { x: 41.1, y: 51.1 },
-                { x: 44.7, y: 48.3 },
-                { x: 48, y: 45.6 }
-              ];
-          for (let index = 0; index < route.length; index += 1) {
-            openMapPosition = route[index];
-            positionOpenMapParty();
-            playTone(235 + index * 22, 0, .038, "triangle");
-            await forestPause(prefersLessMotion() ? 25 : 280);
-          }
-          openMapParty.classList.remove("is-moving");
+          worldMapGuideText.textContent = "Seu grupo seguirá pelo caminho até o cristal do Santuário.";
+          await animateWorldMapPartyTo({ x: 48, y: 45.6 }, 235);
           worldMapTravelling = false;
+          worldFirstDestination.disabled = false;
           worldCentralDestination.disabled = false;
           worldMapObjective.textContent = "Destino alcançado: Santuário Central";
           worldMapGuideText.textContent = "Entre no Santuário Central para explorar seus três níveis.";
@@ -13943,6 +13986,7 @@ if (wild) echoWilds.push(wild);
               progress: "santuario-central-em-exploracao"
             }
           };
+          worldCentralEnergyRoute.classList.remove("active", "unlocking");
           saveCurrentPlayer();
           return true;
         },
@@ -13965,6 +14009,7 @@ if (wild) echoWilds.push(wild);
           openMapPosition = { x: 48, y: 45.6 };
           positionOpenMapParty();
           worldCentralDestination.disabled = false;
+          syncCentralEnergyRoute();
           worldMapObjective.textContent = "Destino alcançado: Santuário Central";
           worldMapGuideText.textContent = "Clique no Santuário Central quando quiser continuar a expedição.";
           currentPlayer.lastCheckpoint = "mundo-naturion-santuario-central";
