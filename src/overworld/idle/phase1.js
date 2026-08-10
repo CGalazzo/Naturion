@@ -156,7 +156,7 @@ const ensureCss = () => {
   const link = document.createElement("link");
   link.id = "idlePhaseOneCss";
   link.rel = "stylesheet";
-  link.href = "src/overworld/idle/phase1.css?v=4";
+  link.href = "src/overworld/idle/phase1.css?v=5";
   document.head.append(link);
 };
 
