@@ -1,4 +1,4 @@
-import { OverworldEngine, THREE } from "./engine.js";
+import { OverworldEngine, THREE } from "./engine.js?v=2";
 import { OverworldCamera } from "./camera.js";
 import { OverworldInput } from "./input.js";
 import { OverworldPlayer } from "./player.js";
@@ -7,12 +7,14 @@ import { OverworldBattleBridge } from "./battle-bridge.js";
 import { createGroundShadow } from "./sprites.js";
 import { createSpriteMaterial } from "./textures.js";
 import { depthOrderForZ } from "./depth.js";
+import { getTreadmillImageUrl } from "./idle/treadmill-image.js?v=3";
 import {
   bosqueLuminalMap,
   buildBosqueLuminal
 } from "./maps/bosque-luminal.js";
 
 const TUTORIAL_OBJECTIVE = "Siga a orientação da Dra. Íris e encontre Plumirel.";
+const TUTORIAL_TREADMILL_FALLBACK = "assets/overworld/clareira-dos-ecos/ground-v2.webp?v=tutorial-treadmill-safe-1";
 const TUTORIAL_PLUMIREL = Object.freeze({
   id: "plumirel",
   name: "Plumirel",
@@ -97,6 +99,11 @@ const tutorialTreadmill = {
   encounterStarted: false,
   plumirel: null
 };
+const tutorialBackdrop = {
+  element: null,
+  active: false,
+  sceneBackground: null
+};
 
 const bridge = () => window.NaturionOverworldBridge;
 
@@ -109,6 +116,59 @@ const showToast = (message) => {
 };
 
 const getPlayerSnapshot = () => bridge()?.getPlayer?.() || {};
+
+const loadTutorialBackdropImage = async (element) => {
+  try {
+    const url = getTreadmillImageUrl();
+    const image = new Image();
+    image.src = url;
+    if (typeof image.decode === "function") await image.decode();
+    else await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+    });
+    if (tutorialBackdrop.element !== element) return;
+    element.style.setProperty("--tutorial-treadmill-image", `url("${url}")`);
+    element.dataset.imageReady = "true";
+  } catch (error) {
+    if (tutorialBackdrop.element === element) element.dataset.imageReady = "false";
+    console.error("A arte compartilhada da esteira não pôde ser carregada no tutorial.", error);
+  }
+};
+
+const ensureTutorialBackdrop = () => {
+  if (tutorialBackdrop.element?.isConnected) return tutorialBackdrop.element;
+  const element = document.createElement("div");
+  element.className = "tutorial-clareira-treadmill";
+  element.hidden = true;
+  element.setAttribute("aria-hidden", "true");
+  element.style.setProperty("--tutorial-treadmill-image", `url("${TUTORIAL_TREADMILL_FALLBACK}")`);
+  element.innerHTML = `
+    <div class="tutorial-clareira-treadmill-strip">
+      <span></span><span></span><span></span><span></span>
+    </div>`;
+  viewport.prepend(element);
+  tutorialBackdrop.element = element;
+  void loadTutorialBackdropImage(element);
+  return element;
+};
+
+const activateTutorialBackdrop = () => {
+  const element = ensureTutorialBackdrop();
+  element.hidden = false;
+  if (!tutorialBackdrop.active) tutorialBackdrop.sceneBackground = engine?.scene?.background || null;
+  tutorialBackdrop.active = true;
+  if (engine?.scene) engine.scene.background = null;
+  if (mapBuild?.root) mapBuild.root.visible = false;
+};
+
+const restoreTutorialBackdrop = () => {
+  if (tutorialBackdrop.element) tutorialBackdrop.element.hidden = true;
+  if (mapBuild?.root) mapBuild.root.visible = true;
+  if (tutorialBackdrop.active && engine?.scene) engine.scene.background = tutorialBackdrop.sceneBackground;
+  tutorialBackdrop.active = false;
+  tutorialBackdrop.sceneBackground = null;
+};
 
 const prepareTutorialTreadmillTextures = () => {
   const textures = [
@@ -183,6 +243,7 @@ const stopTutorialTreadmill = () => {
   tutorialTreadmill.encounterStarted = false;
   tutorialTreadmill.plumirel = null;
   screen.classList.remove("tutorial-treadmill");
+  restoreTutorialBackdrop();
   input?.reset?.();
   if (input) input.enabled = true;
   restoreTutorialTreadmillTextures();
@@ -197,6 +258,7 @@ const startTutorialTreadmill = () => {
   tutorialTreadmill.active = true;
   tutorialTreadmill.plumirel = plumirel;
   screen.classList.add("tutorial-treadmill");
+  activateTutorialBackdrop();
   input.reset();
   input.enabled = false;
   player.teleport({ x: TUTORIAL_TREADMILL.playerX, z: TUTORIAL_TREADMILL.playerZ });

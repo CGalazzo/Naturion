@@ -34,6 +34,67 @@
   display: none !important;
 }
 
+.tutorial-clareira-treadmill[hidden] {
+  display: none !important;
+}
+
+.tutorial-clareira-treadmill {
+  --tutorial-treadmill-image: url("../assets/overworld/clareira-dos-ecos/ground-v2.webp?v=tutorial-treadmill-safe-1");
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  background: #092116 var(--tutorial-treadmill-image) center bottom / cover no-repeat;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.tutorial-clareira-treadmill::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(3, 13, 8, .22), transparent 34%),
+    linear-gradient(0deg, rgba(2, 12, 7, .52), transparent 44%),
+    radial-gradient(circle at 52% 60%, transparent 26%, rgba(1, 10, 6, .28) 76%);
+}
+
+.tutorial-clareira-treadmill-strip {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  width: 400%;
+  height: 100%;
+  transform: translate3d(0, 0, 0);
+  animation: tutorialClareiraTreadmill 32s linear infinite paused;
+  will-change: transform;
+}
+
+.tutorial-clareira-treadmill-strip > span {
+  flex: 0 0 25%;
+  height: 100%;
+  background-image: var(--tutorial-treadmill-image);
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: cover;
+  image-rendering: pixelated;
+}
+
+.tutorial-clareira-treadmill-strip > span:nth-child(even) {
+  transform: scaleX(-1);
+}
+
+.overworld-screen.tutorial-treadmill .tutorial-clareira-treadmill-strip {
+  animation-play-state: running;
+}
+
+.overworld-screen.tutorial-treadmill .overworld-canvas {
+  z-index: 1;
+  background: transparent;
+}
+
 .overworld-canvas {
   display: block;
   width: 100%;
@@ -352,6 +413,11 @@
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
+@keyframes tutorialClareiraTreadmill {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
 @media (pointer: coarse), (max-width: 900px) {
   .overworld-mobile-controls { display: flex; }
   .overworld-controls-help { display: none; }
@@ -373,4 +439,5 @@
 @media (prefers-reduced-motion: reduce) {
   .overworld-interaction { animation: none; }
   .overworld-tool { transition: none; }
+  .tutorial-clareira-treadmill-strip { animation: none; }
 }
