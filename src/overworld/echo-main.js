@@ -3,3 +3,4 @@ import "./idle/background-fix.js?v=2";
 import "./idle/phase1.js?v=8";
 import "./idle/treadmill.js?v=6";
 import "./idle/central-sanctuary.js?v=2";
+import "./idle/central-guardian-scene.js?v=1";
