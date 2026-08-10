@@ -9331,8 +9331,14 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="src/battle/type-effectiveness.js?v=1"></script>
   <script>
     (() => {
+      const {
+        getPrimaryType,
+        getTypeMultiplier,
+        resolveTypedDamage
+      } = window.NaturionTypeSystem;
       const STORAGE_KEY = "naturion-settings-v2";
       const PLAYER_KEY = "naturion-player-v1";
       const titleScreen = document.getElementById("titleScreen");
@@ -9693,6 +9699,7 @@
         axolume: {
           maxHp: 34,
           skill: "Jato Cristalino",
+          attackType: "Água",
           skillHint: "Água · Poder 10",
           basicDamage: 7,
           skillDamage: 10,
@@ -9702,6 +9709,7 @@
         brasguax: {
           maxHp: 32,
           skill: "Brasa Viva",
+          attackType: "Fogo",
           skillHint: "Fogo · Poder 10",
           basicDamage: 8,
           skillDamage: 10,
@@ -9711,6 +9719,7 @@
         musgurso: {
           maxHp: 38,
           skill: "Broto Impacto",
+          attackType: "Planta",
           skillHint: "Planta · Poder 10",
           basicDamage: 7,
           skillDamage: 10,
@@ -10757,6 +10766,11 @@
         battleMessage.classList.remove("show");
       };
 
+      const showBattleEffectiveness = async (result) => {
+        if (!result.message) return;
+        await showBattleMessage(result.message, 460);
+      };
+
       const createBattleSparks = (target, color, count = 16) => {
         const isWildTarget = target === "wild";
         for (let index = 0; index < count; index += 1) {
@@ -10791,12 +10805,15 @@
       };
 
       const runWildTurn = async (damage, defended = false) => {
+        const starter = STARTERS[selectedStarter];
+        const result = resolveTypedDamage(damage, "Voador", starter.type);
         await showBattleMessage(defended ? "Plumirel usa Rajada de Plumas!" : "Plumirel contra-ataca!");
         battleWild.classList.add("strike");
         playSequence([760, 920, 680], .045);
         await forestPause(280);
-        await animateHit("player", damage, "#fff0af");
+        await animateHit("player", result.damage, "#fff0af");
         battleWild.classList.remove("strike");
+        await showBattleEffectiveness(result);
         if (defended) {
           await showBattleMessage("A defesa reduziu o dano!", 430);
         }
@@ -10860,21 +10877,25 @@
         setBattleControls();
 
         if (battleStep === 0) {
+          const result = resolveTypedDamage(battleData.basicDamage, "Normal", "Voador");
           await showBattleMessage(`${starter.name} usa Ataque Básico!`);
           battlePlayer.classList.add("strike");
           await forestPause(260);
-          await animateHit("wild", battleData.basicDamage, "#fff3a1");
+          await animateHit("wild", result.damage, "#fff3a1");
           battlePlayer.classList.remove("strike");
+          await showBattleEffectiveness(result);
           await runWildTurn(5);
           battleStep = 1;
           setBattleGuide(`Ótimo. Agora use ${battleData.skill}, a técnica elemental de ${starter.name}.`);
         } else if (battleStep === 1) {
+          const result = resolveTypedDamage(battleData.skillDamage, battleData.attackType, "Voador");
           await showBattleMessage(`${starter.name} usa ${battleData.skill}!`);
           battlePlayer.classList.add("strike");
           playSequence(STARTERS[selectedStarter].sound, .045);
           await forestPause(260);
-          await animateHit("wild", battleData.skillDamage, battleData.accent);
+          await animateHit("wild", result.damage, battleData.accent);
           battlePlayer.classList.remove("strike");
+          await showBattleEffectiveness(result);
           await runWildTurn(4);
           battleStep = 2;
           setBattleGuide("Você também pode defender. A defesa reduz bastante o próximo dano recebido.");
@@ -10887,11 +10908,15 @@
           battleStep = 3;
           setBattleGuide("Muito bem! Plumirel está cansado. Finalize o combate com outro ataque básico.");
         } else {
+          const multiplier = getTypeMultiplier("Normal", "Voador");
+          const baseDamage = Math.ceil(wildBattleHp / multiplier);
+          const result = resolveTypedDamage(baseDamage, "Normal", "Voador");
           await showBattleMessage(`${starter.name} avança com Ataque Básico!`);
           battlePlayer.classList.add("strike");
           await forestPause(260);
-          await animateHit("wild", wildBattleHp, "#fff3a1");
+          await animateHit("wild", result.damage, "#fff3a1");
           battlePlayer.classList.remove("strike");
+          await showBattleEffectiveness(result);
           await resolveBattleVictory();
           return;
         }
@@ -12908,7 +12933,7 @@ if (wild) echoWilds.push(wild);
         fitEchoBattleSprite(echoBattlePlayerImage);
         echoBattlePlayerName.textContent = form.name;
         echoBattlePlayerLevel.textContent = `Nv. ${member.level}`;
-        echoElementalHint.textContent = `${form.type} · Poder ${11 + Math.floor(member.level / 4)}`;
+        echoElementalHint.textContent = `${getPrimaryType(form.type)} · Poder ${11 + Math.floor(member.level / 4)}`;
         echoPlayerFighter.classList.toggle("switching", animate);
         if (animate) {
           window.setTimeout(() => echoPlayerFighter.classList.remove("switching"), 720);
@@ -13220,11 +13245,14 @@ if (wild) echoWilds.push(wild);
           echoBattleMessage.textContent = `${playerForm.name} se prepara para reduzir o próximo dano.`;
           playTone(392, 0, .12, "triangle");
         } else {
-          damage = action === "elemental"
+          const baseDamage = action === "elemental"
             ? echoRandom(10, 14) + Math.floor(member.level / 4)
             : echoRandom(7, 10) + Math.floor(member.level / 6);
+          const attackType = action === "elemental" ? getPrimaryType(playerForm.type) : "Normal";
+          const result = resolveTypedDamage(baseDamage, attackType, echoEncounter.form.type);
+          damage = result.damage;
           echoBattleMessage.textContent = action === "elemental"
-            ? `${playerForm.name} usa um ataque de ${playerForm.type}!`
+            ? `${playerForm.name} usa um ataque de ${attackType}!`
             : `${playerForm.name} usa Ataque Básico!`;
           echoPlayerFighter.classList.add("strike");
           playSequence(action === "elemental" ? STARTERS[selectedStarter].sound : [330, 440, 523], .055);
@@ -13235,6 +13263,10 @@ if (wild) echoWilds.push(wild);
           await forestPause(280);
           echoPlayerFighter.classList.remove("strike");
           echoWildFighter.classList.remove("hit");
+          if (result.message) {
+            echoBattleMessage.textContent = result.message;
+            await forestPause(460);
+          }
           if (echoWildHpValue <= 0) {
             await resolveEchoVictory();
             return;
@@ -13242,8 +13274,11 @@ if (wild) echoWilds.push(wild);
         }
 
         await forestPause(260);
-        const wildDamage = Math.max(2, echoRandom(5, 9) + Math.floor(echoEncounter.level / 4) - (defended ? 5 : 0));
-        echoBattleMessage.textContent = `${echoEncounter.form.name} contra-ataca${defended ? ", mas a defesa reduz o impacto" : ""}!`;
+        const wildBaseDamage = Math.max(2, echoRandom(5, 9) + Math.floor(echoEncounter.level / 4) - (defended ? 5 : 0));
+        const wildAttackType = getPrimaryType(echoEncounter.form.type);
+        const wildResult = resolveTypedDamage(wildBaseDamage, wildAttackType, playerForm.type);
+        const wildDamage = wildResult.damage;
+        echoBattleMessage.textContent = `${echoEncounter.form.name} usa um ataque de ${wildAttackType}${defended ? ", mas a defesa reduz o impacto" : ""}!`;
         echoWildFighter.classList.add("strike");
         playSequence([620, 510, 390], .05);
         await forestPause(300);
@@ -13253,6 +13288,10 @@ if (wild) echoWilds.push(wild);
         await forestPause(320);
         echoWildFighter.classList.remove("strike");
         echoPlayerFighter.classList.remove("hit");
+        if (wildResult.message) {
+          echoBattleMessage.textContent = wildResult.message;
+          await forestPause(460);
+        }
         if (echoPlayerHpValue <= 0) {
           await resolveEchoKnockout();
           return;
