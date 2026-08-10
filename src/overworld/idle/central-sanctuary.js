@@ -472,6 +472,7 @@ const returnMap = () => {
   if (!active || guardianBattle) return;
   clearDefeatTimer();
   state.running = false;
+  state.progress = 0;
   save(true);
   active = false;
   busy = false;
