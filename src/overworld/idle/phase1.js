@@ -156,7 +156,7 @@ const ensureCss = () => {
   const link = document.createElement("link");
   link.id = "idlePhaseOneCss";
   link.rel = "stylesheet";
-  link.href = "src/overworld/idle/phase1.css?v=4";
+  link.href = "src/overworld/idle/phase1.css?v=5";
   document.head.append(link);
 };
 
@@ -685,10 +685,20 @@ class PuzzleOne {
         <header class="idle-puzzle-header"><small>Puzzle 1 de 3</small><h2>Círculo dos Ecos</h2>
           <p>Observe a ordem em que as três runas despertam e repita a sequência.</p></header>
         <div class="idle-puzzle-board">
-          <div class="idle-crystal"></div>
-          <button class="idle-rune" type="button" data-rune="0">◇</button>
-          <button class="idle-rune" type="button" data-rune="1">◆</button>
-          <button class="idle-rune" type="button" data-rune="2">✦</button>
+          <img
+            class="idle-puzzle-art"
+            src="assets/puzzle/circle-of-echoes-arena.webp"
+            alt=""
+            width="1672"
+            height="941"
+          >
+          <div class="idle-crystal" aria-hidden="true"></div>
+          <button class="idle-rune" type="button" data-rune="0" aria-label="Runa do pedestal superior"><span aria-hidden="true">◇</span></button>
+          <i class="idle-energy-path" data-path="0" aria-hidden="true"></i>
+          <button class="idle-rune" type="button" data-rune="1" aria-label="Runa do pedestal inferior direito"><span aria-hidden="true">◆</span></button>
+          <i class="idle-energy-path" data-path="1" aria-hidden="true"></i>
+          <button class="idle-rune" type="button" data-rune="2" aria-label="Runa do pedestal inferior esquerdo"><span aria-hidden="true">✦</span></button>
+          <i class="idle-energy-path" data-path="2" aria-hidden="true"></i>
         </div>
         <footer class="idle-puzzle-footer">
           <p class="idle-puzzle-status" aria-live="polite">Ouça os Ecos para revelar a sequência.</p>
@@ -702,7 +712,15 @@ class PuzzleOne {
     this.status = this.element.querySelector(".idle-puzzle-status");
     this.start = this.element.querySelector("[data-puzzle=start]");
     this.closeButton = this.element.querySelector("[data-puzzle=close]");
+    this.art = this.element.querySelector(".idle-puzzle-art");
     this.runes = [...this.element.querySelectorAll("[data-rune]")];
+    const showArtError = () => {
+      this.element.classList.add("art-error");
+      this.status.textContent = "Não foi possível carregar a arena do puzzle. Volte à expedição e tente novamente.";
+      this.start.disabled = true;
+    };
+    this.art.addEventListener("error", showArtError, { once: true });
+    if (this.art.complete && this.art.naturalWidth === 0) showArtError();
     this.start.addEventListener("click", () => void this.begin());
     this.closeButton.addEventListener("click", () => this.close());
     this.runes.forEach((rune) => rune.addEventListener("click", () => void this.choose(Number(rune.dataset.rune))));
