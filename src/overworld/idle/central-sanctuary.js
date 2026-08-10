@@ -473,6 +473,7 @@ const returnMap = () => {
   clearDefeatTimer();
   state.running = false;
   state.progress = 0;
+  if (state.levelIndex === 2 && state.guardianDefeated) state.guardianDefeated = false;
   save(true);
   active = false;
   busy = false;
@@ -498,7 +499,7 @@ const enter = () => {
   clearDefeatTimer();
   ui.defeat.hidden = true;
   ui.guardian.hidden = true;
-  ui.puzzle.hidden = !state.puzzleTwoUnlocked;
+  ui.puzzle.hidden = !(state.puzzleTwoUnlocked && state.guardianDefeated && state.progress >= 100);
   addLog(`${LEVELS[state.levelIndex].title} preparada. As nove espécies podem aparecer nesta rota.`);
   renderParty();
   render();
