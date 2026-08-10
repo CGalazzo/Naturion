@@ -29,7 +29,7 @@ assert.doesNotMatch(index, /\.starter-card::before/, "a seleção não deve dese
 assert.doesNotMatch(index, /starter-capsule-selected/, "o contorno geométrico animado não deve permanecer");
 assert.match(
   index,
-  /\.starter-image\s*\{[\s\S]*?top:\s*10%;[\s\S]*?height:\s*68%;/,
+  /\.starter-image\s*\{[\s\S]*?top:\s*20%;[\s\S]*?height:\s*68%;/,
   "os iniciais precisam ficar mais baixos, dentro dos tubos e separados das caixas de nome"
 );
 assert.match(

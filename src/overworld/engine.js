@@ -48,7 +48,7 @@ export class OverworldEngine {
     this.scene.background = new THREE.Color(map.palette.sky);
     this.renderer = new THREE.WebGLRenderer({
       antialias: false,
-      alpha: false,
+      alpha: true,
       powerPreference: "high-performance",
       precision: "mediump",
       preserveDrawingBuffer: false
